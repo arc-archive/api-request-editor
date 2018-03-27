@@ -1,0 +1,30 @@
+{
+  "name": "@api-components/api-request-editor",
+  "description": "A request editor that builds the UI based on AMF model or presents default empty editor.",
+  "version": "2.0.0-preview",
+  "license": "Apache-2.0",
+  "main": "api-request-editor.html",
+  "authors": [
+    "pawel Psztyc",
+    "The Advanced REST client authors <arc@mulesoft.com>"
+  ],
+  "devDependencies": {
+    "@polymer/gen-typescript-declarations": "^1.1.1",
+    "bower": "^1.8.0"
+  },
+  "private": false,
+  "scripts": {
+    "lint": "polymer lint api-request-editor.html",
+    "test-sauce": "polymer test --plugin sauce --job-name \"api-request-editor:local-test\"",
+    "test": "polymer test --plugin local",
+    "update-types": "gen-typescript-declarations --deleteExisting --outDir ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/advanced-rest-client/api-request-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/advanced-rest-client/api-request-editor/issues",
+    "email": "arc@mulesoft.com"
+  }
+}

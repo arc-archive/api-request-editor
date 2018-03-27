@@ -1,0 +1,118 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../api-url-data-model/api-url-data-model.html">
+<link rel="import" href="../api-url-editor/api-url-editor.html">
+<link rel="import" href="../api-url-params-editor/api-url-params-editor.html">
+<link rel="import" href="../raml-aware/raml-aware.html">
+
+<dom-module id="api-request-editor">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+    </style>
+    <template is="dom-if" if="[[aware]]">
+      <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
+    </template>
+
+    <api-url-data-model
+      aware="[[aware]]"
+      endpoint-path="{{endpointPath}}"
+      api-base-uri="{{apiBaseUri}}"
+      selected="[[selectedAmfId]]"
+      path-model="{{pathModel}}"
+      query-model="{{queryModel}}"></api-url-data-model>
+    <div class="content">
+      <div class="url-editor" hidden$="[[noUrlEditor]]">
+        <api-url-editor
+          required
+          auto-validate
+          base-uri="[[_computeFinaleBaseUri(apiBaseUri,baseUri)]]"
+          endpoint-path="[[endpointPath]]"
+          query-model="{{queryModel}}"
+          path-model="{{pathModel}}"
+          value="{{url}}"></api-url-editor>
+      </div>
+      <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" allow-custom></api-url-params-editor>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `api-request-editor`
+     * A request editor that builds the UI based on AMF model or presents default empty editor.
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class ApiRequestEditor extends Polymer.Element {
+      static get is() { return 'api-request-editor'; }
+      static get properties() {
+        return {
+          /**
+           * `raml-aware` scope property to use.
+           */
+          aware: String,
+          /**
+           * AMF HTTP method (operation in AMF vocabulary) ID.
+           */
+          selectedAmfId: String,
+          /**
+           * AMF API model.
+           * The element extracts method definition from passed model
+           * and by using `selectedAmfId`.
+           */
+          amfModel: Object,
+          /**
+           * Hides the URL editor from the view.
+           * The editor is still in the DOM and the `urlInvalid` property still will be set.
+           */
+          noUrlEditor: Boolean,
+          /**
+           * A base URI for the API. To be set if RAML spec is missing `baseUri`
+           * declaration and this produces invalid URL input. This information
+           * is passed to the URL editor that prefixes the URL with `baseUri` value
+           * if passed URL is a relative URL.
+           */
+          baseUri: String,
+          // Headers for the request.
+          headers: {
+            type: String,
+            notify: true
+          },
+          // Body for the request
+          payload: {
+            type: String,
+            notify: true
+          },
+          // Current URL
+          url: {
+            type: String,
+            notify: true
+          },
+        };
+      }
+      /**
+       * Computes base URI passed to the URL editor.
+       *
+       * @param {String} apiBaseUri Computed from AMF base uri
+       * @param {?String} customBaseUri Base URI that overrides api base uri
+       * @return {String} `customBaseUri` if present or `apiBaseUri`
+       */
+      _computeFinaleBaseUri(apiBaseUri, customBaseUri) {
+        if (customBaseUri) {
+          return customBaseUri;
+        }
+        return apiBaseUri;
+      }
+    }
+
+    window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
+  </script>
+</dom-module>
