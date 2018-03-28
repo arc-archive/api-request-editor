@@ -3,8 +3,17 @@
 <link rel="import" href="../api-url-data-model/api-url-data-model.html">
 <link rel="import" href="../api-url-editor/api-url-editor.html">
 <link rel="import" href="../api-url-params-editor/api-url-params-editor.html">
+<link rel="import" href="../authorization-panel/authorization-panel.html">
+<link rel="import" href="../api-headers-editor/api-headers-editor.html">
+<link rel="import" href="../api-body-editor/api-body-editor.html">
 <link rel="import" href="../raml-aware/raml-aware.html">
-
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../paper-tabs/paper-tab.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../paper-toast/paper-toast.html">
 <dom-module id="api-request-editor">
   <template>
     <style>
@@ -19,7 +28,6 @@
     <template is="dom-if" if="[[aware]]">
       <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
     </template>
-
     <api-url-data-model
       aware="[[aware]]"
       endpoint-path="{{endpointPath}}"
@@ -27,22 +35,52 @@
       selected="[[selectedAmfId]]"
       path-model="{{pathModel}}"
       query-model="{{queryModel}}"></api-url-data-model>
+
     <div class="content">
       <div class="url-editor" hidden$="[[noUrlEditor]]">
         <api-url-editor
           required
           auto-validate
+          invalid="{{urlInvalid}}"
           base-uri="[[_computeFinaleBaseUri(apiBaseUri,baseUri)]]"
           endpoint-path="[[endpointPath]]"
           query-model="{{queryModel}}"
           path-model="{{pathModel}}"
           value="{{url}}"></api-url-editor>
       </div>
-      <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" allow-custom></api-url-params-editor>
+      <paper-tabs selected="{{selectedTab}}">
+        <paper-tab hidden$="[[authNotRequired]]">
+          Authorization
+          <iron-icon icon="arc:warning" class="panel-warning" hidden$="[[authValid]]" title="Fill up missing auth data"></iron-icon>
+        </paper-tab>
+        <paper-tab>Parameters</paper-tab>
+        <paper-tab>Headers</paper-tab>
+        <paper-tab hidden$="[[!isPayloadRequest]]">Body</paper-tab>
+      </paper-tabs>
+      <iron-pages selected="{{selectedTab}}">
+        <authorization-panel hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
+        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" allow-custom></api-url-params-editor>
+        <api-headers-editor amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}"></api-headers-editor>
+        <api-body-editor narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}"></api-body-editor>
+      </iron-pages>
+      <div class="action-bar">
+        <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
+        <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
+        <paper-button class="action-button" on-tap="execute" hidden$="[[!authValid]]" disabled="[[urlInvalid]]">Send</paper-button>
+        <template is="dom-if" if="[[!authValid]]">
+          <paper-button class="action-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+        </template>
+      </div>
     </div>
   </template>
 
   <script>
+  (function() {
+    const RAML_VOC = 'http://raml.org/vocabularies/';
+    const VOC_DOC = RAML_VOC + 'document#';
+    const VOC_HTTP = RAML_VOC+ 'http#';
+    const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
+    const HTTP_PARAM = VOC_HTTP + 'parameter';
     /**
      * `api-request-editor`
      * A request editor that builds the UI based on AMF model or presents default empty editor.
@@ -69,6 +107,10 @@
            * and by using `selectedAmfId`.
            */
           amfModel: Object,
+          _methodModel: {
+            type: Object,
+            computed: '_computeMethodModel(amfModel, selectedAmfId)'
+          },
           /**
            * Hides the URL editor from the view.
            * The editor is still in the DOM and the `urlInvalid` property still will be set.
@@ -96,6 +138,48 @@
             type: String,
             notify: true
           },
+          // Selected request tab.
+          selectedTab: {
+            type: Number,
+            value: 0,
+            notify: true
+          },
+          // Current content type.
+          contentType: {
+            type: String,
+            notify: true
+          },
+          /**
+           * Computed value of security scheme from selected method.
+           *
+           * @type {Array<Object>}
+           */
+          securedBy: {
+            type: Array,
+            computed: '_computeSecuredBy(_methodModel)'
+          },
+          apiHeaders: {
+            type: Array,
+            computed: '_computeHeaders(_methodModel)'
+          },
+          // OAuth2 redirect URL
+          redirectUri: String,
+          // Received from the authorization panel state if authorization is required
+          authRequired: Boolean,
+          // Received from the authorization panel state if authorization data is valid
+          authValid: Boolean,
+          /**
+           * If set it will renders the view in the narrow layout.
+           */
+          narrow: {
+            type: Boolean,
+            notify: true,
+            reflectToAttribute: true
+          },
+          authNotRequired: {
+            type: Boolean,
+            computed: '_computeNoAuth(securedBy)'
+          }
         };
       }
       /**
@@ -111,8 +195,134 @@
         }
         return apiBaseUri;
       }
+      /**
+       * Computes method model from the AMF model
+       *
+       * @param {[type]} api [description]
+       * @return {[type]} [description]
+       */
+      _computeMethodModel(api, id) {
+        if (!id) {
+          return;
+        }
+        if (!api) {
+          return;
+        }
+        const endpointId = this.computeEndpointId(id);
+        const endpoint = this.findEndpoint(endpointId, api);
+        if (!endpoint) {
+          return;
+        }
+        if (endpointId === id) {
+          return;
+        }
+        return this.findMethod(id, endpoint[HYD_CORE + 'supportedOperation']);
+      }
+
+      /**
+       * Computes endpoint `@id` for given `id`.
+       * On a base level it subrtacts the last part after `/` which
+       * is a delimiter between endpoint identifier and method name.
+       *
+       * @param {String} id Object ID. Can be operation's or endpoint's ID.
+       * @return {String} Endpoint id. It may return the same value if passed
+       * id is endpoint ID.
+       */
+      computeEndpointId(id) {
+        if (!id) {
+          throw new Error('Argument "id" is required.');
+        }
+        const parts = id.split('/');
+        if (parts[parts.length - 1][0] === '%') {
+          return id;
+        }
+        parts.pop();
+        return parts.join('/');
+      }
+      /**
+       * Finds an endpoint definition in the API.
+       *
+       * @param {String} endpointId Endpoint `@id` from AMF model
+       * @param {?Object} api AMD model for the api. If not set, `webApi` property
+       * is used.
+       * @return {Object} Definition of the endpoint.
+       */
+      findEndpoint(endpointId, api) {
+        if (api instanceof Array) {
+          api = api[0];
+        }
+        if (!this._modelHasType(api, VOC_DOC + 'Document')) {
+          return;
+        }
+        const encodes = api[VOC_DOC + 'encodes'];
+        api = encodes.find((item) => this._modelHasType(item, 'http://schema.org/WebAPI'));
+        if (!api) {
+          return;
+        }
+        api = api[VOC_HTTP + 'endpoint'];
+        if (!api) {
+          return;
+        }
+        return api.find((item) => item['@id'] === endpointId);
+      }
+      /**
+       * Finds a method definition on the list of operations for an endpoint.
+       *
+       * @param {String} id ID of the operation (method)
+       * @param {Array<Object>} operations List of endpoint's operations.
+       * @return {Object|undefined} Method definition.
+       */
+      findMethod(id, operations) {
+        if (!id || !operations || !operations.length) {
+          return;
+        }
+        return operations.find((item) => item['@id'] === id);
+      }
+
+      /**
+       * Checks if a model has a type.
+       * @param {Object} model Model to test
+       * @param {String} type Type name
+       * @return {Boolean} True if model has a type.
+       */
+      _modelHasType(model, type) {
+        const types = model['@type'] || [];
+        const index = types.findIndex((item) => item === type);
+        return index !== -1;
+      }
+      /**
+       * Computes AMF model for authorization panel.
+       *
+       * @param {Object} model Current method model.
+       * @return {Array|undefined} List of security definitions for the endpoint.
+       */
+      _computeSecuredBy(model) {
+        return model && model[RAML_VOC + 'security#security'];
+      }
+      /**
+       * Computes model definition for headers.
+       *
+       * @param {?Object} model Method model
+       * @return {Array|undefined} List of headers or undefined.
+       */
+      _computeHeaders(model) {
+        if (!model) {
+          return;
+        }
+        model = model[HYD_CORE + 'expects'];
+        if (!model) {
+          return;
+        }
+        model = model[0];
+        return model[VOC_HTTP + 'header'];
+      }
+
+      _computeNoAuth(model) {
+        return !(model);
+      }
     }
 
     window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
+  })();
   </script>
 </dom-module>
