@@ -37,6 +37,9 @@
         --code-mirror-wrapper: {
           display: block;
         };
+        --arc-font-body1: {
+          @apply --paper-font-body1;
+        };
       }
       html,
       body {
@@ -76,11 +79,13 @@
           </paper-dropdown-menu>
         </header>
         <section role="main" class="vertical-section-container centered main">
-          <api-request-editor narrow="[[narrow]]" aware="api-demo" selected-amf-id="[[selectedAmfId]]" allow-hide-optional allow-disable-params allow-custom="[[allowCustom]]"></api-request-editor>
+          <api-request-editor narrow="[[narrow]]" aware="api-demo" selected-amf-id="[[selectedAmfId]]" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-request-editor>
         </section>
         <section class="vertical-section-container centered">
           <paper-checkbox checked="{{narrow}}">Render narrow view</paper-checkbox>
           <paper-checkbox checked="{{allowCustom}}">Allow custom properties</paper-checkbox>
+          <paper-checkbox checked="{{allowHideOptional}}">Allow auto hide optional headers</paper-checkbox>
+          <paper-checkbox checked="{{allowDisableParams}}">Allow disabling parameters</paper-checkbox>
         </section>
       </template>
     </dom-bind>

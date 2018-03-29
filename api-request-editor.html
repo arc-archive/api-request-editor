@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/utils/render-status.html">
 <link rel="import" href="../api-url-data-model/api-url-data-model.html">
 <link rel="import" href="../api-url-editor/api-url-editor.html">
 <link rel="import" href="../api-url-params-editor/api-url-params-editor.html">
@@ -14,15 +15,85 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
 <link rel="import" href="../paper-toast/paper-toast.html">
+<link rel="import" href="../api-form-mixin/api-form-styles.html">
 <dom-module id="api-request-editor">
   <template>
-    <style>
+    <style include="api-form-styles">
     :host {
       display: block;
     }
 
+    .content {
+      height: 100%;
+      @apply --layout-vertical;
+      @apply --api-request-editor-container;
+    }
+
     [hidden] {
       display: none !important;
+    }
+
+    .panel-warning {
+      width: 16px;
+      height: 16px;
+      margin-left: 4px;
+      color: var(--warning-primary-color, #FF7043);
+    }
+
+    .url-invalid-info {
+      @apply --arc-font-body1;
+      color: var(--error-color);
+    }
+
+    paper-spinner {
+      margin-right: 8px;
+    }
+
+    iron-pages > * {
+      border: 1px var(--api-request-editor-editors-border-color, transparent) solid;
+      min-height: 120px;
+    }
+
+    .action-bar {
+      @apply --layout-horizontal;
+      @apply --layout-end-justified;
+      @apply --layout-center;
+      margin-top: 8px;
+    }
+
+    .send-button {
+      background-color: var(--primary-button-background-color, var(--accent-color));
+      color: var(--primary-button-color, #fff);
+      @apply --action-button;
+    }
+
+    .send-button:hover {
+      background-color: var(--primary-button-hover-background-color, var(--accent-color));
+      color: var(--primary-button-hover-color, #fff);
+      @apply --action-button-hover;
+    }
+
+    .send-button[disabled] {
+      background-color: var(--action-button-disabled-background-color, transparent);
+      color: var(--action-button-disabled-color, #a8a8a8);
+    }
+
+    .url-editor {
+      @apply --layout-horizontal;
+      @apply --layout-center;
+    }
+
+    api-url-editor {
+      @apply --layout-flex;
+    }
+
+    :host([narrow]) .content {
+      @apply --layout-vertical;
+      @apply --api-request-editor-container-narrow;
+    }
+
+    :host([narrow]) api-url-editor {
+      width: auto;
     }
     </style>
     <template is="dom-if" if="[[aware]]">
@@ -59,16 +130,16 @@
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
         <authorization-panel hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
-        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" allow-custom></api-url-params-editor>
-        <api-headers-editor amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}"></api-headers-editor>
-        <api-body-editor narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}"></api-body-editor>
+        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]"></api-url-params-editor>
+        <api-headers-editor amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-headers-editor>
+        <api-body-editor amf-model="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
         <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
         <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
-        <paper-button class="action-button" on-tap="execute" hidden$="[[!authValid]]" disabled="[[urlInvalid]]">Send</paper-button>
+        <paper-button class="send-button" on-tap="execute" hidden$="[[!authValid]]" disabled="[[urlInvalid]]">Send</paper-button>
         <template is="dom-if" if="[[!authValid]]">
-          <paper-button class="action-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+          <paper-button class="send-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
       </div>
     </div>
@@ -80,7 +151,6 @@
     const VOC_DOC = RAML_VOC + 'document#';
     const VOC_HTTP = RAML_VOC+ 'http#';
     const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
-    const HTTP_PARAM = VOC_HTTP + 'parameter';
     /**
      * `api-request-editor`
      * A request editor that builds the UI based on AMF model or presents default empty editor.
@@ -123,28 +193,59 @@
            * if passed URL is a relative URL.
            */
           baseUri: String,
-          // Headers for the request.
+          /**
+           * Computed from AMF model for the metod HTTP method name.
+           *
+           * @type {String}
+           */
+          httpMethod: {
+            type: Boolean,
+            value: false,
+            computed: '_computeHttpMethod(_methodModel)'
+          },
+          /**
+           * Headers for the request.
+           *
+           * @type {String|undefined}
+           */
           headers: {
             type: String,
             notify: true
           },
-          // Body for the request
+          /**
+           * Body for the request. The type of the body depends on
+           * defined in the API media type.
+           *
+           * @type {String|FormData|File}
+           */
           payload: {
             type: String,
             notify: true
           },
-          // Current URL
+          /**
+           * Final request URL including settings like `baseUri`, AMF
+           * model settings and user provided parameters.
+           * This value is always compoted by `api-url-editor` even if it's
+           * hidden from the view.
+           */
           url: {
             type: String,
             notify: true
           },
-          // Selected request tab.
+          /**
+           * Selected request tab.
+           */
           selectedTab: {
             type: Number,
             value: 0,
-            notify: true
+            notify: true,
+            observer: '_selectedTabChanged'
           },
-          // Current content type.
+          /**
+           * Current content type.
+           *
+           * @type {String|undefined}
+           */
           contentType: {
             type: String,
             notify: true
@@ -158,15 +259,47 @@
             type: Array,
             computed: '_computeSecuredBy(_methodModel)'
           },
+          /**
+           * Computed list of headers in the AMF model
+           *
+           * @type {Array<Object>}
+           */
           apiHeaders: {
             type: Array,
             computed: '_computeHeaders(_methodModel)'
           },
-          // OAuth2 redirect URL
+          /**
+           * Defined by the API payload data.
+           *
+           * @type {Array<Object>|undefined}
+           */
+          apiPayload: {
+            type: Array,
+            computed: '_computeApiPayload(_methodModel)'
+          },
+          /**
+           * Computed value if the method can carry a payload.
+           */
+          isPayloadRequest: {
+            type: Boolean,
+            value: false,
+            computed: '_computeIsPayloadRequest(httpMethod)'
+          },
+          /**
+           * OAuth2 redirect URI.
+           * This value **must** be set in order for OAuth 1/2 to work properly.
+           */
           redirectUri: String,
-          // Received from the authorization panel state if authorization is required
+          /**
+           * Inheritet from the authorization panel state if authorization is
+           * required. Authorization may be not required if one of the
+           * authorization methods is `nil` (RAML).
+           */
           authRequired: Boolean,
-          // Received from the authorization panel state if authorization data is valid
+          /**
+           * Inheritet from the authorization panel state if authorization
+           * data is valid.
+           */
           authValid: Boolean,
           /**
            * If set it will renders the view in the narrow layout.
@@ -176,10 +309,40 @@
             notify: true,
             reflectToAttribute: true
           },
+          /**
+           * Computed value of if authorization is required for the endpoint.
+           * If the auth is not required then the authorization tab is removed
+           * from the view.
+           */
           authNotRequired: {
             type: Boolean,
-            computed: '_computeNoAuth(securedBy)'
-          }
+            computed: '_computeNoAuth(securedBy)',
+            observer: '_noAuthChanged'
+          },
+          /**
+           * Flag set when the request is being made.
+           */
+          loadingRequest: {
+            type: Boolean,
+            notify: true,
+            readOnly: true
+          },
+          /**
+           * If set it computes `hasOptional` property and shows checkbox in the
+           * form to show / hide optional properties.
+           */
+          allowHideOptional: Boolean,
+          /**
+           * If set, enable / disable param checkbox is rendered next to each
+           * form item.
+           */
+          allowDisableParams: Boolean,
+          /**
+           * When set, renders "add custom" item button.
+           * If the element is to be used withouth AMF model this should always
+           * be enabled. Otherwise users won't be able to add a parameter.
+           */
+          allowCustom: Boolean
         };
       }
       /**
@@ -316,9 +479,116 @@
         model = model[0];
         return model[VOC_HTTP + 'header'];
       }
-
+      /**
+       * Computes if authorization for the endpoint is set.
+       *
+       * @param {Object} model Operation model.
+       * @return {Boolean}
+       */
       _computeNoAuth(model) {
-        return !(model);
+        return !(model && model[0]);
+      }
+      /**
+       * Computes value for `httpMethod` property from AMF model for current
+       * operation.
+       *
+       * @param {Object} model Operation model.
+       * @return {String} Method name.
+       */
+      _computeHttpMethod(model) {
+        const value = model[HYD_CORE + 'method'];
+        return value && value[0]['@value'];
+      }
+      /**
+       * Computes value for `apiPayload` property from AMF model for current
+       * method.
+       *
+       * @param {Object} model Operation model.
+       * @return {Array<Object>|undefined} Method payload.
+       */
+      _computeApiPayload(model) {
+        if (!model) {
+          return;
+        }
+        model = model[HYD_CORE + 'expects'];
+        if (!model) {
+          return;
+        }
+        model = model[0];
+        return model[VOC_HTTP + 'payload'];
+      }
+      /**
+       * Computes value for `isPayloadRequest`.
+       * Only `GET` and `HEAD` methods are known as ones that can't carry a
+       * payload. For any other HTTP method this always returns true.
+       *
+       * @param {String} method HTTP method value
+       * @return {Boolean}
+       */
+      _computeIsPayloadRequest(method) {
+        return ['get', 'head'].indexOf(method) === -1;
+      }
+      /**
+       * Updates tabs selection when `authNotRequired` property change.
+       * It changes selection to the next tab if there's no authorization
+       * and current selected editor is authorization.
+       *
+       * @param {Boolean} value Current value for `authNotRequired`
+       */
+      _noAuthChanged(value) {
+        if (!value && this.selectedTab === 2) {
+          this.selectedTab = 0;
+        } else if (value && this.selectedTab === 0) {
+          this.selectedTab = 1;
+        }
+        this._refreshTabs();
+        this._analyticsEvent('no-auth-changed', String(value));
+      }
+      /**
+       * Updates the state of the body editor when switching to it.
+       * Code mirror does not property calculate it's value when
+       * the editor is not visible. This forces to refresh the value of the
+       * editor.
+       *
+       * @param {Number} selected Selected tam index.
+       */
+      _selectedTabChanged(selected) {
+        if (selected === 3) {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            this.shadowRoot.querySelector('api-body-editor').currentPanel.refresh();
+          });
+        }
+        this._analyticsEvent('tab-changed', selected);
+      }
+
+      /**
+       * Refreshes tabs selection. To be called when number of tabs changes.
+       */
+      _refreshTabs() {
+        const tabs = this.shadowRoot && this.shadowRoot.querySelector('paper-tabs');
+        if (!tabs) {
+          return;
+        }
+        tabs.notifyResize();
+      }
+
+      /**
+       * Dispatches analytics event.
+       * @param {String} action Event action
+       * @param {String} label Event label
+       */
+      _analyticsEvent(action, label) {
+        const e = new CustomEvent('send-analytics', {
+          detail: {
+            type: 'event',
+            category: ApiRequestEditor.is,
+            action: action,
+            label: label
+          },
+          bubbles: true,
+          composed: true
+        });
+        this.dispatchEvent(e);
       }
     }
 
