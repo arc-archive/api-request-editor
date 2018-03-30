@@ -74,7 +74,7 @@
     }
 
     .send-button[disabled] {
-      background-color: var(--action-button-disabled-background-color, transparent);
+      background-color: var(--action-button-disabled-background-color, rgb(234, 234, 234));
       color: var(--action-button-disabled-color, #a8a8a8);
     }
 
@@ -143,8 +143,8 @@
         </template>
       </div>
     </div>
+    <paper-toast text="Authorization for this endpoint is required" id="authFormError" horizontal-align="right" horizontal-offset="12"></paper-toast>
   </template>
-
   <script>
   (function() {
     const RAML_VOC = 'http://raml.org/vocabularies/';
@@ -300,7 +300,10 @@
            * Inheritet from the authorization panel state if authorization
            * data is valid.
            */
-          authValid: Boolean,
+          authValid: {
+            type: Boolean,
+            observer: '_authValidChanged'
+          },
           /**
            * If set it will renders the view in the narrow layout.
            */
@@ -381,7 +384,6 @@
         }
         return this.findMethod(id, endpoint[HYD_CORE + 'supportedOperation']);
       }
-
       /**
        * Computes endpoint `@id` for given `id`.
        * On a base level it subrtacts the last part after `/` which
@@ -571,7 +573,6 @@
         }
         tabs.notifyResize();
       }
-
       /**
        * Dispatches analytics event.
        * @param {String} action Event action
@@ -589,6 +590,66 @@
           composed: true
         });
         this.dispatchEvent(e);
+      }
+
+      authAndExecute() {
+        this.__requestAuthAwaiting = true;
+        if (this.selectedTab !== 0) {
+          this.selectedTab = 0;
+        }
+        this.$.authFormError.opened = true;
+      }
+
+      execute() {
+        this._setLoadingRequest(true);
+        const e = new CustomEvent('api-request', {
+          cancelable: true,
+          bubbles: true,
+          composed: true,
+          detail: this.serializeRequest()
+        });
+        this.dispatchEvent(e);
+      }
+
+      _authValidChanged(valid) {
+        if (!valid) {
+          return;
+        }
+        if (this.__requestAuthAwaiting) {
+          this.execute();
+        }
+      }
+
+      /**
+       * Returns an object with the request properties.
+       * The object contains:
+       * - method (String)
+       * - url (String)
+       * - headers (String)
+       * - payload (String)
+       * - auth (Object)
+       *
+       * The `auth` property is optional and is only added to the request if simple `authorization`
+       * header will not work. For example NTLM auth method has to be made on a single socket
+       * connection (authorization and the request) so it can't be made before the request.
+       *
+       * The `auth` object contains 2 properties:
+       * - type (String) the authorization type - one of from the `auth-methods` element
+       * - settings (Object) Authorization parameters entered by the user. It vary and depends on
+       * selected auth method. For example in case of the NTLM it will be: `username`, `password` and
+       * `domain`.
+       */
+      serializeRequest() {
+        const result = {
+          method: (this.httpMethod || 'get').toUpperCase(),
+          url: this.url,
+          headers: this.headers,
+          payload: this.payload
+        };
+        if (this.authMethod && this.authSettings) {
+          result.auth = this.authSettings;
+        }
+        return result;
       }
     }
 
