@@ -12,9 +12,11 @@
     <link rel="import" href="../../paper-item/paper-item.html">
     <link rel="import" href="../../paper-listbox/paper-listbox.html">
     <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <link rel="import" href="../../paper-toast/paper-toast.html">
     <link rel="import" href="../../raml-aware/raml-aware.html">
     <link rel="import" href="../api-request-editor.html">
     <link rel="import" href="../../neon-animation/web-animations.html">
+    <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
       :root {
@@ -62,6 +64,7 @@
     <dom-bind id="demo">
       <template is="dom-bind">
         <raml-aware raml="{{amfModel}}" scope="api-demo"></raml-aware>
+        <oauth2-authorization></oauth2-authorization>
         <header>
           <paper-dropdown-menu label="Select demo endpoint">
             <paper-listbox slot="dropdown-content" id="enpointsList" selected="{{selectedEndpointIndex}}" on-selected-changed="_endpointChanged">
@@ -87,6 +90,8 @@
           <paper-checkbox checked="{{allowHideOptional}}">Allow auto hide optional headers</paper-checkbox>
           <paper-checkbox checked="{{allowDisableParams}}">Allow disabling parameters</paper-checkbox>
         </section>
+        <paper-toast text="Request send event detected" id="rsend"></paper-toast>
+        <paper-toast text="Request abort event detected" id="rabort"></paper-toast>
       </template>
     </dom-bind>
     <script>
@@ -151,19 +156,24 @@
           const id = app.operations[app.selectedShape].id;
           app.selectedAmfId = id;
         });
-        // app.selectedBody = undefined;
-        // app.payloads = undefined;
-        // app.payloadOptions = undefined;
-        // if (app.selectedShape === undefined || app.selectedShape === -1) {
-        //   return;
-        // }
-        // let data = app.amfModel[0]['http://raml.org/vocabularies/document#encodes'][0];
-        // data = data['http://raml.org/vocabularies/http#endpoint'][app.selectedEndpointIndex];
-        // data = data['http://www.w3.org/ns/hydra/core#supportedOperation'][app.selectedShape];
-        // // data = data['http://www.w3.org/ns/hydra/core#expects'][0];
-        // // data = data['http://raml.org/vocabularies/http#payload'];
-        // app.selectedBody = data;
       };
+      app._apiRequestHandler = function(e) {
+        setTimeout(() => {
+          const ev = new CustomEvent('api-response', {
+            bubbles: true,
+            detail: {
+              id: e.detail.id
+            }
+          });
+          document.body.dispatchEvent(ev);
+        }, 1500);
+        document.getElementById('rsend').opened = true;
+      };
+      app._apiAbortHandler = function() {
+        document.getElementById('rabort').opened = true;
+      };
+      window.addEventListener('api-request', app._apiRequestHandler);
+      window.addEventListener('abort-api-request', app._apiAbortHandler);
       window.addEventListener('WebComponentsReady', () => app._load());
     })(document.getElementById('demo'));
   </script>

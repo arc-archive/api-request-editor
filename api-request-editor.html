@@ -16,6 +16,8 @@
 <link rel="import" href="../paper-spinner/paper-spinner.html">
 <link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="../api-form-mixin/api-form-styles.html">
+<link rel="import" href="../uuid-generator/uuid-generator.html">
+<link rel="import" href="../events-target-behavior/events-target-behavior.html">
 <dom-module id="api-request-editor">
   <template>
     <style include="api-form-styles">
@@ -116,6 +118,7 @@
           endpoint-path="[[endpointPath]]"
           query-model="{{queryModel}}"
           path-model="{{pathModel}}"
+          events-target="[[eventsTarget]]"
           value="{{url}}"></api-url-editor>
       </div>
       <paper-tabs selected="{{selectedTab}}">
@@ -128,21 +131,25 @@
         <paper-tab hidden$="[[!isPayloadRequest]]">Body</paper-tab>
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
-        <authorization-panel hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
+        <authorization-panel events-target="[[eventsTarget]]" hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
         <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]"></api-url-params-editor>
-        <api-headers-editor amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-headers-editor>
-        <api-body-editor amf-model="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
+        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-headers-editor>
+        <api-body-editor events-target="[[eventsTarget]]" amf-model="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
         <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
         <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
-        <paper-button class="send-button" on-tap="execute" hidden$="[[!authValid]]" disabled="[[urlInvalid]]">Send</paper-button>
+        <template is="dom-if" if="[[authValid]]">
+          <paper-button raised class="send-button" on-tap="execute" hidden$="[[loadingRequest]]" disabled="[[urlInvalid]]">Send</paper-button>
+          <paper-button raised class="send-button" on-tap="_abortRequest" hidden$="[[!loadingRequest]]">Abort</paper-button>
+        </template>
         <template is="dom-if" if="[[!authValid]]">
           <paper-button class="send-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
       </div>
     </div>
     <paper-toast text="Authorization for this endpoint is required" id="authFormError" horizontal-align="right" horizontal-offset="12"></paper-toast>
+    <uuid-generator id="uuid"></uuid-generator>
   </template>
   <script>
   (function() {
@@ -157,8 +164,9 @@
      * @customElement
      * @polymer
      * @demo demo/index.html
+     * @appliesMixin ArcBehaviors.EventsTargetBehavior
      */
-    class ApiRequestEditor extends Polymer.Element {
+    class ApiRequestEditor extends ArcBehaviors.EventsTargetBehavior(Polymer.Element) {
       static get is() { return 'api-request-editor'; }
       static get properties() {
         return {
@@ -282,7 +290,8 @@
           isPayloadRequest: {
             type: Boolean,
             value: false,
-            computed: '_computeIsPayloadRequest(httpMethod)'
+            computed: '_computeIsPayloadRequest(httpMethod)',
+            observer: '_isPayloadChanged'
           },
           /**
            * OAuth2 redirect URI.
@@ -299,10 +308,7 @@
            * Inheritet from the authorization panel state if authorization
            * data is valid.
            */
-          authValid: {
-            type: Boolean,
-            observer: '_authValidChanged'
-          },
+          authValid: Boolean,
           /**
            * If set it will renders the view in the narrow layout.
            */
@@ -327,7 +333,7 @@
           loadingRequest: {
             type: Boolean,
             notify: true,
-            readOnly: true
+            value: false
           },
           /**
            * If set it computes `hasOptional` property and shows checkbox in the
@@ -344,8 +350,49 @@
            * If the element is to be used withouth AMF model this should always
            * be enabled. Otherwise users won't be able to add a parameter.
            */
-          allowCustom: Boolean
+          allowCustom: Boolean,
+          // Selected by the user auth method (if any)
+          authMethod: String,
+          // Current authorization settings.
+          authSettings: Object,
+          /**
+           * Generated request ID when the request is sent. This value is reported
+           * in send and abort events
+           */
+          requestId: String
         };
+      }
+      /**
+       * @constructor
+       */
+      constructor() {
+        super();
+        super._authSettingsChanged = this._authSettingsChanged.bind(this);
+        this._responseHandler = this._responseHandler.bind(this);
+        this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
+      }
+
+      _attachListeners(node) {
+        this.addEventListener('authorization-settings-changed', super._authSettingsChanged);
+        node.addEventListener('api-response', this._responseHandler);
+        node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
+      }
+
+      _detachListeners(node) {
+        this.removeEventListener('authorization-settings-changed', super._authSettingsChanged);
+        node.removeEventListener('api-response', this._responseHandler);
+        node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
+      }
+      /**
+       * Clears the request properties.
+       */
+      clearRequest() {
+        this.set('url', '');
+        this.set('headers', '');
+        this.set('payload', '');
+        this.set('method', 'GET');
+        this.shadowRoot.querySelector('authorization-panel').clear();
+        this.selectedTab = 0;
       }
       /**
        * Computes base URI passed to the URL editor.
@@ -561,7 +608,15 @@
         }
         this._analyticsEvent('tab-changed', selected);
       }
-
+      /**
+       * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
+       */
+      _isPayloadChanged(state) {
+        if (!state && this.selectedTab === 3) {
+          this.selectedTab = 1;
+        }
+        this._refreshTabs();
+      }
       /**
        * Refreshes tabs selection. To be called when number of tabs changes.
        */
@@ -590,7 +645,15 @@
         });
         this.dispatchEvent(e);
       }
-
+      /**
+       * To be called when the user want to execute the request but
+       * authorization is invalid (missin values).
+       * This function brings the auth panel to front and displays error toast
+       *
+       * TODO: There is a case when the user didn't requested OAuth2 token
+       * but provided all the data. This function should check for this
+       * condition and call authorization function automatically.
+       */
       authAndExecute() {
         this.__requestAuthAwaiting = true;
         if (this.selectedTab !== 0) {
@@ -598,27 +661,50 @@
         }
         this.$.authFormError.opened = true;
       }
-
+      /**
+       * Executes the request by dispatching `api-request` custom event.
+       * The event must be handled by hosting application to ensure transport.
+       * Use `advanced-rest-client/xhr-simple-request` component to add logic
+       * that uses XHR as a transport.
+       *
+       * Hosting application also must reset state of `loadingRequest` property
+       * once the response is ready. It also can dispatch `api-response`
+       * custom event handled by this element to reset state. This is also
+       * handled by `xhr-simple-request` component.
+       */
       execute() {
-        this._setLoadingRequest(true);
+        this.loadingRequest = true;
+        const detail = this.serializeRequest();
+        this.requestId = this.$.uuid.generate();
+        detail.id = this.requestId;
         const e = new CustomEvent('api-request', {
           cancelable: true,
           bubbles: true,
           composed: true,
-          detail: this.serializeRequest()
+          detail: detail
         });
         this.dispatchEvent(e);
+        this._analyticsEvent('request-execute', 'true');
       }
-
-      _authValidChanged(valid) {
-        if (!valid) {
-          return;
-        }
-        if (this.__requestAuthAwaiting) {
-          this.execute();
-        }
+      /**
+       * Sends the `abort-api-request` custom event to cancel the request.
+       * Calling this method befor sending request may have unexpected
+       * behavior because `requestId` is only set with `execute()` method.
+       */
+      _abortRequest() {
+        this.dispatchEvent(new CustomEvent('abort-api-request', {
+          cancelable: true,
+          bubbles: true,
+          composed: true,
+          detail: {
+            url: this.url,
+            id: this.requestId
+          }
+        }));
+        this._analyticsEvent('request-abort', 'true');
+        this.loadingRequest = false;
+        this.requestId = undefined;
       }
-
       /**
        * Returns an object with the request properties.
        * The object contains:
@@ -646,13 +732,82 @@
           method: (this.httpMethod || 'get').toUpperCase(),
           url: this.url,
           headers: this.headers,
-          payload: this.payload
+          payload: this.payload,
+          queryModel: this.queryModel,
+          pathModel: this.pathModel,
+          headersModel: this.shadowRoot.querySelector('api-headers-editor').viewModel
         };
         if (this.authMethod && this.authSettings) {
           result.auth = this.authSettings;
+          result.authType = this.authMethod;
         }
         return result;
       }
+      /**
+       * Handler for the `authorization-settings-changed` dispatched by
+       * authorization panel. Sets auth settings and executes the request if
+       * any pending if valid.
+       *
+       * @param {CustomEvent} e
+       */
+      _authSettingsChanged(e) {
+        this.authMethod = e.detail.type;
+        this.authSettings = e.detail.settings;
+        if (e.detail.valid && this.__requestAuthAwaiting) {
+          this.__requestAuthAwaiting = false;
+          this.execute();
+        }
+      }
+      /**
+       * Handler for the `api-response` custom event.
+       * Clears the loading state.
+       */
+      _responseHandler(e) {
+        if (e.detail.id !== this.requestId) {
+          return;
+        }
+        this.loadingRequest = false;
+      }
+      /**
+       * Handler for the `oauth2-redirect-uri-changed` custom event. Changes
+       * the `redirectUri` property.
+       * @param {CustomEvent} e
+       */
+      _authRedirectChangedHandler(e) {
+        this.redirectUri = e.detail.value;
+      }
+      /**
+       * Dispatched when the user requests to send current request.
+       *
+       * This event can be cancelled.
+       *
+       * @event api-request
+       * @param {String} url The request URL. Can be empty string.
+       * @param {String} method HTTP method name. Can be empty.
+       * @param {String} headers HTTP headers string. Can be empty.
+       * @param {String|File|FormData} payload Message body. Can be undefined.
+       * @param {?Object} auth Authorization settings from the auth panel.
+       * May be `undefined`.
+       * @param {?String} authType Name of the authorization methods. One of
+       * `advanced-rest-client/auth-methods`.
+       * @param {String} id Generated UUID for the request. Each call of
+       * `execute()` function regenerates the `id`.
+       * @param {?Array<Object>} queryModel Query parameters data view model
+       * @param {?Array<Object>} pathModel URI parameters data view model
+       * @param {?Array<Object>} headersModel Headers data view model
+       */
+      /**
+       * Fired when the user requests to abort current request.
+       *
+       * This event can be cancelled.
+       *
+       * @event abort-api-request
+       * @param {String} url The request URL. Can be empty string. Also, it may be
+       * different URL that the one used to send the request if the user changed
+       * it in between. Use the `id` property to compare requests.
+       * @param {String} id Generated UUID of the request with `send-request`
+       * event.
+       */
     }
 
     window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
