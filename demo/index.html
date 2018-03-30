@@ -91,6 +91,9 @@
     </dom-bind>
     <script>
     (function(app) {
+      app.allowCustom = true;
+      app.allowHideOptional = true;
+      app.allowDisableParams = true;
       app._load = function() {
         fetch('./amf-model.json')
         .then((response) => response.json())

@@ -10,7 +10,9 @@
   ],
   "devDependencies": {
     "@polymer/gen-typescript-declarations": "^1.1.1",
-    "bower": "^1.8.0"
+    "amf-client-js": "^1.4.0-0",
+    "bower": "^1.8.0",
+    "fs-extra": "^5.0.0"
   },
   "private": false,
   "scripts": {
