@@ -1,0 +1,1875 @@
+{
+  "schema_version": "1.0.0",
+  "elements": [
+    {
+      "description": "`api-request-editor`\nA request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.\n\nThe fors are generated automatically based on endponit's definition.\n\nSet AMF json/ld model to `amfModel` property. It accepts the generated\nAPI specification model (first element is a shape of\n`http://raml.org/vocabularies/document#Document` type).\n\nTo build request editor view for an endpoint, set `selectedAmfId`\nproperty to an id of an operation that is defined in the spec. The\nelement looks up for the definition and applied to the editors.\n\nThis element is to replace deprecated `advanced-rest-client/raml-request-editor`.\n\n## Changes in version 2\n\n- XHR element is not included in the element. Use `advanced-rest-client/xhr-simple-request` in your application or handle `api-request` custom event to make a request\n- The element does not include any polyfills\n- `redirectUrl` is now `redirectUri`\n- `api-console-request` event is now `api-request` event\n- `api-console-response` event is now `api-response` event\n- Added more details to `api-request` custom event (compering to `api-console-request`)\n- The user is able to enable/disable query parameters and headers. Set `allow-disable-params` attribute to enable this behavior.\n- The user is able to add custom query parameters or headers.  Set `allow-custom` attribute to enable this behavior.\n- From authorization panel changes:\n - `auth-settings-changed` custom event is stopped from bubbling. Listen for `authorization-settings-changed` event instead.\n- From auth-method-oauth2 changes:\n - Added `deliveryMethod` and `deliveryName` properties to the `detail.setting` object.\n- From auth-method-oauth1 changes:\n - Crypto library is no longer included into the element. Use `advanced-rest-client/cryptojs-lib` component to include the library if your project doesn't use crypto libraries already.\n\n## api-request event\n\nDispatched when \"send\" button is pressed by the user and the element passes\nvalidation.\nThe application should handle the event and make the connection to remote\nserver using passed parameters. When the response is ready the application\nmust inform the elements about the response by dispatching `api-response`\ncustom event.\n\nNote that if you set `eventsTarget` property the event must be dispatched\nat most on `eventsTarget` node (or any child node).\n\nAPI components has `advanced-rest-client/xhr-simple-request` element to\nhandle `api-request` and `abort-api-request` events and to use XHR to\nmake the connection. Note that it may not always work if the API does not\nallows CORS.\n\nThe api-request event has the following properties:\n\n- url (`String`) - Endpoint full and final url. Note that if the API does\nnot specify base uri and `baseUri` property is not set then the `url`\ncan be relative url to the resource.\n- method (`String`) - HTTP method. User cannot change this value, it is encoded in the endpoint description\n- headers (`String`) - valid HTTP headers string\n- payload (`String|FormData|File|Blob|undefined`) - Request body\n- id (`String`) - A unique request identifier. This ID has to be reported back by `api-response` event. It is generated when `execute()` function is called.\n- auth (`Object|undefined`) - Current authorization settings received from the authorization panel.\nIn case of basic, oauth 1 and oauth 2 authorizations, the token is applied to the\nheaders or query parameters so no action is required.\n- authType (`String|undefined`) - Name of the authorization methods. One of `advanced-rest-client/auth-methods`.\n- queryModel (`Array<Object>`) - Query parameters data view model.\n- pathModel (`Array<Object>`) - URI parameters data view model\n- headersModel (`Array<Object>`) - Headers data view model\n\nDo not change `queryModel`, `pathModel` and `headersModel` as it would make it out of sync with the application\nand any change won't be reflected in the editor. In future release this may be read only object.\n\n## abort-api-request event\n\nThe event is dispatched when the user press `abort` button.\nThe transport must send `api-response` custom event with error message so the state of the UI is updated.\n\nThe event contains the following properties:\n\n- url (`String`) The request URL. Can be empty string. Also, it may be different URL that the one used to send the request if the user changed it in between. Use the `id` property to compare requests.\n- id (`String`)  Generated UUID of the request with `api-request` event.\n\n## api-response event\n\nThis element does not act on this event. See `api-request-panel` documentation for more information.\n\n## Styling\n\n`<api-request-editor>` provides the following custom properties and mixins for styling:\n\nCustom property | Description | Default\n----------------|-------------|----------\n`--api-request-editor` | Mixin applied to this elment | `{}`\n`--api-request-editor-container` | Mixin applied to the main container | `{}`\n`--warning-primary-color` | Theme property, warning primary color | `#FF7043`\n`--arc-font-body1` | Theme mixin, default font definition | `{}`\n`--error-color` | Theme variable, error color.  | ``\n`--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`\n`--primary-button-background-color` | Theme property, background color of the primary action button. Applied to \"send\" and \"abort\" buttons | `--accent-color`\n`--primary-button-color` | Theme property, font color of the primary action button. Applied to \"send\" and \"abort\" buttons  | `#fff`\n`--action-button` | Theme mixin, applied to \"send\" and \"abort\" buttons | `{}`\n`--primary-button-hover-background-color` | Theme property, background color of the primary action button when hovering. Applied to \"send\" and \"abort\" buttons | `--accent-color`\n`--primary-button-hover-color` | Theme property, font color of the primary action button when hovering. Applied to \"send\" and \"abort\" buttons  | `#fff`\n`--action-button-hover` | Theme mixin, applied to \"send\" and \"abort\" buttons when hovering | `{}`\n`--primary-button-disabled-background-color` | Theme property, background color of the primary action button when disabled. Applied to \"send\" and \"abort\" buttons | `--accent-color`\n`--primary-button-disabled-color` | Theme property, font color of the primary action button when disabled. Applied to \"send\" and \"abort\" buttons  | `#fff`\n`--action-button-disabled` | Theme mixin, applied to \"send\" and \"abort\" buttons when disabled | `{}`\n`--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`",
+      "summary": "",
+      "path": "api-request-editor.html",
+      "properties": [
+        {
+          "name": "eventsTarget",
+          "type": "Object",
+          "description": "Events handlers target. By default the element listens on\n`window` object. If set, all events listeners will be attached to this\nobject instead of `window`.",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 73,
+              "column": 8
+            },
+            "end": {
+              "line": 76,
+              "column": 9
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_eventsTargetChanged\""
+            }
+          },
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "_oldEventsTarget",
+          "type": "Object",
+          "description": "An event target used to attach listeners.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 78,
+              "column": 8
+            },
+            "end": {
+              "line": 78,
+              "column": 32
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          },
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "aware",
+          "type": "string",
+          "description": "`raml-aware` scope property to use.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 281,
+              "column": 10
+            },
+            "end": {
+              "line": 281,
+              "column": 23
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "selectedAmfId",
+          "type": "string",
+          "description": "AMF HTTP method (operation in AMF vocabulary) ID.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 285,
+              "column": 10
+            },
+            "end": {
+              "line": 285,
+              "column": 31
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "amfModel",
+          "type": "Object",
+          "description": "AMF API model.\nThe element extracts method definition from passed model\nand by using `selectedAmfId`.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 291,
+              "column": 10
+            },
+            "end": {
+              "line": 291,
+              "column": 26
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "_methodModel",
+          "type": "Object",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 292,
+              "column": 10
+            },
+            "end": {
+              "line": 295,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "noUrlEditor",
+          "type": "boolean",
+          "description": "Hides the URL editor from the view.\nThe editor is still in the DOM and the `urlInvalid` property still will be set.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 300,
+              "column": 10
+            },
+            "end": {
+              "line": 300,
+              "column": 30
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "baseUri",
+          "type": "string",
+          "description": "A base URI for the API. To be set if RAML spec is missing `baseUri`\ndeclaration and this produces invalid URL input. This information\nis passed to the URL editor that prefixes the URL with `baseUri` value\nif passed URL is a relative URL.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 307,
+              "column": 10
+            },
+            "end": {
+              "line": 307,
+              "column": 25
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "httpMethod",
+          "type": "string",
+          "description": "Computed from AMF model for the metod HTTP method name.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 313,
+              "column": 10
+            },
+            "end": {
+              "line": 317,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          },
+          "defaultValue": "false"
+        },
+        {
+          "name": "headers",
+          "type": "(String | undefined)",
+          "description": "Headers for the request.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 323,
+              "column": 10
+            },
+            "end": {
+              "line": 326,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+        },
+        {
+          "name": "payload",
+          "type": "(String | FormData | File)",
+          "description": "Body for the request. The type of the body depends on\ndefined in the API media type.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 333,
+              "column": 10
+            },
+            "end": {
+              "line": 336,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "description": "Final request URL including settings like `baseUri`, AMF\nmodel settings and user provided parameters.\nThis value is always compoted by `api-url-editor` even if it's\nhidden from the view.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 343,
+              "column": 10
+            },
+            "end": {
+              "line": 346,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+        },
+        {
+          "name": "selectedTab",
+          "type": "number",
+          "description": "Selected request tab.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 350,
+              "column": 10
+            },
+            "end": {
+              "line": 355,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true,
+              "observer": "\"_selectedTabChanged\""
+            }
+          },
+          "defaultValue": "0"
+        },
+        {
+          "name": "contentType",
+          "type": "(String | undefined)",
+          "description": "Current content type.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 361,
+              "column": 10
+            },
+            "end": {
+              "line": 364,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+        },
+        {
+          "name": "securedBy",
+          "type": "Array.<Object>",
+          "description": "Computed value of security scheme from selected method.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 370,
+              "column": 10
+            },
+            "end": {
+              "line": 373,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "apiHeaders",
+          "type": "Array.<Object>",
+          "description": "Computed list of headers in the AMF model",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 379,
+              "column": 10
+            },
+            "end": {
+              "line": 382,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "apiPayload",
+          "type": "(Array.<Object> | undefined)",
+          "description": "Defined by the API payload data.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 388,
+              "column": 10
+            },
+            "end": {
+              "line": 391,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "isPayloadRequest",
+          "type": "boolean",
+          "description": "Computed value if the method can carry a payload.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 395,
+              "column": 10
+            },
+            "end": {
+              "line": 400,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_isPayloadChanged\"",
+              "readOnly": true
+            }
+          },
+          "defaultValue": "false"
+        },
+        {
+          "name": "redirectUri",
+          "type": "string",
+          "description": "OAuth2 redirect URI.\nThis value **must** be set in order for OAuth 1/2 to work properly.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 405,
+              "column": 10
+            },
+            "end": {
+              "line": 405,
+              "column": 29
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "authRequired",
+          "type": "boolean",
+          "description": "Inheritet from the authorization panel state if authorization is\nrequired. Authorization may be not required if one of the\nauthorization methods is `nil` (RAML).",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 411,
+              "column": 10
+            },
+            "end": {
+              "line": 411,
+              "column": 31
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "authValid",
+          "type": "boolean",
+          "description": "Inheritet from the authorization panel state if authorization\ndata is valid.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 416,
+              "column": 10
+            },
+            "end": {
+              "line": 416,
+              "column": 28
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "narrow",
+          "type": "boolean",
+          "description": "If set it will renders the view in the narrow layout.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 420,
+              "column": 10
+            },
+            "end": {
+              "line": 424,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          }
+        },
+        {
+          "name": "authNotRequired",
+          "type": "boolean",
+          "description": "Computed value of if authorization is required for the endpoint.\nIf the auth is not required then the authorization tab is removed\nfrom the view.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 430,
+              "column": 10
+            },
+            "end": {
+              "line": 434,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_noAuthChanged\"",
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "loadingRequest",
+          "type": "boolean",
+          "description": "Flag set when the request is being made.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 438,
+              "column": 10
+            },
+            "end": {
+              "line": 442,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "notify": true
+            }
+          },
+          "defaultValue": "false"
+        },
+        {
+          "name": "allowHideOptional",
+          "type": "boolean",
+          "description": "If set it computes `hasOptional` property and shows checkbox in the\nform to show / hide optional properties.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 447,
+              "column": 10
+            },
+            "end": {
+              "line": 447,
+              "column": 36
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "allowDisableParams",
+          "type": "boolean",
+          "description": "If set, enable / disable param checkbox is rendered next to each\nform item.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 452,
+              "column": 10
+            },
+            "end": {
+              "line": 452,
+              "column": 37
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "allowCustom",
+          "type": "boolean",
+          "description": "When set, renders \"add custom\" item button.\nIf the element is to be used withouth AMF model this should always\nbe enabled. Otherwise users won't be able to add a parameter.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 458,
+              "column": 10
+            },
+            "end": {
+              "line": 458,
+              "column": 30
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "authMethod",
+          "type": "string",
+          "description": "Selected by the user auth method (if any)",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 460,
+              "column": 10
+            },
+            "end": {
+              "line": 460,
+              "column": 28
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "authSettings",
+          "type": "Object",
+          "description": "Current authorization settings.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 462,
+              "column": 10
+            },
+            "end": {
+              "line": 462,
+              "column": 30
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        },
+        {
+          "name": "requestId",
+          "type": "string",
+          "description": "Generated request ID when the request is sent. This value is reported\nin send and abort events",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 467,
+              "column": 10
+            },
+            "end": {
+              "line": 467,
+              "column": 27
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          }
+        }
+      ],
+      "methods": [
+        {
+          "name": "connectedCallback",
+          "description": "",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 81,
+              "column": 4
+            },
+            "end": {
+              "line": 84,
+              "column": 6
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "disconnectedCallback",
+          "description": "",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 86,
+              "column": 5
+            },
+            "end": {
+              "line": 91,
+              "column": 6
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "_eventsTargetChanged",
+          "description": "Removes old handlers (if any) and attaches listeners on new event\nevent target.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 99,
+              "column": 4
+            },
+            "end": {
+              "line": 105,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "eventsTarget",
+              "type": "?Node",
+              "description": "Event target to set handlers on. If not set it\nwill set handlers on the `window` object."
+            }
+          ],
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "_attachListeners",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 480,
+              "column": 6
+            },
+            "end": {
+              "line": 484,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "node"
+            }
+          ]
+        },
+        {
+          "name": "_detachListeners",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 486,
+              "column": 6
+            },
+            "end": {
+              "line": 490,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "node"
+            }
+          ]
+        },
+        {
+          "name": "clearRequest",
+          "description": "Clears the request properties.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 494,
+              "column": 6
+            },
+            "end": {
+              "line": 501,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "_computeFinaleBaseUri",
+          "description": "Computes base URI passed to the URL editor.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 509,
+              "column": 6
+            },
+            "end": {
+              "line": 514,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "apiBaseUri",
+              "type": "String",
+              "description": "Computed from AMF base uri"
+            },
+            {
+              "name": "customBaseUri",
+              "type": "?String",
+              "description": "Base URI that overrides api base uri"
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "`customBaseUri` if present or `apiBaseUri`"
+          }
+        },
+        {
+          "name": "_computeMethodModel",
+          "description": "Computes method model from the AMF model",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 521,
+              "column": 6
+            },
+            "end": {
+              "line": 537,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "api",
+              "type": "[type]",
+              "description": "[description]"
+            },
+            {
+              "name": "id"
+            }
+          ],
+          "return": {
+            "type": "[type]",
+            "desc": "[description]"
+          }
+        },
+        {
+          "name": "computeEndpointId",
+          "description": "Computes endpoint `@id` for given `id`.\nOn a base level it subrtacts the last part after `/` which\nis a delimiter between endpoint identifier and method name.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 547,
+              "column": 6
+            },
+            "end": {
+              "line": 557,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "Object ID. Can be operation's or endpoint's ID."
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "Endpoint id. It may return the same value if passed\nid is endpoint ID."
+          }
+        },
+        {
+          "name": "findEndpoint",
+          "description": "Finds an endpoint definition in the API.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 566,
+              "column": 6
+            },
+            "end": {
+              "line": 583,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "endpointId",
+              "type": "String",
+              "description": "Endpoint `@id` from AMF model"
+            },
+            {
+              "name": "api",
+              "type": "?Object",
+              "description": "AMD model for the api. If not set, `webApi` property\nis used."
+            }
+          ],
+          "return": {
+            "type": "Object",
+            "desc": "Definition of the endpoint."
+          }
+        },
+        {
+          "name": "findMethod",
+          "description": "Finds a method definition on the list of operations for an endpoint.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 591,
+              "column": 6
+            },
+            "end": {
+              "line": 596,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "ID of the operation (method)"
+            },
+            {
+              "name": "operations",
+              "type": "Array.<Object>",
+              "description": "List of endpoint's operations."
+            }
+          ],
+          "return": {
+            "type": "(Object | undefined)",
+            "desc": "Method definition."
+          }
+        },
+        {
+          "name": "_modelHasType",
+          "description": "Checks if a model has a type.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 604,
+              "column": 6
+            },
+            "end": {
+              "line": 608,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Model to test"
+            },
+            {
+              "name": "type",
+              "type": "String",
+              "description": "Type name"
+            }
+          ],
+          "return": {
+            "type": "Boolean",
+            "desc": "True if model has a type."
+          }
+        },
+        {
+          "name": "_computeSecuredBy",
+          "description": "Computes AMF model for authorization panel.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 615,
+              "column": 6
+            },
+            "end": {
+              "line": 617,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Current method model."
+            }
+          ],
+          "return": {
+            "type": "(Array | undefined)",
+            "desc": "List of security definitions for the endpoint."
+          }
+        },
+        {
+          "name": "_computeHeaders",
+          "description": "Computes model definition for headers.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 624,
+              "column": 6
+            },
+            "end": {
+              "line": 634,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "?Object",
+              "description": "Method model"
+            }
+          ],
+          "return": {
+            "type": "(Array | undefined)",
+            "desc": "List of headers or undefined."
+          }
+        },
+        {
+          "name": "_computeNoAuth",
+          "description": "Computes if authorization for the endpoint is set.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 641,
+              "column": 6
+            },
+            "end": {
+              "line": 643,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Operation model."
+            }
+          ],
+          "return": {
+            "type": "Boolean"
+          }
+        },
+        {
+          "name": "_computeHttpMethod",
+          "description": "Computes value for `httpMethod` property from AMF model for current\noperation.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 651,
+              "column": 6
+            },
+            "end": {
+              "line": 654,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Operation model."
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "Method name."
+          }
+        },
+        {
+          "name": "_computeApiPayload",
+          "description": "Computes value for `apiPayload` property from AMF model for current\nmethod.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 662,
+              "column": 6
+            },
+            "end": {
+              "line": 672,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Operation model."
+            }
+          ],
+          "return": {
+            "type": "(Array.<Object> | undefined)",
+            "desc": "Method payload."
+          }
+        },
+        {
+          "name": "_computeIsPayloadRequest",
+          "description": "Computes value for `isPayloadRequest`.\nOnly `GET` and `HEAD` methods are known as ones that can't carry a\npayload. For any other HTTP method this always returns true.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 681,
+              "column": 6
+            },
+            "end": {
+              "line": 683,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "method",
+              "type": "String",
+              "description": "HTTP method value"
+            }
+          ],
+          "return": {
+            "type": "Boolean"
+          }
+        },
+        {
+          "name": "_noAuthChanged",
+          "description": "Updates tabs selection when `authNotRequired` property change.\nIt changes selection to the next tab if there's no authorization\nand current selected editor is authorization.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 691,
+              "column": 6
+            },
+            "end": {
+              "line": 699,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "value",
+              "type": "Boolean",
+              "description": "Current value for `authNotRequired`"
+            }
+          ]
+        },
+        {
+          "name": "_selectedTabChanged",
+          "description": "Updates the state of the body editor when switching to it.\nCode mirror does not property calculate it's value when\nthe editor is not visible. This forces to refresh the value of the\neditor.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 708,
+              "column": 6
+            },
+            "end": {
+              "line": 715,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "selected",
+              "type": "Number",
+              "description": "Selected tam index."
+            }
+          ]
+        },
+        {
+          "name": "_isPayloadChanged",
+          "description": "Refreshes tabs selection when `isPayloadRequest` peroperty chnage.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 719,
+              "column": 6
+            },
+            "end": {
+              "line": 724,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "state"
+            }
+          ]
+        },
+        {
+          "name": "_refreshTabs",
+          "description": "Refreshes tabs selection. To be called when number of tabs changes.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 728,
+              "column": 6
+            },
+            "end": {
+              "line": 734,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "_analyticsEvent",
+          "description": "Dispatches analytics event.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 740,
+              "column": 6
+            },
+            "end": {
+              "line": 752,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "action",
+              "type": "String",
+              "description": "Event action"
+            },
+            {
+              "name": "label",
+              "type": "String",
+              "description": "Event label"
+            }
+          ]
+        },
+        {
+          "name": "authAndExecute",
+          "description": "To be called when the user want to execute the request but\nauthorization is invalid (missin values).\nThis function brings the auth panel to front and displays error toast\n\nTODO: There is a case when the user didn't requested OAuth2 token\nbut provided all the data. This function should check for this\ncondition and call authorization function automatically.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 762,
+              "column": 6
+            },
+            "end": {
+              "line": 768,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "execute",
+          "description": "Executes the request by dispatching `api-request` custom event.\nThe event must be handled by hosting application to ensure transport.\nUse `advanced-rest-client/xhr-simple-request` component to add logic\nthat uses XHR as a transport.\n\nHosting application also must reset state of `loadingRequest` property\nonce the response is ready. It also can dispatch `api-response`\ncustom event handled by this element to reset state. This is also\nhandled by `xhr-simple-request` component.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 780,
+              "column": 6
+            },
+            "end": {
+              "line": 793,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "_abortRequest",
+          "description": "Sends the `abort-api-request` custom event to cancel the request.\nCalling this method befor sending request may have unexpected\nbehavior because `requestId` is only set with `execute()` method.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 799,
+              "column": 6
+            },
+            "end": {
+              "line": 812,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "serializeRequest",
+          "description": "Returns an object with the request properties.\nThe object contains:\n- `method` (String)\n- `url` (String)\n- `headers` (String)\n- `payload` (String)\n- `auth` (Object)\n\nThe `auth` property is optional and is only added to the request if\nsimple `authorization` header will not work. For example NTLM auth\nmethod has to be made on a single socket connection (authorization\nand the request) so it can't be made before the request.\n\nThe `auth` object contains 2 properties:\n- `type` (String) the authorization type - one of from the\n`auth-methods` element\n- `settings` (Object) Authorization parameters entered by the user.\nIt vary and depends on selected auth method.\nFor example in case of the NTLM it will be: `username`, `password` and\n`domain`. See `advanced-rest-client/auth-methods` for model descriptions.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 835,
+              "column": 6
+            },
+            "end": {
+              "line": 850,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": []
+        },
+        {
+          "name": "_authSettingsChanged",
+          "description": "Handler for the `authorization-settings-changed` dispatched by\nauthorization panel. Sets auth settings and executes the request if\nany pending if valid.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 858,
+              "column": 6
+            },
+            "end": {
+              "line": 865,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ]
+        },
+        {
+          "name": "_responseHandler",
+          "description": "Handler for the `api-response` custom event.\nClears the loading state.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 870,
+              "column": 6
+            },
+            "end": {
+              "line": 875,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e"
+            }
+          ]
+        },
+        {
+          "name": "_authRedirectChangedHandler",
+          "description": "Handler for the `oauth2-redirect-uri-changed` custom event. Changes\nthe `redirectUri` property.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 881,
+              "column": 6
+            },
+            "end": {
+              "line": 883,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ]
+        }
+      ],
+      "staticMethods": [],
+      "demos": [
+        {
+          "url": "demo/index.html",
+          "description": ""
+        }
+      ],
+      "metadata": {},
+      "sourceRange": {
+        "start": {
+          "line": 274,
+          "column": 4
+        },
+        "end": {
+          "line": 916,
+          "column": 5
+        }
+      },
+      "privacy": "public",
+      "superclass": "HTMLElement",
+      "name": "ApiRequestEditor",
+      "attributes": [
+        {
+          "name": "events-target",
+          "description": "Events handlers target. By default the element listens on\n`window` object. If set, all events listeners will be attached to this\nobject instead of `window`.",
+          "sourceRange": {
+            "file": "bower_components/events-target-behavior/events-target-behavior.html",
+            "start": {
+              "line": 73,
+              "column": 8
+            },
+            "end": {
+              "line": 76,
+              "column": 9
+            }
+          },
+          "metadata": {},
+          "type": "Object",
+          "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
+        },
+        {
+          "name": "aware",
+          "description": "`raml-aware` scope property to use.",
+          "sourceRange": {
+            "start": {
+              "line": 281,
+              "column": 10
+            },
+            "end": {
+              "line": 281,
+              "column": 23
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "selected-amf-id",
+          "description": "AMF HTTP method (operation in AMF vocabulary) ID.",
+          "sourceRange": {
+            "start": {
+              "line": 285,
+              "column": 10
+            },
+            "end": {
+              "line": 285,
+              "column": 31
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "amf-model",
+          "description": "AMF API model.\nThe element extracts method definition from passed model\nand by using `selectedAmfId`.",
+          "sourceRange": {
+            "start": {
+              "line": 291,
+              "column": 10
+            },
+            "end": {
+              "line": 291,
+              "column": 26
+            }
+          },
+          "metadata": {},
+          "type": "Object"
+        },
+        {
+          "name": "no-url-editor",
+          "description": "Hides the URL editor from the view.\nThe editor is still in the DOM and the `urlInvalid` property still will be set.",
+          "sourceRange": {
+            "start": {
+              "line": 300,
+              "column": 10
+            },
+            "end": {
+              "line": 300,
+              "column": 30
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "base-uri",
+          "description": "A base URI for the API. To be set if RAML spec is missing `baseUri`\ndeclaration and this produces invalid URL input. This information\nis passed to the URL editor that prefixes the URL with `baseUri` value\nif passed URL is a relative URL.",
+          "sourceRange": {
+            "start": {
+              "line": 307,
+              "column": 10
+            },
+            "end": {
+              "line": 307,
+              "column": 25
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "http-method",
+          "description": "Computed from AMF model for the metod HTTP method name.",
+          "sourceRange": {
+            "start": {
+              "line": 313,
+              "column": 10
+            },
+            "end": {
+              "line": 317,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "headers",
+          "description": "Headers for the request.",
+          "sourceRange": {
+            "start": {
+              "line": 323,
+              "column": 10
+            },
+            "end": {
+              "line": 326,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "(String | undefined)"
+        },
+        {
+          "name": "payload",
+          "description": "Body for the request. The type of the body depends on\ndefined in the API media type.",
+          "sourceRange": {
+            "start": {
+              "line": 333,
+              "column": 10
+            },
+            "end": {
+              "line": 336,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "(String | FormData | File)"
+        },
+        {
+          "name": "url",
+          "description": "Final request URL including settings like `baseUri`, AMF\nmodel settings and user provided parameters.\nThis value is always compoted by `api-url-editor` even if it's\nhidden from the view.",
+          "sourceRange": {
+            "start": {
+              "line": 343,
+              "column": 10
+            },
+            "end": {
+              "line": 346,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "selected-tab",
+          "description": "Selected request tab.",
+          "sourceRange": {
+            "start": {
+              "line": 350,
+              "column": 10
+            },
+            "end": {
+              "line": 355,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "number"
+        },
+        {
+          "name": "content-type",
+          "description": "Current content type.",
+          "sourceRange": {
+            "start": {
+              "line": 361,
+              "column": 10
+            },
+            "end": {
+              "line": 364,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "(String | undefined)"
+        },
+        {
+          "name": "secured-by",
+          "description": "Computed value of security scheme from selected method.",
+          "sourceRange": {
+            "start": {
+              "line": 370,
+              "column": 10
+            },
+            "end": {
+              "line": 373,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "Array.<Object>"
+        },
+        {
+          "name": "api-headers",
+          "description": "Computed list of headers in the AMF model",
+          "sourceRange": {
+            "start": {
+              "line": 379,
+              "column": 10
+            },
+            "end": {
+              "line": 382,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "Array.<Object>"
+        },
+        {
+          "name": "api-payload",
+          "description": "Defined by the API payload data.",
+          "sourceRange": {
+            "start": {
+              "line": 388,
+              "column": 10
+            },
+            "end": {
+              "line": 391,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "(Array.<Object> | undefined)"
+        },
+        {
+          "name": "is-payload-request",
+          "description": "Computed value if the method can carry a payload.",
+          "sourceRange": {
+            "start": {
+              "line": 395,
+              "column": 10
+            },
+            "end": {
+              "line": 400,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "redirect-uri",
+          "description": "OAuth2 redirect URI.\nThis value **must** be set in order for OAuth 1/2 to work properly.",
+          "sourceRange": {
+            "start": {
+              "line": 405,
+              "column": 10
+            },
+            "end": {
+              "line": 405,
+              "column": 29
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "auth-required",
+          "description": "Inheritet from the authorization panel state if authorization is\nrequired. Authorization may be not required if one of the\nauthorization methods is `nil` (RAML).",
+          "sourceRange": {
+            "start": {
+              "line": 411,
+              "column": 10
+            },
+            "end": {
+              "line": 411,
+              "column": 31
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "auth-valid",
+          "description": "Inheritet from the authorization panel state if authorization\ndata is valid.",
+          "sourceRange": {
+            "start": {
+              "line": 416,
+              "column": 10
+            },
+            "end": {
+              "line": 416,
+              "column": 28
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "narrow",
+          "description": "If set it will renders the view in the narrow layout.",
+          "sourceRange": {
+            "start": {
+              "line": 420,
+              "column": 10
+            },
+            "end": {
+              "line": 424,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "auth-not-required",
+          "description": "Computed value of if authorization is required for the endpoint.\nIf the auth is not required then the authorization tab is removed\nfrom the view.",
+          "sourceRange": {
+            "start": {
+              "line": 430,
+              "column": 10
+            },
+            "end": {
+              "line": 434,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "loading-request",
+          "description": "Flag set when the request is being made.",
+          "sourceRange": {
+            "start": {
+              "line": 438,
+              "column": 10
+            },
+            "end": {
+              "line": 442,
+              "column": 11
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "allow-hide-optional",
+          "description": "If set it computes `hasOptional` property and shows checkbox in the\nform to show / hide optional properties.",
+          "sourceRange": {
+            "start": {
+              "line": 447,
+              "column": 10
+            },
+            "end": {
+              "line": 447,
+              "column": 36
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "allow-disable-params",
+          "description": "If set, enable / disable param checkbox is rendered next to each\nform item.",
+          "sourceRange": {
+            "start": {
+              "line": 452,
+              "column": 10
+            },
+            "end": {
+              "line": 452,
+              "column": 37
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "allow-custom",
+          "description": "When set, renders \"add custom\" item button.\nIf the element is to be used withouth AMF model this should always\nbe enabled. Otherwise users won't be able to add a parameter.",
+          "sourceRange": {
+            "start": {
+              "line": 458,
+              "column": 10
+            },
+            "end": {
+              "line": 458,
+              "column": 30
+            }
+          },
+          "metadata": {},
+          "type": "boolean"
+        },
+        {
+          "name": "auth-method",
+          "description": "Selected by the user auth method (if any)",
+          "sourceRange": {
+            "start": {
+              "line": 460,
+              "column": 10
+            },
+            "end": {
+              "line": 460,
+              "column": 28
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        },
+        {
+          "name": "auth-settings",
+          "description": "Current authorization settings.",
+          "sourceRange": {
+            "start": {
+              "line": 462,
+              "column": 10
+            },
+            "end": {
+              "line": 462,
+              "column": 30
+            }
+          },
+          "metadata": {},
+          "type": "Object"
+        },
+        {
+          "name": "request-id",
+          "description": "Generated request ID when the request is sent. This value is reported\nin send and abort events",
+          "sourceRange": {
+            "start": {
+              "line": 467,
+              "column": 10
+            },
+            "end": {
+              "line": 467,
+              "column": 27
+            }
+          },
+          "metadata": {},
+          "type": "string"
+        }
+      ],
+      "events": [
+        {
+          "type": "CustomEvent",
+          "name": "abort-api-request",
+          "description": "abort-api-request",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "api-request",
+          "description": "api-request",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "headers-changed",
+          "description": "Fired when the `headers` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "payload-changed",
+          "description": "Fired when the `payload` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "url-changed",
+          "description": "Fired when the `url` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "selected-tab-changed",
+          "description": "Fired when the `selectedTab` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "content-type-changed",
+          "description": "Fired when the `contentType` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "narrow-changed",
+          "description": "Fired when the `narrow` property changes.",
+          "metadata": {}
+        },
+        {
+          "type": "CustomEvent",
+          "name": "loading-request-changed",
+          "description": "Fired when the `loadingRequest` property changes.",
+          "metadata": {}
+        }
+      ],
+      "styling": {
+        "cssVariables": [],
+        "selectors": []
+      },
+      "slots": [],
+      "tagname": "api-request-editor",
+      "mixins": [
+        "ArcBehaviors.EventsTargetBehavior"
+      ]
+    }
+  ]
+}

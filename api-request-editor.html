@@ -23,6 +23,8 @@
     <style include="api-form-styles">
     :host {
       display: block;
+      @apply --arc-font-body1;
+      @apply --api-request-editor;
     }
 
     .content {
@@ -76,8 +78,9 @@
     }
 
     .send-button[disabled] {
-      background-color: var(--action-button-disabled-background-color, rgb(234, 234, 234));
-      color: var(--action-button-disabled-color, #a8a8a8);
+      background-color: var(--primary-button-disabled-background-color, rgb(234, 234, 234));
+      color: var(--primary-button-disabled-color, #a8a8a8);
+      @apply --action-button-disabled;
     }
 
     .url-editor {
@@ -159,7 +162,110 @@
     const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
     /**
      * `api-request-editor`
-     * A request editor that builds the UI based on AMF model or presents default empty editor.
+     * A request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.
+     *
+     * The fors are generated automatically based on endponit's definition.
+     *
+     * Set AMF json/ld model to `amfModel` property. It accepts the generated
+     * API specification model (first element is a shape of
+     * `http://raml.org/vocabularies/document#Document` type).
+     *
+     * To build request editor view for an endpoint, set `selectedAmfId`
+     * property to an id of an operation that is defined in the spec. The
+     * element looks up for the definition and applied to the editors.
+     *
+     * This element is to replace deprecated `advanced-rest-client/raml-request-editor`.
+     *
+     * ## Changes in version 2
+     *
+     * - XHR element is not included in the element. Use `advanced-rest-client/xhr-simple-request` in your application or handle `api-request` custom event to make a request
+     * - The element does not include any polyfills
+     * - `redirectUrl` is now `redirectUri`
+     * - `api-console-request` event is now `api-request` event
+     * - `api-console-response` event is now `api-response` event
+     * - Added more details to `api-request` custom event (compering to `api-console-request`)
+     * - The user is able to enable/disable query parameters and headers. Set `allow-disable-params` attribute to enable this behavior.
+     * - The user is able to add custom query parameters or headers.  Set `allow-custom` attribute to enable this behavior.
+     * - From authorization panel changes:
+     *  - `auth-settings-changed` custom event is stopped from bubbling. Listen for `authorization-settings-changed` event instead.
+     * - From auth-method-oauth2 changes:
+     *  - Added `deliveryMethod` and `deliveryName` properties to the `detail.setting` object.
+     * - From auth-method-oauth1 changes:
+     *  - Crypto library is no longer included into the element. Use `advanced-rest-client/cryptojs-lib` component to include the library if your project doesn't use crypto libraries already.
+     *
+     * ## api-request event
+     *
+     * Dispatched when "send" button is pressed by the user and the element passes
+     * validation.
+     * The application should handle the event and make the connection to remote
+     * server using passed parameters. When the response is ready the application
+     * must inform the elements about the response by dispatching `api-response`
+     * custom event.
+     *
+     * Note that if you set `eventsTarget` property the event must be dispatched
+     * at most on `eventsTarget` node (or any child node).
+     *
+     * API components has `advanced-rest-client/xhr-simple-request` element to
+     * handle `api-request` and `abort-api-request` events and to use XHR to
+     * make the connection. Note that it may not always work if the API does not
+     * allows CORS.
+     *
+     * The api-request event has the following properties:
+     *
+     * - url (`String`) - Endpoint full and final url. Note that if the API does
+     * not specify base uri and `baseUri` property is not set then the `url`
+     * can be relative url to the resource.
+     * - method (`String`) - HTTP method. User cannot change this value, it is encoded in the endpoint description
+     * - headers (`String`) - valid HTTP headers string
+     * - payload (`String|FormData|File|Blob|undefined`) - Request body
+     * - id (`String`) - A unique request identifier. This ID has to be reported back by `api-response` event. It is generated when `execute()` function is called.
+     * - auth (`Object|undefined`) - Current authorization settings received from the authorization panel.
+     * In case of basic, oauth 1 and oauth 2 authorizations, the token is applied to the
+     * headers or query parameters so no action is required.
+     * - authType (`String|undefined`) - Name of the authorization methods. One of `advanced-rest-client/auth-methods`.
+     * - queryModel (`Array<Object>`) - Query parameters data view model.
+     * - pathModel (`Array<Object>`) - URI parameters data view model
+     * - headersModel (`Array<Object>`) - Headers data view model
+     *
+     * Do not change `queryModel`, `pathModel` and `headersModel` as it would make it out of sync with the application
+     * and any change won't be reflected in the editor. In future release this may be read only object.
+     *
+     * ## abort-api-request event
+     *
+     * The event is dispatched when the user press `abort` button.
+     * The transport must send `api-response` custom event with error message so the state of the UI is updated.
+     *
+     * The event contains the following properties:
+     *
+     * - url (`String`) The request URL. Can be empty string. Also, it may be different URL that the one used to send the request if the user changed it in between. Use the `id` property to compare requests.
+     * - id (`String`)  Generated UUID of the request with `api-request` event.
+     *
+     * ## api-response event
+     *
+     * This element does not act on this event. See `api-request-panel` documentation for more information.
+     *
+     * ## Styling
+     *
+     * `<api-request-editor>` provides the following custom properties and mixins for styling:
+     *
+     * Custom property | Description | Default
+     * ----------------|-------------|----------
+     * `--api-request-editor` | Mixin applied to this elment | `{}`
+     * `--api-request-editor-container` | Mixin applied to the main container | `{}`
+     * `--warning-primary-color` | Theme property, warning primary color | `#FF7043`
+     * `--arc-font-body1` | Theme mixin, default font definition | `{}`
+     * `--error-color` | Theme variable, error color.  | ``
+     * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
+     * `--primary-button-background-color` | Theme property, background color of the primary action button. Applied to "send" and "abort" buttons | `--accent-color`
+     * `--primary-button-color` | Theme property, font color of the primary action button. Applied to "send" and "abort" buttons  | `#fff`
+     * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
+     * `--primary-button-hover-background-color` | Theme property, background color of the primary action button when hovering. Applied to "send" and "abort" buttons | `--accent-color`
+     * `--primary-button-hover-color` | Theme property, font color of the primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
+     * `--action-button-hover` | Theme mixin, applied to "send" and "abort" buttons when hovering | `{}`
+     * `--primary-button-disabled-background-color` | Theme property, background color of the primary action button when disabled. Applied to "send" and "abort" buttons | `--accent-color`
+     * `--primary-button-disabled-color` | Theme property, font color of the primary action button when disabled. Applied to "send" and "abort" buttons  | `#fff`
+     * `--action-button-disabled` | Theme mixin, applied to "send" and "abort" buttons when disabled | `{}`
+     * `--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`
      *
      * @customElement
      * @polymer
