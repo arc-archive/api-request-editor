@@ -106,6 +106,7 @@
     </template>
     <api-url-data-model
       aware="[[aware]]"
+      web-api="[[amfModel]]"
       endpoint-path="{{endpointPath}}"
       api-base-uri="{{apiBaseUri}}"
       selected="[[selectedAmfId]]"
@@ -117,7 +118,7 @@
           required
           auto-validate
           invalid="{{urlInvalid}}"
-          base-uri="[[_computeFinaleBaseUri(apiBaseUri,baseUri)]]"
+          base-uri="[[_computeFinalBaseUri(apiBaseUri,baseUri)]]"
           endpoint-path="[[endpointPath]]"
           query-model="{{queryModel}}"
           path-model="{{pathModel}}"
@@ -290,6 +291,9 @@
            * and by using `selectedAmfId`.
            */
           amfModel: Object,
+          /**
+           * Computed method declaration in the AMF model.
+           */
           _methodModel: {
             type: Object,
             computed: '_computeMethodModel(amfModel, selectedAmfId)'
@@ -314,7 +318,8 @@
           httpMethod: {
             type: Boolean,
             value: false,
-            computed: '_computeHttpMethod(_methodModel)'
+            computed: '_computeHttpMethod(_methodModel)',
+            notify: true
           },
           /**
            * Headers for the request.
@@ -507,7 +512,7 @@
        * @param {?String} customBaseUri Base URI that overrides api base uri
        * @return {String} `customBaseUri` if present or `apiBaseUri`
        */
-      _computeFinaleBaseUri(apiBaseUri, customBaseUri) {
+      _computeFinalBaseUri(apiBaseUri, customBaseUri) {
         if (customBaseUri) {
           return customBaseUri;
         }
@@ -516,14 +521,12 @@
       /**
        * Computes method model from the AMF model
        *
-       * @param {[type]} api [description]
-       * @return {[type]} [description]
+       * @param {Array|Object} api The AMF model for the API.
+       * @param {String} id Method `@id` property value
+       * @return {Object|undefined} Method definition for an id.
        */
       _computeMethodModel(api, id) {
-        if (!id) {
-          return;
-        }
-        if (!api) {
+        if (!id || !api) {
           return;
         }
         const endpointId = this.computeEndpointId(id);
@@ -562,7 +565,7 @@
        * @param {String} endpointId Endpoint `@id` from AMF model
        * @param {?Object} api AMD model for the api. If not set, `webApi` property
        * is used.
-       * @return {Object} Definition of the endpoint.
+       * @return {Object|undefined} Definition of the endpoint.
        */
       findEndpoint(endpointId, api) {
         if (api instanceof Array) {
