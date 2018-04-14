@@ -653,7 +653,7 @@
        * @return {String} Method name.
        */
       _computeHttpMethod(model) {
-        const value = model[HYD_CORE + 'method'];
+        const value = model && model[HYD_CORE + 'method'];
         return value && value[0]['@value'];
       }
       /**
