@@ -109,7 +109,7 @@
       web-api="[[amfModel]]"
       endpoint-path="{{endpointPath}}"
       api-base-uri="{{apiBaseUri}}"
-      selected="[[selectedAmfId]]"
+      selected="[[selected]]"
       path-model="{{pathModel}}"
       query-model="{{queryModel}}"></api-url-data-model>
     <div class="content">
@@ -171,7 +171,7 @@
      * API specification model (first element is a shape of
      * `http://raml.org/vocabularies/document#Document` type).
      *
-     * To build request editor view for an endpoint, set `selectedAmfId`
+     * To build request editor view for an endpoint, set `selected`
      * property to an id of an operation that is defined in the spec. The
      * element looks up for the definition and applied to the editors.
      *
@@ -282,13 +282,14 @@
            */
           aware: String,
           /**
-           * AMF HTTP method (operation in AMF vocabulary) ID.
+           * An `@id` of selected AMF shape. When changed it computes
+           * method model for the selection.
            */
-          selectedAmfId: String,
+          selected: String,
           /**
            * AMF API model.
            * The element extracts method definition from passed model
-           * and by using `selectedAmfId`.
+           * and by using `selected`.
            */
           amfModel: Object,
           /**
@@ -296,7 +297,7 @@
            */
           _methodModel: {
             type: Object,
-            computed: '_computeMethodModel(amfModel, selectedAmfId)'
+            computed: '_computeMethodModel(amfModel, selected)'
           },
           /**
            * Hides the URL editor from the view.

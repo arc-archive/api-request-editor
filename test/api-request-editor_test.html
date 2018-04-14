@@ -163,7 +163,7 @@
       suiteSetup(() => {
         element = fixture('Basic');
         element.amfModel = amf;
-        element.selectedAmfId = API_ROOT + '%2Ffiles/post';
+        element.selected = API_ROOT + '%2Ffiles/post';
       });
 
       test('_methodModel is computed', () => {
@@ -200,7 +200,7 @@
         return new Promise((resolve) => {
           element = fixture(fix || 'Basic');
           element.amfModel = amf;
-          element.selectedAmfId = id;
+          element.selected = id;
           flush(() => resolve());
         });
       }
