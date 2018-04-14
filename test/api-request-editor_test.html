@@ -193,6 +193,15 @@
       test('authNotRequired is set', () => {
         assert.isFalse(element.authNotRequired);
       });
+
+      test('Changing selection to "undefined" clears the result', () => {
+        element.selected = undefined;
+        assert.isUndefined(element._methodModel);
+        assert.isUndefined(element.httpMethod);
+        assert.isUndefined(element.securedBy);
+        assert.isUndefined(element.apiHeaders);
+        assert.isUndefined(element.apiPayload);
+      });
     });
 
     suite('View control', () => {
