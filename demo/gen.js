@@ -12,11 +12,10 @@ amf.Core.init().then(() => {
   ramlParser.parseFileAsync(`file://${dataPath}`)
   .then((doc) => {
     const r = amf.Core.resolver('RAML 1.0');
-    doc = r.resolve(doc);
+    doc = r.resolve(doc, 'editing');
     return jsonLdParser.generateString(doc);
   })
-  .then((data) => fs.writeFile(`./demo/amf-model.json`,
-    JSON.stringify(JSON.parse(data)), 'utf8'))
+  .then((data) => fs.writeFile(`./demo/amf-model.json`, data, 'utf8'))
   .then(() => console.log('Data saved'))
   .catch((cause) => {
     console.error(cause);
