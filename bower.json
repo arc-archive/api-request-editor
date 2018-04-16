@@ -44,7 +44,6 @@
   },
   "resolutions": {
     "polymer": "^2.0.0",
-    "api-property-form-item": "2.0.0-preview",
-    "headers-parser-behavior": "2.0.0-preview"
+    "api-property-form-item": "2.0.0-preview"
   }
 }
