@@ -11,14 +11,14 @@
     <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
     <link rel="import" href="../../paper-item/paper-item.html">
     <link rel="import" href="../../paper-listbox/paper-listbox.html">
-    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <!-- <link rel="import" href="../../paper-checkbox/paper-checkbox.html"> -->
     <link rel="import" href="../../paper-toast/paper-toast.html">
-    <link rel="import" href="../../raml-aware/raml-aware.html">
-    <link rel="import" href="../api-request-editor.html">
     <link rel="import" href="../../neon-animation/web-animations.html">
     <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
     <link rel="import" href="../../oauth-authorization/oauth1-authorization.html">
     <link rel="import" href="../../xhr-simple-request/xhr-simple-request.html">
+    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
+    <link rel="import" href="../api-request-editor.html">
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
       :root {
@@ -65,13 +65,14 @@
   <body>
     <dom-bind id="demo">
       <template is="dom-bind">
-        <raml-aware raml="{{amfModel}}" scope="api-demo"></raml-aware>
         <oauth2-authorization></oauth2-authorization>
         <oauth1-authorization></oauth1-authorization>
         <xhr-simple-request></xhr-simple-request>
         <header>
-          <paper-dropdown-menu label="Select demo endpoint">
-            <paper-listbox slot="dropdown-content" id="enpointsList" selected="{{selectedEndpointIndex}}" on-selected-changed="_endpointChanged">
+          <span id="endpointSelector"></span>
+          <span id="methodSelector"></span>
+          <!-- <paper-dropdown-menu label="Select demo endpoint">
+            <paper-listbox slot="dropdown-content" on-selected-changed="_endpointChanged">
               <template is="dom-repeat" items="[[endpoints]]">
                 <paper-item>[[item]]</paper-item>
               </template>
@@ -83,10 +84,10 @@
                 <paper-item>[[item.label]]</paper-item>
               </template>
             </paper-listbox>
-          </paper-dropdown-menu>
+          </paper-dropdown-menu> -->
         </header>
         <section role="main" class="vertical-section-container centered main">
-          <api-request-editor narrow="[[narrow]]" aware="api-demo" selected="[[selectedAmfId]]" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-request-editor>
+          <api-request-editor narrow="[[narrow]]" amf-model="[[amfModel]]" selected="[[selectedAmfId]]" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-request-editor>
         </section>
         <section class="vertical-section-container centered">
           <paper-checkbox checked="{{narrow}}">Render narrow view</paper-checkbox>
@@ -104,12 +105,21 @@
       app.allowHideOptional = true;
       app.allowDisableParams = true;
       app._load = function() {
-        fetch('./amf-model.json')
-        .then((response) => response.json())
-        .then((data) => {
+        const xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', (e) => {
+          let data;
+          try {
+            data = JSON.parse(e.target.response);
+          } catch (e) {
+            window.alert('Unable to parse AMF model');
+            return;
+          }
           app.amfModel = data;
           app._setEndpointsList(data);
         });
+        xhr.addEventListener('error', () => window.alert('Unable to load AMF model'));
+        xhr.open('GET', './amf-model.json');
+        xhr.send();
       };
       app._getAmfValue = function(model) {
         if (!model || !(model instanceof Array) || !model[0]) {
@@ -120,34 +130,68 @@
       app._setEndpointsList = function(data) {
         data = data[0]['http://raml.org/vocabularies/document#encodes'][0];
         const endpoints = data['http://raml.org/vocabularies/http#endpoint'];
-        const list = endpoints.map((item) => {
-          return app._getAmfValue(item['http://raml.org/vocabularies/http#path']);
+
+        const selector = document.createElement('paper-dropdown-menu');
+        selector.label = 'Select demo endpoint';
+        const list = document.createElement('paper-listbox');
+        list.slot = 'dropdown-content';
+        list.addEventListener('selected-changed', app._endpointChanged);
+
+        const labels = [];
+        endpoints.forEach((item) => {
+          const label = app._getAmfValue(item['http://raml.org/vocabularies/http#path']);
+          labels.push(label);
+          const pItem = document.createElement('paper-item');
+          pItem.innerText = label;
+          list.appendChild(pItem);
         });
-        app.endpoints = list;
+        app.endpoints = labels;
+        list.selected = 0;
+        selector.appendChild(list);
+        app.$.endpointSelector.appendChild(selector);
       };
       app._endpointChanged = function(e) {
         const index = e.detail.value;
         app._computeOperations(index);
       };
+
+      app._clearOperations = function() {
+        const selector = document.body.querySelector('#methodDropdown');
+        if (selector) {
+          const list = app.$.methodSelector.querySelector('paper-listbox');
+          list.removeEventListener('selected-changed', app._methodChanged);
+          selector.parentNode.removeChild(selector);
+        }
+      };
       app._computeOperations = function(index) {
+        app._clearOperations();
         let data = app.amfModel[0]['http://raml.org/vocabularies/document#encodes'][0];
         data = data['http://raml.org/vocabularies/http#endpoint'][index];
         const operations = data['http://www.w3.org/ns/hydra/core#supportedOperation'];
         if (!operations) {
-          app.selectedShape = -1;
           return;
         }
-        const list = [];
+        const selector = document.createElement('paper-dropdown-menu');
+        selector.label = 'Select endpoint\'s method';
+        selector.id = 'methodDropdown';
+        const list = document.createElement('paper-listbox');
+        list.slot = 'dropdown-content';
+        list.addEventListener('selected-changed', app._methodChanged);
+        const items = [];
         operations.forEach((item) => {
-          list.push({
+          const label = app._getAmfValue(item['http://www.w3.org/ns/hydra/core#method']);
+          items.push({
             id: item['@id'],
-            label: app._getAmfValue(item['http://www.w3.org/ns/hydra/core#method'])
+            label: label
           });
+          const pItem = document.createElement('paper-item');
+          pItem.innerText = label;
+          list.appendChild(pItem);
         });
-        app.selectedShape = -1;
-        app.operations = list;
-        app.selectedShape = 0;
-        setTimeout(() => app._methodChanged(), 100);
+        app.operations = items;
+        list.selected = 0;
+        selector.appendChild(list);
+        app.$.methodSelector.appendChild(selector);
       };
       app._computeApiParams = function(apiPrams) {
         if (!apiPrams) {
@@ -155,11 +199,9 @@
         }
         return JSON.stringify(apiPrams, null, 1);
       };
-      app._methodChanged = function() {
-        setTimeout(() => {
-          const id = app.operations[app.selectedShape].id;
-          app.selectedAmfId = id;
-        });
+      app._methodChanged = function(e) {
+        const id = app.operations[e.detail.value].id;
+        app.selectedAmfId = id;
       };
       app._apiRequestHandler = function(e) {
         setTimeout(() => {
