@@ -83,6 +83,30 @@
       @apply --action-button-disabled;
     }
 
+    .send-button.valid {
+      @apply --api-request-editor-send-valid-button;
+    }
+
+    .send-button.valid:hover {
+      @apply --api-request-editor-send-valid-button-hover;
+    }
+
+    .send-button.invalid {
+      @apply --api-request-editor-send-invalid-button;
+    }
+
+    .send-button.invalid:hover {
+      @apply --api-request-editor-send-invalid-button-hover;
+    }
+
+    .send-button.abort {
+      @apply --api-request-editor-abort-button;
+    }
+
+    .send-button.abort:hover {
+      @apply --api-request-editor-abort-button-hover;
+    }
+
     .url-editor {
       @apply --layout-horizontal;
       @apply --layout-center;
@@ -144,11 +168,15 @@
         <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
         <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
         <template is="dom-if" if="[[authValid]]">
-          <paper-button raised class="send-button" on-tap="execute" hidden$="[[loadingRequest]]" disabled="[[urlInvalid]]">Send</paper-button>
-          <paper-button raised class="send-button" on-tap="_abortRequest" hidden$="[[!loadingRequest]]">Abort</paper-button>
+          <template is="dom-if" if="[[!loadingRequest]]">
+            <paper-button raised class="send-button valid" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
+          </template>
+          <template is="dom-if" if="[[loadingRequest]]">
+            <paper-button raised class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
+          </template>
         </template>
         <template is="dom-if" if="[[!authValid]]">
-          <paper-button class="send-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+          <paper-button class="send-button invalid" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
       </div>
     </div>
@@ -267,6 +295,9 @@
      * `--primary-button-disabled-color` | Theme property, font color of the primary action button when disabled. Applied to "send" and "abort" buttons  | `#fff`
      * `--action-button-disabled` | Theme mixin, applied to "send" and "abort" buttons when disabled | `{}`
      * `--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`
+     * `--api-request-editor-send-valid-button` | Mixin applied to the send button when request is valid | `{}`
+     * `--api-request-editor-send-invalid-button` | Mixin applied to the send button when request is invalid | `{}`
+     * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
      *
      * @customElement
      * @polymer
