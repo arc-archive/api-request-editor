@@ -71,7 +71,7 @@
       @apply --action-button;
     }
 
-    .send-button:hover {
+    .send-button:not([disabled]):hover {
       background-color: var(--primary-button-hover-background-color, var(--accent-color));
       color: var(--primary-button-hover-color, #fff);
       @apply --action-button-hover;
@@ -83,19 +83,19 @@
       @apply --action-button-disabled;
     }
 
-    .send-button.valid {
+    .send-button:not([disabled]).valid {
       @apply --api-request-editor-send-valid-button;
     }
 
-    .send-button.valid:hover {
+    .send-button:not([disabled]).valid:hover {
       @apply --api-request-editor-send-valid-button-hover;
     }
 
-    .send-button.invalid {
+    .send-button:not([disabled]).invalid {
       @apply --api-request-editor-send-invalid-button;
     }
 
-    .send-button.invalid:hover {
+    .send-button:not([disabled]).invalid:hover {
       @apply --api-request-editor-send-invalid-button-hover;
     }
 
