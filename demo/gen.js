@@ -5,7 +5,7 @@ amf.plugins.document.WebApi.register();
 amf.plugins.document.Vocabularies.register();
 amf.plugins.features.AMFValidation.register();
 
-const dataPath = 'demo/api-raml/api.raml';
+const dataPath = 'demo/demo-api/demo-api.raml';
 amf.Core.init().then(() => {
   const ramlParser = amf.Core.parser('RAML 1.0', 'application/yaml');
   const jsonLdParser = amf.Core.generator('AMF Graph', 'application/ld+json');

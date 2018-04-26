@@ -1,9 +1,0 @@
-{
-  "role": "writer",
-  "type": "user",
-  "additionalRoles": [
-    "commenter"
-  ],
-  "value": "email@domain.com",
-  "withLink": false
-}
