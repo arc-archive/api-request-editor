@@ -13,6 +13,7 @@
     <link rel="import" href="../../paper-listbox/paper-listbox.html">
     <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
     <link rel="import" href="../../paper-toast/paper-toast.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
     <link rel="import" href="../../neon-animation/web-animations.html">
     <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
     <link rel="import" href="../../oauth-authorization/oauth1-authorization.html">
@@ -87,13 +88,15 @@
           </paper-dropdown-menu> -->
         </header>
         <section role="main" class="vertical-section-container centered main">
-          <api-request-editor narrow="[[narrow]]" amf-model="[[amfModel]]" selected="[[selectedAmfId]]" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-request-editor>
+          <api-request-editor narrow="[[narrow]]" amf-model="[[amfModel]]" base-uri="[[baseUri]]" selected="[[selectedAmfId]]" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-request-editor>
         </section>
         <section class="vertical-section-container centered">
           <paper-checkbox checked="{{narrow}}">Render narrow view</paper-checkbox>
           <paper-checkbox checked="{{allowCustom}}">Allow custom properties</paper-checkbox>
           <paper-checkbox checked="{{allowHideOptional}}">Allow auto hide optional headers</paper-checkbox>
           <paper-checkbox checked="{{allowDisableParams}}">Allow disabling parameters</paper-checkbox>
+          <paper-input label="Override base uri" value="{{baseUri}}"></paper-input>
+
         </section>
         <paper-toast text="Request send event detected" id="rsend"></paper-toast>
         <paper-toast text="Request abort event detected" id="rabort"></paper-toast>

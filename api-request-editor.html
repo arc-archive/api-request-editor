@@ -130,7 +130,8 @@
       <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
     </template>
     <api-url-data-model
-      web-api="[[amfModel]]"
+      amf-model="[[amfModel]]"
+      base-uri="[[baseUri]]"
       endpoint-path="{{endpointPath}}"
       api-base-uri="{{apiBaseUri}}"
       selected="[[selected]]"
@@ -142,7 +143,7 @@
           required
           auto-validate
           invalid="{{urlInvalid}}"
-          base-uri="[[_computeFinalBaseUri(apiBaseUri,baseUri)]]"
+          base-uri="[[apiBaseUri]]"
           endpoint-path="[[endpointPath]]"
           query-model="{{queryModel}}"
           path-model="{{pathModel}}"
@@ -152,16 +153,26 @@
       <paper-tabs selected="{{selectedTab}}">
         <paper-tab hidden$="[[authNotRequired]]">
           Authorization
-          <iron-icon icon="arc:warning" class="panel-warning" hidden$="[[authValid]]" title="Fill up missing auth data"></iron-icon>
+          <iron-icon icon="arc:warning" class="panel-warning" hidden$="[[authValid]]" title="Fill up missing authorization data"></iron-icon>
         </paper-tab>
-        <paper-tab>Parameters</paper-tab>
-        <paper-tab>Headers</paper-tab>
+        <paper-tab>
+          Parameters
+          <template is="dom-if" if="[[paramsInvalid]]">
+            <iron-icon icon="arc:warning" class="panel-warning" title="Fill up missing parameter"></iron-icon>
+          </template>
+        </paper-tab>
+        <paper-tab>
+          Headers
+          <template is="dom-if" if="[[headersInvalid]]">
+            <iron-icon icon="arc:warning" class="panel-warning" title="Fill up missing headers"></iron-icon>
+          </template>
+        </paper-tab>
         <paper-tab hidden$="[[!isPayloadRequest]]">Body</paper-tab>
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
         <authorization-panel events-target="[[eventsTarget]]" hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
-        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]"></api-url-params-editor>
-        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-headers-editor>
+        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" invalid="{{paramsInvalid}}"></api-url-params-editor>
+        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" invalid="{{headersInvalid}}"></api-headers-editor>
         <api-body-editor events-target="[[eventsTarget]]" amf-model="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
@@ -186,7 +197,6 @@
   <script>
   (function() {
     const RAML_VOC = 'http://raml.org/vocabularies/';
-    const VOC_DOC = RAML_VOC + 'document#';
     const VOC_HTTP = RAML_VOC+ 'http#';
     const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
     /**
@@ -514,7 +524,15 @@
            * Request path parameters view model
            * @type {Array<Object>}
            */
-          pathModel: Array
+          pathModel: Array,
+          /**
+           * Computed when URL params editor is invalid.
+           */
+          paramsInvalid: Boolean,
+          /**
+           * Computed when headers editor is invalid.
+           */
+          headersInvalid: Boolean
         };
       }
       static get observers() {
