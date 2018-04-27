@@ -466,6 +466,7 @@
            */
           authNotRequired: {
             type: Boolean,
+            value: true,
             computed: '_computeNoAuth(securedBy)',
             observer: '_noAuthChanged'
           },
