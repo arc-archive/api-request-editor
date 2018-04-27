@@ -18,6 +18,7 @@
 <link rel="import" href="../api-form-mixin/api-form-styles.html">
 <link rel="import" href="../uuid-generator/uuid-generator.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
+<link rel="import" href="../amf-helper-mixin/amf-helper-mixin.html">
 <dom-module id="api-request-editor">
   <template>
     <style include="api-form-styles">
@@ -302,8 +303,9 @@
      * @polymer
      * @demo demo/index.html
      * @appliesMixin ArcBehaviors.EventsTargetBehavior
+     * @appliesMixin ApiElements.AmfHelperMixin
      */
-    class ApiRequestEditor extends ArcBehaviors.EventsTargetBehavior(Polymer.Element) {
+    class ApiRequestEditor extends ApiElements.AmfHelperMixin(ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
       static get is() { return 'api-request-editor'; }
       static get properties() {
         return {
@@ -616,22 +618,15 @@
        * @return {Object|undefined} Definition of the endpoint.
        */
       findEndpoint(endpointId, api) {
-        if (api instanceof Array) {
-          api = api[0];
-        }
-        if (!this._modelHasType(api, VOC_DOC + 'Document')) {
+        const webApi = this._computeWebApi(api);
+        if (!webApi) {
           return;
         }
-        const encodes = api[VOC_DOC + 'encodes'];
-        api = encodes.find((item) => this._modelHasType(item, 'http://schema.org/WebAPI'));
-        if (!api) {
+        const endpoints = webApi[VOC_HTTP + 'endpoint'];
+        if (!endpoints) {
           return;
         }
-        api = api[VOC_HTTP + 'endpoint'];
-        if (!api) {
-          return;
-        }
-        return api.find((item) => item['@id'] === endpointId);
+        return endpoints.find((item) => item['@id'] === endpointId);
       }
       /**
        * Finds a method definition on the list of operations for an endpoint.
@@ -645,18 +640,6 @@
           return;
         }
         return operations.find((item) => item['@id'] === id);
-      }
-
-      /**
-       * Checks if a model has a type.
-       * @param {Object} model Model to test
-       * @param {String} type Type name
-       * @return {Boolean} True if model has a type.
-       */
-      _modelHasType(model, type) {
-        const types = model['@type'] || [];
-        const index = types.findIndex((item) => item === type);
-        return index !== -1;
       }
       /**
        * Computes AMF model for authorization panel.
@@ -701,8 +684,7 @@
        * @return {String} Method name.
        */
       _computeHttpMethod(model) {
-        const value = model && model[HYD_CORE + 'method'];
-        return value && value[0]['@value'];
+        return this._getValue(model, HYD_CORE + 'method');
       }
       /**
        * Computes value for `apiPayload` property from AMF model for current

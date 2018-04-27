@@ -94,20 +94,6 @@
       });
     });
 
-    suite('_modelHasType()', () => {
-      suiteSetup(() => {
-        element = fixture('Basic');
-      });
-      test('Checks when type exists', () => {
-        const result = element._modelHasType(amf[0], 'http://raml.org/vocabularies/document#Fragment');
-        assert.isTrue(result);
-      });
-      test('Checks when type does not exists', () => {
-        const result = element._modelHasType(amf[0], 'http://raml.org/vocabularies/document#Something');
-        assert.isFalse(result);
-      });
-    });
-
     suite('findMethod()', () => {
       const model = [{
         '@id': 'id1'
@@ -215,9 +201,19 @@
         });
       }
 
-      test('Authorization tab is rendered', () => {
+      test('Authorization tab is not rendered when there\'s no security', () => {
         return dataSetup(API_ROOT + '%2Fpeople/get')
         .then(() => {
+          const panel = element.shadowRoot.querySelector('authorization-panel');
+          const display = getComputedStyle(panel).display;
+          assert.equal(display, 'none');
+        });
+      });
+
+      test('Authorization tab is rendered when security is set', () => {
+        return dataSetup(API_ROOT + '%2Fmessages/get')
+        .then(() => {
+          element.selectedTab = 0;
           const panel = element.shadowRoot.querySelector('authorization-panel');
           const display = getComputedStyle(panel).display;
           assert.notEqual(display, 'none');
