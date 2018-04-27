@@ -23,7 +23,7 @@
   </test-fixture>
   <script>
   /* global AmfLoader */
-  const API_ROOT = 'file://demo/api-raml/api.raml#/web-api/end-points/';
+  const API_ROOT = 'file://demo/demo-api/demo-api.raml#/web-api/end-points/';
   suite('api-request-editor', () => {
     let amf;
     let element;
@@ -37,13 +37,13 @@
         element = fixture('Basic');
       });
       test('Renturns the same ID for endpoint ID', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element.computeEndpointId(id);
         assert.equal(result, id);
       });
 
       test('Renturns endpoint id for method', () => {
-        const compare = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const compare = API_ROOT + '%2Fpeople';
         const result = element.computeEndpointId(compare + '/get');
         assert.equal(result, compare);
       });
@@ -61,21 +61,21 @@
       });
 
       test('Finds endpoint by id', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, amf);
         assert.typeOf(result, 'object');
         assert.equal(result['@id'], id);
       });
 
       test('Finds endpoint by id for API as an object', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, amf[0]);
         assert.typeOf(result, 'object');
         assert.equal(result['@id'], id);
       });
 
       test('Returns undefined when not a Document', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, {
           '@type': ['http://raml.org/vocabularies/document#Unit']
         });
@@ -83,7 +83,7 @@
       });
 
       test('Returns undefined when no WebApi', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, {
           '@type': ['http://raml.org/vocabularies/document#Document'],
           'http://raml.org/vocabularies/document#encodes': [{
@@ -147,14 +147,14 @@
       });
 
       test('Finds method by id', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch/post';
+        const id = API_ROOT + '%2Fpeople/post';
         const result = element._computeMethodModel(amf, id);
         assert.typeOf(result, 'object');
         assert.equal(result['@id'], id);
       });
 
       test('Returns undefined for enpoing id', () => {
-        const id = API_ROOT + '%2Ffiles%2F%7BfileId%7D%2Ftouch';
+        const id = API_ROOT + '%2Fpeople';
         const result = element._computeMethodModel(amf, id);
         assert.isUndefined(result);
       });
@@ -164,7 +164,7 @@
       suiteSetup(() => {
         element = fixture('Basic');
         element.amfModel = amf;
-        element.selected = API_ROOT + '%2Ffiles/post';
+        element.selected = API_ROOT + '%2Fpeople%2F%7BpersonId%7D/get';
       });
 
       test('_methodModel is computed', () => {
@@ -172,7 +172,7 @@
       });
 
       test('httpMethod is computed', () => {
-        assert.equal(element.httpMethod, 'post');
+        assert.equal(element.httpMethod, 'get');
       });
 
       test('securedBy is computed', () => {
@@ -188,7 +188,7 @@
       });
 
       test('isPayloadRequest is computed', () => {
-        assert.isTrue(element.isPayloadRequest);
+        assert.isFalse(element.isPayloadRequest);
       });
 
       test('authNotRequired is set', () => {
@@ -216,7 +216,7 @@
       }
 
       test('Authorization tab is rendered', () => {
-        return dataSetup(API_ROOT + '%2Ffiles/post')
+        return dataSetup(API_ROOT + '%2Fpeople/get')
         .then(() => {
           const panel = element.shadowRoot.querySelector('authorization-panel');
           const display = getComputedStyle(panel).display;
@@ -225,7 +225,7 @@
       });
 
       test('Body tab is rendered', () => {
-        return dataSetup(API_ROOT + '%2Ffiles/post')
+        return dataSetup(API_ROOT + '%2Fpeople/post')
         .then(() => {
           element.selectedTab = 3;
           assert.isTrue(element.isPayloadRequest);
@@ -236,7 +236,7 @@
       });
 
       test('api-url-editor is rendered', () => {
-        return dataSetup(API_ROOT + '%2Ffiles/post')
+        return dataSetup(API_ROOT + '%2Fpeople/get')
         .then(() => {
           const panel = element.shadowRoot.querySelector('.url-editor');
           const display = getComputedStyle(panel).display;
@@ -245,7 +245,7 @@
       });
 
       test('api-url-editor is not rendered when noUrlEditor', () => {
-        return dataSetup(API_ROOT + '%2Ffiles/post', 'NoUrl')
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
         .then(() => {
           const panel = element.shadowRoot.querySelector('.url-editor');
           const display = getComputedStyle(panel).display;
@@ -254,9 +254,9 @@
       });
 
       test('Computes URL when noUrlEditor', () => {
-        return dataSetup(API_ROOT + '%2Ffiles/post', 'NoUrl')
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
         .then(() => {
-          assert.equal(element.url, 'https://www.googleapis.com/drive/v2/files?uploadType=multipart&visibility=DEFAULT');
+          assert.equal(element.url, 'http://development.domain.com/people');
         });
       });
     });
@@ -268,6 +268,43 @@
     //   const elementHeader = elementShadowRoot.querySelector('h2');
     //   assert.equal(elementHeader.innerHTML, 'Hello api-request-editor!');
     // });
+
+    suite('Query / path model changed events', () => {
+      function dataSetup(id) {
+        return new Promise((resolve) => {
+          element = fixture('Basic');
+          element.amfModel = amf;
+          element.selected = id;
+          flush(() => resolve());
+        });
+      }
+
+      test('Dispatches query event when model changes', () => {
+        let eventData;
+        window.addEventListener('request-query-model-changed', function clb(e) {
+          window.removeEventListener('request-query-model-changed', clb);
+          eventData = e.detail.value;
+        });
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          assert.typeOf(eventData, 'array');
+          assert.lengthOf(eventData, 3);
+        });
+      });
+
+      test('Dispatches path event when model changes', () => {
+        let eventData;
+        window.addEventListener('request-path-model-changed', function clb(e) {
+          window.removeEventListener('request-path-model-changed', clb);
+          eventData = e.detail.value;
+        });
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          assert.typeOf(eventData, 'array');
+          assert.lengthOf(eventData, 1);
+        });
+      });
+    });
   });
   </script>
 </body>

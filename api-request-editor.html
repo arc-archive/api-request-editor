@@ -501,8 +501,24 @@
            * Generated request ID when the request is sent. This value is reported
            * in send and abort events
            */
-          requestId: String
+          requestId: String,
+          /**
+           * Request query parameters view model
+           * @type {Array<Object>}
+           */
+          queryModel: Array,
+          /**
+           * Request path parameters view model
+           * @type {Array<Object>}
+           */
+          pathModel: Array
         };
+      }
+      static get observers() {
+        return [
+          '_pathModelChanged(pathModel.*)',
+          '_queryModelChanged(queryModel.*)'
+        ];
       }
       /**
        * @constructor
@@ -916,6 +932,52 @@
       _authRedirectChangedHandler(e) {
         this.redirectUri = e.detail.value;
       }
+
+      _pathModelChanged(record) {
+        const model = record.base;
+        const path = record.path;
+        if (!model || !path) {
+          return;
+        }
+        if (path === 'pathModel' || (/^pathModel\.\d+\.(name|value|schema\.enabled)$/).test(path)) {
+          this._notifyModelChanged('path', model);
+        }
+      }
+
+      _queryModelChanged(record) {
+        const model = record.base;
+        const path = record.path;
+        if (!model || !path) {
+          return;
+        }
+        if (path === 'queryModel' || path === 'queryModel.length' ||
+          (/^queryModel\.\d+\.(name|value|schema\.enabled)$/).test(path)) {
+          this._notifyModelChanged('query', model);
+        }
+      }
+
+      _notifyModelChanged(type, model) {
+        const result = [];
+        if (model) {
+          model.forEach((item) => {
+            if (!item.name) {
+              return;
+            }
+            result.push({
+              name: item.name,
+              value: item.value,
+              enabled: item.schema.enabled
+            });
+          });
+        }
+        this.dispatchEvent(new CustomEvent('request-' + type + '-model-changed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: result
+          }
+        }));
+      }
       /**
        * Dispatched when the user requests to send current request.
        *
@@ -948,6 +1010,26 @@
        * @param {String} id Generated UUID of the request with `send-request`
        * event.
        */
+
+       /**
+        * Dispatched when query model changed.
+        *
+        * @event request-query-model-changed
+        * @param {Array<Object>} value List of current query parameters.
+        * Each object contains `name`, `value` and `enabled` property.
+        * If `enable` equals `false` (boolean) it means that the user disabled
+        * this property in the editor.
+        */
+       /**
+        * Dispatched when path variables model changed.
+        *
+        * @event request-path-model-changed
+        * @param {Array<Object>} value List of current path parameters.
+        * Each object contains `name`, `value` and `enabled` property.
+        * Enabled property is here only for consistency with
+        * `request-query-model-changed`. The UI does not offer turning this
+        * properties off. It's always true
+        */
     }
 
     window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
