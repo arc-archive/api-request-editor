@@ -787,6 +787,9 @@
        * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
        */
       _isPayloadChanged(state) {
+        if (!state) {
+          this.payload = undefined;
+        }
         if (!state && this.selectedTab === 3) {
           this.selectedTab = 1;
         }
