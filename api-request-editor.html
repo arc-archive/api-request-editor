@@ -54,7 +54,7 @@
       margin-right: 8px;
     }
 
-    iron-pages > * {
+    iron-pages>* {
       border: 1px var(--api-request-editor-editors-border-color, transparent) solid;
       min-height: 120px;
     }
@@ -129,26 +129,10 @@
     <template is="dom-if" if="[[aware]]">
       <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
     </template>
-    <api-url-data-model
-      amf-model="[[amfModel]]"
-      base-uri="[[baseUri]]"
-      endpoint-path="{{endpointPath}}"
-      api-base-uri="{{apiBaseUri}}"
-      selected="[[selected]]"
-      path-model="{{pathModel}}"
-      query-model="{{queryModel}}"></api-url-data-model>
+    <api-url-data-model amf-model="[[amfModel]]" base-uri="[[baseUri]]" endpoint-path="{{endpointPath}}" api-base-uri="{{apiBaseUri}}" selected="[[selected]]" path-model="{{pathModel}}" query-model="{{queryModel}}"></api-url-data-model>
     <div class="content">
       <div class="url-editor" hidden$="[[noUrlEditor]]">
-        <api-url-editor
-          required
-          auto-validate
-          invalid="{{urlInvalid}}"
-          base-uri="[[apiBaseUri]]"
-          endpoint-path="[[endpointPath]]"
-          query-model="{{queryModel}}"
-          path-model="{{pathModel}}"
-          events-target="[[eventsTarget]]"
-          value="{{url}}"></api-url-editor>
+        <api-url-editor required auto-validate invalid="{{urlInvalid}}" base-uri="[[apiBaseUri]]" endpoint-path="[[endpointPath]]" query-model="{{queryModel}}" path-model="{{pathModel}}" events-target="[[eventsTarget]]" value="{{url}}"></api-url-editor>
       </div>
       <paper-tabs selected="{{selectedTab}}">
         <paper-tab hidden$="[[authNotRequired]]">
@@ -197,7 +181,7 @@
   <script>
   (function() {
     const RAML_VOC = 'http://raml.org/vocabularies/';
-    const VOC_HTTP = RAML_VOC+ 'http#';
+    const VOC_HTTP = RAML_VOC + 'http#';
     const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
     /**
      * `api-request-editor`
@@ -217,20 +201,29 @@
      *
      * ## Changes in version 2
      *
-     * - XHR element is not included in the element. Use `advanced-rest-client/xhr-simple-request` in your application or handle `api-request` custom event to make a request
+     * - XHR element is not included in the element. Use
+     * `advanced-rest-client/xhr-simple-request` in your application or handle
+     * `api-request` custom event to make a request
      * - The element does not include any polyfills
      * - `redirectUrl` is now `redirectUri`
      * - `api-console-request` event is now `api-request` event
      * - `api-console-response` event is now `api-response` event
-     * - Added more details to `api-request` custom event (compering to `api-console-request`)
-     * - The user is able to enable/disable query parameters and headers. Set `allow-disable-params` attribute to enable this behavior.
-     * - The user is able to add custom query parameters or headers.  Set `allow-custom` attribute to enable this behavior.
+     * - Added more details to `api-request` custom event (comparing to
+     * `api-console-request`)
+     * - The user is able to enable/disable query parameters and headers. Set
+     * `allow-disable-params` attribute to enable this behavior.
+     * - The user is able to add custom query parameters or headers.
+     * Set `allow-custom` attribute to enable this behavior.
      * - From authorization panel changes:
-     *  - `auth-settings-changed` custom event is stopped from bubbling. Listen for `authorization-settings-changed` event instead.
+     *  - `auth-settings-changed` custom event is stopped from bubbling.
+     *  Listen for `authorization-settings-changed` event instead.
      * - From auth-method-oauth2 changes:
-     *  - Added `deliveryMethod` and `deliveryName` properties to the `detail.setting` object.
+     *  - Added `deliveryMethod` and `deliveryName` properties to the
+     *  `detail.setting` object.
      * - From auth-method-oauth1 changes:
-     *  - Crypto library is no longer included into the element. Use `advanced-rest-client/cryptojs-lib` component to include the library if your project doesn't use crypto libraries already.
+     *  - Crypto library is no longer included into the element. Use
+     *  `advanced-rest-client/cryptojs-lib` component to include the library
+     *  if your project doesn't use crypto libraries already.
      *
      * ## api-request event
      *
@@ -254,38 +247,49 @@
      * - url (`String`) - Endpoint full and final url. Note that if the API does
      * not specify base uri and `baseUri` property is not set then the `url`
      * can be relative url to the resource.
-     * - method (`String`) - HTTP method. User cannot change this value, it is encoded in the endpoint description
+     * - method (`String`) - HTTP method. User cannot change this value, it is
+     * encoded in the endpoint description
      * - headers (`String`) - valid HTTP headers string
      * - payload (`String|FormData|File|Blob|undefined`) - Request body
-     * - id (`String`) - A unique request identifier. This ID has to be reported back by `api-response` event. It is generated when `execute()` function is called.
-     * - auth (`Object|undefined`) - Current authorization settings received from the authorization panel.
-     * In case of basic, oauth 1 and oauth 2 authorizations, the token is applied to the
-     * headers or query parameters so no action is required.
-     * - authType (`String|undefined`) - Name of the authorization methods. One of `advanced-rest-client/auth-methods`.
+     * - id (`String`) - A unique request identifier. This ID has to be
+     *   reported back by `api-response` event. It is generated when `execute()`
+     *   function is called.
+     * - auth (`Object|undefined`) - Current authorization settings received
+     *   from the authorization panel.
+     *   In case of basic, oauth 1 and oauth 2 authorizations, the token is
+     *   applied to the headers or query parameters so no action is required.
+     * - authType (`String|undefined`) - Name of the authorization methods.
+     *   One of `advanced-rest-client/auth-methods`.
      * - queryModel (`Array<Object>`) - Query parameters data view model.
      * - pathModel (`Array<Object>`) - URI parameters data view model
      * - headersModel (`Array<Object>`) - Headers data view model
      *
-     * Do not change `queryModel`, `pathModel` and `headersModel` as it would make it out of sync with the application
-     * and any change won't be reflected in the editor. In future release this may be read only object.
+     * Do not change `queryModel`, `pathModel` and `headersModel` as it would
+     * make it out of sync with the application and any change won't be
+     * reflected in the editor. In future release this may be read only object.
      *
      * ## abort-api-request event
      *
      * The event is dispatched when the user press `abort` button.
-     * The transport must send `api-response` custom event with error message so the state of the UI is updated.
+     * The transport must send `api-response` custom event with error message
+     * so the state of the UI is updated.
      *
      * The event contains the following properties:
      *
-     * - url (`String`) The request URL. Can be empty string. Also, it may be different URL that the one used to send the request if the user changed it in between. Use the `id` property to compare requests.
+     * - url (`String`) The request URL. Can be empty string. Also, it may be
+     * different URL that the one used to send the request if the user changed
+     * it in between. Use the `id` property to compare requests.
      * - id (`String`)  Generated UUID of the request with `api-request` event.
      *
      * ## api-response event
      *
-     * This element does not act on this event. See `api-request-panel` documentation for more information.
+     * This element does not act on this event. See `api-request-panel`
+     * documentation for more information.
      *
      * ## Styling
      *
-     * `<api-request-editor>` provides the following custom properties and mixins for styling:
+     * `<api-request-editor>` provides the following custom properties and
+     * mixins for styling:
      *
      * Custom property | Description | Default
      * ----------------|-------------|----------
@@ -315,7 +319,8 @@
      * @appliesMixin ArcBehaviors.EventsTargetBehavior
      * @appliesMixin ApiElements.AmfHelperMixin
      */
-    class ApiRequestEditor extends ApiElements.AmfHelperMixin(ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
+    class ApiRequestEditor extends ApiElements.AmfHelperMixin(
+      ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
       static get is() { return 'api-request-editor'; }
       static get properties() {
         return {
@@ -1024,27 +1029,26 @@
        * event.
        */
 
-       /**
-        * Dispatched when query model changed.
-        *
-        * @event request-query-model-changed
-        * @param {Array<Object>} value List of current query parameters.
-        * Each object contains `name`, `value` and `enabled` property.
-        * If `enable` equals `false` (boolean) it means that the user disabled
-        * this property in the editor.
-        */
-       /**
-        * Dispatched when path variables model changed.
-        *
-        * @event request-path-model-changed
-        * @param {Array<Object>} value List of current path parameters.
-        * Each object contains `name`, `value` and `enabled` property.
-        * Enabled property is here only for consistency with
-        * `request-query-model-changed`. The UI does not offer turning this
-        * properties off. It's always true
-        */
+      /**
+       * Dispatched when query model changed.
+       *
+       * @event request-query-model-changed
+       * @param {Array<Object>} value List of current query parameters.
+       * Each object contains `name`, `value` and `enabled` property.
+       * If `enable` equals `false` (boolean) it means that the user disabled
+       * this property in the editor.
+       */
+      /**
+       * Dispatched when path variables model changed.
+       *
+       * @event request-path-model-changed
+       * @param {Array<Object>} value List of current path parameters.
+       * Each object contains `name`, `value` and `enabled` property.
+       * Enabled property is here only for consistency with
+       * `request-query-model-changed`. The UI does not offer turning this
+       * properties off. It's always true
+       */
     }
-
     window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
   })();
   </script>
