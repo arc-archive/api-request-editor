@@ -519,20 +519,32 @@
            * Request query parameters view model
            * @type {Array<Object>}
            */
-          queryModel: Array,
+          queryModel: {
+            type: Array,
+            notify: true
+          },
           /**
            * Request path parameters view model
            * @type {Array<Object>}
            */
-          pathModel: Array,
+          pathModel: {
+            type: Array,
+            notify: true
+          },
           /**
            * Computed when URL params editor is invalid.
            */
-          paramsInvalid: Boolean,
+          paramsInvalid: {
+            type: Boolean,
+            notify: true
+          },
           /**
            * Computed when headers editor is invalid.
            */
-          headersInvalid: Boolean
+          headersInvalid: {
+            type: Boolean,
+            notify: true
+          }
         };
       }
       static get observers() {
