@@ -300,6 +300,19 @@
           assert.lengthOf(eventData, 1);
         });
       });
+
+      test('Dispatches url-value-changed', (done) => {
+        dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          window.addEventListener('url-value-changed', function clb(e) {
+            window.removeEventListener('url-value-changed', clb);
+            assert.equal(e.detail.value,
+              'http://development.domain.com/people?nextPageToken=test');
+            done();
+          });
+          element.set('queryModel.0.value', 'test');
+        });
+      });
     });
   });
   </script>

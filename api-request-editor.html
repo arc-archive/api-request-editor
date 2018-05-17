@@ -396,7 +396,8 @@
            */
           url: {
             type: String,
-            notify: true
+            notify: true,
+            observer: '_urlChanged'
           },
           /**
            * Selected request tab.
@@ -997,6 +998,19 @@
         }));
       }
       /**
+       * Dispatches `url-value-changed` event when url value change.
+       * @param {String} value
+       */
+      _urlChanged(value) {
+        this.dispatchEvent(new CustomEvent('url-value-changed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: value
+          }
+        }));
+      }
+      /**
        * Dispatched when the user requests to send current request.
        *
        * This event can be cancelled.
@@ -1047,6 +1061,11 @@
        * Enabled property is here only for consistency with
        * `request-query-model-changed`. The UI does not offer turning this
        * properties off. It's always true
+       */
+      /**
+       * Dispatched when request URL change
+       * @event url-value-changed
+       * @param {String} value New value of request URL
        */
     }
     window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
