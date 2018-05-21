@@ -1,52 +1,320 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>api-request-editor test</title>
+  <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+  <script src="amf-loader.js"></script>
+  <link rel="import" href="../api-request-editor.html">
+</head>
+<body>
+  <test-fixture id="Basic">
+    <template>
+      <api-request-editor></api-request-editor>
+    </template>
+  </test-fixture>
+  <test-fixture id="NoUrl">
+    <template>
+      <api-request-editor no-url-editor></api-request-editor>
+    </template>
+  </test-fixture>
+  <script>
+  /* global AmfLoader */
+  const API_ROOT = 'file://demo/demo-api/demo-api.raml#/web-api/end-points/';
+  suite('api-request-editor', () => {
+    let amf;
+    let element;
+    suiteSetup(() => {
+      return AmfLoader.load()
+      .then((model) => amf = model);
+    });
 
-    <title>api-request-editor test</title>
-
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
-
-    <link rel="import" href="../api-request-editor.html">
-  </head>
-  <body>
-
-    <test-fixture id="BasicTestFixture">
-      <template>
-        <api-request-editor></api-request-editor>
-      </template>
-    </test-fixture>
-
-    <test-fixture id="ChangedPropertyTestFixture">
-      <template>
-        <api-request-editor prop1="new-prop1"></api-request-editor>
-      </template>
-    </test-fixture>
-
-    <script>
-      suite('api-request-editor', () => {
-
-        test('instantiating the element with default properties works', () => {
-          const element = fixture('BasicTestFixture');
-          assert.equal(element.prop1, 'api-request-editor');
-          const elementShadowRoot = element.shadowRoot;
-          const elementHeader = elementShadowRoot.querySelector('h2');
-          assert.equal(elementHeader.innerHTML, 'Hello api-request-editor!');
-        });
-
-        test('setting a property on the element works', () => {
-          // Create a test fixture
-          const element = fixture('ChangedPropertyTestFixture');
-          assert.equal(element.prop1, 'new-prop1');
-          const elementShadowRoot = element.shadowRoot;
-          const elementHeader = elementShadowRoot.querySelector('h2');
-          assert.equal(elementHeader.innerHTML, 'Hello new-prop1!');
-        });
-
+    suite('computeEndpointId()', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
       });
-    </script>
+      test('Renturns the same ID for endpoint ID', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element.computeEndpointId(id);
+        assert.equal(result, id);
+      });
 
-  </body>
+      test('Renturns endpoint id for method', () => {
+        const compare = API_ROOT + '%2Fpeople';
+        const result = element.computeEndpointId(compare + '/get');
+        assert.equal(result, compare);
+      });
+
+      test('Throws an error when no argument', () => {
+        assert.throws(() => {
+          element.computeEndpointId();
+        });
+      });
+    });
+
+    suite('findEndpoint()', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Finds endpoint by id', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element.findEndpoint(id, amf);
+        assert.typeOf(result, 'object');
+        assert.equal(result['@id'], id);
+      });
+
+      test('Finds endpoint by id for API as an object', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element.findEndpoint(id, amf[0]);
+        assert.typeOf(result, 'object');
+        assert.equal(result['@id'], id);
+      });
+
+      test('Returns undefined when not a Document', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element.findEndpoint(id, {
+          '@type': ['http://raml.org/vocabularies/document#Unit']
+        });
+        assert.isUndefined(result);
+      });
+
+      test('Returns undefined when no WebApi', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element.findEndpoint(id, {
+          '@type': ['http://raml.org/vocabularies/document#Document'],
+          'http://raml.org/vocabularies/document#encodes': [{
+            '@type': ['http://raml.org/vocabularies/document#DomainElement']
+          }]
+        });
+        assert.isUndefined(result);
+      });
+    });
+
+    suite('findMethod()', () => {
+      const model = [{
+        '@id': 'id1'
+      }, {
+        '@id': 'id2'
+      }];
+      suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Finds method model by id', () => {
+        let result = element.findMethod('id1', model);
+        assert.typeOf(result, 'object');
+        result = element.findMethod('id2', model);
+        assert.typeOf(result, 'object');
+      });
+
+      test('Returns undefined when model is not found', () => {
+        let result = element.findMethod('id3', model);
+        assert.isUndefined(result);
+      });
+
+      test('Returns undefined when no id', () => {
+        let result = element.findMethod('', model);
+        assert.isUndefined(result);
+      });
+
+      test('Returns undefined when no model', () => {
+        let result = element.findMethod('id1');
+        assert.isUndefined(result);
+      });
+    });
+
+    suite('_computeMethodModel()', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Finds method by id', () => {
+        const id = API_ROOT + '%2Fpeople/post';
+        const result = element._computeMethodModel(amf, id);
+        assert.typeOf(result, 'object');
+        assert.equal(result['@id'], id);
+      });
+
+      test('Returns undefined for enpoing id', () => {
+        const id = API_ROOT + '%2Fpeople';
+        const result = element._computeMethodModel(amf, id);
+        assert.isUndefined(result);
+      });
+    });
+
+    suite('Basic computations', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
+        element.amfModel = amf;
+        element.selected = API_ROOT + '%2Fpeople%2F%7BpersonId%7D/get';
+      });
+
+      test('_methodModel is computed', () => {
+        assert.typeOf(element._methodModel, 'object');
+      });
+
+      test('httpMethod is computed', () => {
+        assert.equal(element.httpMethod, 'get');
+      });
+
+      test('securedBy is computed', () => {
+        assert.typeOf(element.securedBy, 'array');
+      });
+
+      test('apiHeaders is computed', () => {
+        assert.typeOf(element.apiHeaders, 'array');
+      });
+
+      test('apiPayload is computed', () => {
+        assert.typeOf(element.apiPayload, 'array');
+      });
+
+      test('isPayloadRequest is computed', () => {
+        assert.isFalse(element.isPayloadRequest);
+      });
+
+      test('authNotRequired is set', () => {
+        assert.isFalse(element.authNotRequired);
+      });
+
+      test('Changing selection to "undefined" clears the result', () => {
+        element.selected = undefined;
+        assert.isUndefined(element._methodModel);
+        assert.isUndefined(element.httpMethod);
+        assert.isUndefined(element.securedBy);
+        assert.isUndefined(element.apiHeaders);
+        assert.isUndefined(element.apiPayload);
+      });
+    });
+
+    suite('View control', () => {
+      function dataSetup(id, fix) {
+        return new Promise((resolve) => {
+          element = fixture(fix || 'Basic');
+          element.amfModel = amf;
+          element.selected = id;
+          flush(() => resolve());
+        });
+      }
+
+      test('Authorization tab is not rendered when there\'s no security', () => {
+        return dataSetup(API_ROOT + '%2Fpeople/get')
+        .then(() => {
+          const panel = element.shadowRoot.querySelector('authorization-panel');
+          const display = getComputedStyle(panel).display;
+          assert.equal(display, 'none');
+        });
+      });
+
+      test('Authorization tab is rendered when security is set', () => {
+        return dataSetup(API_ROOT + '%2Fmessages/get')
+        .then(() => {
+          element.selectedTab = 0;
+          const panel = element.shadowRoot.querySelector('authorization-panel');
+          const display = getComputedStyle(panel).display;
+          assert.notEqual(display, 'none');
+        });
+      });
+
+      test('Body tab is rendered', () => {
+        return dataSetup(API_ROOT + '%2Fpeople/post')
+        .then(() => {
+          element.selectedTab = 3;
+          assert.isTrue(element.isPayloadRequest);
+          const panel = element.shadowRoot.querySelector('api-body-editor');
+          const display = getComputedStyle(panel).display;
+          assert.notEqual(display, 'none');
+        });
+      });
+
+      test('api-url-editor is rendered', () => {
+        return dataSetup(API_ROOT + '%2Fpeople/get')
+        .then(() => {
+          const panel = element.shadowRoot.querySelector('.url-editor');
+          const display = getComputedStyle(panel).display;
+          assert.notEqual(display, 'none');
+        });
+      });
+
+      test('api-url-editor is not rendered when noUrlEditor', () => {
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          const panel = element.shadowRoot.querySelector('.url-editor');
+          const display = getComputedStyle(panel).display;
+          assert.equal(display, 'none');
+        });
+      });
+
+      test('Computes URL when noUrlEditor', () => {
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          assert.equal(element.url, 'http://development.domain.com/people');
+        });
+      });
+    });
+
+    // test('instantiating the element with default properties works', () => {
+    //   const element = fixture('BasicTestFixture');
+    //   assert.equal(element.prop1, 'api-request-editor');
+    //   const elementShadowRoot = element.shadowRoot;
+    //   const elementHeader = elementShadowRoot.querySelector('h2');
+    //   assert.equal(elementHeader.innerHTML, 'Hello api-request-editor!');
+    // });
+
+    suite('Query / path model changed events', () => {
+      function dataSetup(id) {
+        return new Promise((resolve) => {
+          element = fixture('Basic');
+          element.amfModel = amf;
+          element.selected = id;
+          flush(() => resolve());
+        });
+      }
+
+      test('Dispatches query event when model changes', () => {
+        let eventData;
+        window.addEventListener('request-query-model-changed', function clb(e) {
+          window.removeEventListener('request-query-model-changed', clb);
+          eventData = e.detail.value;
+        });
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          assert.typeOf(eventData, 'array');
+          assert.lengthOf(eventData, 3);
+        });
+      });
+
+      test('Dispatches path event when model changes', () => {
+        let eventData;
+        window.addEventListener('request-path-model-changed', function clb(e) {
+          window.removeEventListener('request-path-model-changed', clb);
+          eventData = e.detail.value;
+        });
+        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          assert.typeOf(eventData, 'array');
+          assert.lengthOf(eventData, 1);
+        });
+      });
+
+      test('Dispatches url-value-changed', (done) => {
+        dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        .then(() => {
+          window.addEventListener('url-value-changed', function clb(e) {
+            window.removeEventListener('url-value-changed', clb);
+            assert.equal(e.detail.value,
+              'http://development.domain.com/people?nextPageToken=test');
+            done();
+          });
+          element.set('queryModel.0.value', 'test');
+        });
+      });
+    });
+  });
+  </script>
+</body>
 </html>

@@ -4,7 +4,7 @@
 
 # api-request-editor
 
-A request editor that builds the UI based on AMF model or presents default empty editor.
+A request editor that builds the UI based on AMF model.
 
 <!---
 ```
@@ -19,7 +19,7 @@ A request editor that builds the UI based on AMF model or presents default empty
 
 ```html
 <h3>Basic authorization</h3>
-<api-request-editor selected="1"></api-request-editor>
+<api-request-editor></api-request-editor>
 ```
 
 ### API components
