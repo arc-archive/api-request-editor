@@ -3,7 +3,6 @@ node_js: 8
 sudo: required
 before_script:
 - npm install -g polymer-cli
-- npm install -g bower
 - polymer install --variants
 addons:
   firefox: latest
