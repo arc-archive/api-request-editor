@@ -157,7 +157,7 @@
         <authorization-panel events-target="[[eventsTarget]]" hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
         <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" invalid="{{paramsInvalid}}"></api-url-params-editor>
         <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" invalid="{{headersInvalid}}"></api-headers-editor>
-        <api-body-editor events-target="[[eventsTarget]]" amf-model="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
+        <api-body-editor events-target="[[eventsTarget]]" amf-model="[[amfModel]]" amf-body="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
         <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
@@ -180,9 +180,6 @@
   </template>
   <script>
   (function() {
-    const RAML_VOC = 'http://raml.org/vocabularies/';
-    const VOC_HTTP = RAML_VOC + 'http#';
-    const HYD_CORE = 'http://www.w3.org/ns/hydra/core#';
     /**
      * `api-request-editor`
      * A request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.
@@ -623,7 +620,7 @@
         if (endpointId === id) {
           return;
         }
-        return this.findMethod(id, endpoint[HYD_CORE + 'supportedOperation']);
+        return this.findMethod(id, endpoint[this.ns.w3.hydra.core + 'supportedOperation']);
       }
       /**
        * Computes endpoint `@id` for given `id`.
@@ -658,7 +655,7 @@
         if (!webApi) {
           return;
         }
-        const endpoints = webApi[VOC_HTTP + 'endpoint'];
+        const endpoints = webApi[this.ns.raml.vocabularies.http + 'endpoint'];
         if (!endpoints) {
           return;
         }
@@ -684,7 +681,7 @@
        * @return {Array|undefined} List of security definitions for the endpoint.
        */
       _computeSecuredBy(model) {
-        return model && model[RAML_VOC + 'security#security'];
+        return model && model[this.ns.raml.vocabularies.security + 'security'];
       }
       /**
        * Computes model definition for headers.
@@ -696,12 +693,12 @@
         if (!model) {
           return;
         }
-        model = model[HYD_CORE + 'expects'];
+        model = model[this.ns.w3.hydra.core + 'expects'];
         if (!model) {
           return;
         }
         model = model[0];
-        return model[VOC_HTTP + 'header'];
+        return model[this.ns.raml.vocabularies.http + 'header'];
       }
       /**
        * Computes if authorization for the endpoint is set.
@@ -720,7 +717,7 @@
        * @return {String} Method name.
        */
       _computeHttpMethod(model) {
-        return this._getValue(model, HYD_CORE + 'method');
+        return this._getValue(model, this.ns.w3.hydra.core + 'method');
       }
       /**
        * Computes value for `apiPayload` property from AMF model for current
@@ -733,12 +730,12 @@
         if (!model) {
           return;
         }
-        model = model[HYD_CORE + 'expects'];
+        model = model[this.ns.w3.hydra.core + 'expects'];
         if (!model) {
           return;
         }
         model = model[0];
-        return model[VOC_HTTP + 'payload'];
+        return model[this.ns.raml.vocabularies.http + 'payload'];
       }
       /**
        * Computes value for `isPayloadRequest`.

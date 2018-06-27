@@ -77,7 +77,7 @@
       test('Returns undefined when not a Document', () => {
         const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, {
-          '@type': ['http://raml.org/vocabularies/document#Unit']
+          '@type': ['http://a.ml/vocabularies/document#Unit']
         });
         assert.isUndefined(result);
       });
@@ -85,9 +85,9 @@
       test('Returns undefined when no WebApi', () => {
         const id = API_ROOT + '%2Fpeople';
         const result = element.findEndpoint(id, {
-          '@type': ['http://raml.org/vocabularies/document#Document'],
-          'http://raml.org/vocabularies/document#encodes': [{
-            '@type': ['http://raml.org/vocabularies/document#DomainElement']
+          '@type': ['http://a.ml/vocabularies/document#Document'],
+          'http://a.ml/vocabularies/document#encodes': [{
+            '@type': ['http://a.ml/vocabularies/document#DomainElement']
           }]
         });
         assert.isUndefined(result);

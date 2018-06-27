@@ -13,10 +13,6 @@ AmfLoader.load = function() {
         reject(e);
         return;
       }
-      // data = data[0]['http://raml.org/vocabularies/document#encodes'][0];
-      // data = data['http://raml.org/vocabularies/http#endpoint'][endpointIndex];
-      // data = data['http://www.w3.org/ns/hydra/core#supportedOperation'][method];
-      // data = data['http://raml.org/vocabularies/security#security'];
       resolve(data);
     });
     xhr.addEventListener('error',
