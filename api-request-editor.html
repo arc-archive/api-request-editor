@@ -155,8 +155,8 @@
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
         <authorization-panel events-target="[[eventsTarget]]" hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
-        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" invalid="{{paramsInvalid}}"></api-url-params-editor>
-        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" invalid="{{headersInvalid}}"></api-headers-editor>
+        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" invalid="{{paramsInvalid}}" no-docs="[[noDocs]]"></api-url-params-editor>
+        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" invalid="{{headersInvalid}}" no-docs="[[noDocs]]"></api-headers-editor>
         <api-body-editor events-target="[[eventsTarget]]" amf-model="[[amfModel]]" amf-body="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
@@ -547,7 +547,12 @@
           headersInvalid: {
             type: Boolean,
             notify: true
-          }
+          },
+          /**
+           * Prohibits rendering of the documentation (the icon and the
+           * description).
+           */
+          noDocs: Boolean
         };
       }
       static get observers() {
