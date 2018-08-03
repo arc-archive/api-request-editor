@@ -822,10 +822,17 @@
        */
       authAndExecute() {
         this.__requestAuthAwaiting = true;
-        if (this.selectedTab !== 0) {
-          this.selectedTab = 0;
+        const panel = this.shadowRoot.querySelector('authorization-panel');
+        let result;
+        if (panel) {
+          result = panel.forceTokenAuthorization();
         }
-        this.$.authFormError.opened = true;
+        if (!result) {
+          if (this.selectedTab !== 0) {
+            this.selectedTab = 0;
+          }
+          this.$.authFormError.opened = true;
+        }
       }
       /**
        * Executes the request by dispatching `api-request` custom event.
