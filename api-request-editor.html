@@ -42,7 +42,7 @@
       width: 16px;
       height: 16px;
       margin-left: 4px;
-      color: var(--warning-primary-color, #FF7043);
+      color: var(--error-color, #FF7043);
     }
 
     .url-invalid-info {
@@ -61,7 +61,6 @@
 
     .action-bar {
       @apply --layout-horizontal;
-      @apply --layout-end-justified;
       @apply --layout-center;
       margin-top: 8px;
     }
@@ -160,8 +159,6 @@
         <api-body-editor events-target="[[eventsTarget]]" amf-model="[[amfModel]]" amf-body="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
-        <paper-spinner alt="Loading contacts list" active="[[loadingRequest]]"></paper-spinner>
-        <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
         <template is="dom-if" if="[[authValid]]">
           <template is="dom-if" if="[[!loadingRequest]]">
             <paper-button raised class="send-button valid" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
@@ -173,6 +170,8 @@
         <template is="dom-if" if="[[!authValid]]">
           <paper-button raised class="send-button invalid" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
+        <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
+        <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
       </div>
     </div>
     <paper-toast text="Authorization for this endpoint is required" id="authFormError" horizontal-align="right" horizontal-offset="12"></paper-toast>
