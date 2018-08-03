@@ -552,20 +552,20 @@
        */
       constructor() {
         super();
-        super._authSettingsChanged = this._authSettingsChanged.bind(this);
+        this._authSettingsChanged = this._authSettingsChanged.bind(this);
         this._responseHandler = this._responseHandler.bind(this);
         this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
       }
 
       _attachListeners(node) {
-        this.addEventListener('authorization-settings-changed', super._authSettingsChanged);
-        node.addEventListener('api-response', this._responseHandler);
+        this.addEventListener('authorization-settings-changed', this._authSettingsChanged);
+        window.addEventListener('api-response', this._responseHandler);
         node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
       }
 
       _detachListeners(node) {
-        this.removeEventListener('authorization-settings-changed', super._authSettingsChanged);
-        node.removeEventListener('api-response', this._responseHandler);
+        this.removeEventListener('authorization-settings-changed', this._authSettingsChanged);
+        window.removeEventListener('api-response', this._responseHandler);
         node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
       }
       /**
