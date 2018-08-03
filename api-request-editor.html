@@ -161,14 +161,14 @@
       <div class="action-bar">
         <template is="dom-if" if="[[authValid]]">
           <template is="dom-if" if="[[!loadingRequest]]">
-            <paper-button raised class="send-button valid" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
+            <paper-button class="send-button valid" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
           </template>
           <template is="dom-if" if="[[loadingRequest]]">
-            <paper-button raised class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
+            <paper-button class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
           </template>
         </template>
         <template is="dom-if" if="[[!authValid]]">
-          <paper-button raised class="send-button invalid" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+          <paper-button class="send-button invalid" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
         <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
         <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
