@@ -120,7 +120,7 @@
           app._setEndpointsList(data);
         });
         xhr.addEventListener('error', () => window.alert('Unable to load AMF model'));
-        xhr.open('GET', './amf-model.json');
+        xhr.open('GET', './demo-api.json');
         xhr.send();
       };
       app._getAmfValue = function(model) {
