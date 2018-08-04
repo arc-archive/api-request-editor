@@ -132,6 +132,7 @@
             loading-request="{{loadingRequest}}"
             params-invalid="{{paramsInvalid}}"
             headers-invalid="{{headersInvalid}}"
+            url-invalid="{{urlInvalid}}"
             invalid="{{invalid}}"></api-request-editor>
         </section>
         <section class="vertical-section-container centered">
@@ -155,6 +156,7 @@
           <p>Request is being loaded: [[loadingRequest]]</p>
           <p>Parameter form is invalid: [[paramsInvalid]]</p>
           <p>Headers for is invalid: [[headersInvalid]]</p>
+          <p>URL is invalid: [[urlInvalid]]</p>
           <p>Editor is invalid: [[invalid]]</p>
         </section>
         <paper-toast text="Request send event detected" id="rsend"></paper-toast>

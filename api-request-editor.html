@@ -595,7 +595,11 @@
             notify: true,
             computed:
             '_computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired)'
-          }
+          },
+          /**
+           * Validity state of the URL editor
+           */
+          urlInvalid: {type: Boolean, notify: true}
         };
       }
       static get observers() {
