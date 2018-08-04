@@ -45,9 +45,10 @@
       color: var(--error-color, #FF7043);
     }
 
-    .url-invalid-info {
-      @apply --arc-font-body1;
+    .invalid-info {
+      @apply --arc-font-body2;
       color: var(--error-color);
+      margin-left: 12px;
     }
 
     paper-spinner {
@@ -141,24 +142,56 @@
         <paper-tab hidden$="[[!isPayloadRequest]]">Body</paper-tab>
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
-        <authorization-panel events-target="[[eventsTarget]]" hidden$="[[authNotRequired]]" secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]" auth-required="{{authRequired}}" auth-valid="{{authValid}}"></authorization-panel>
-        <api-url-params-editor uri-model="{{pathModel}}" query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" invalid="{{paramsInvalid}}" no-docs="[[noDocs]]"></api-url-params-editor>
-        <api-headers-editor events-target="[[eventsTarget]]" amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}" is-payload="[[isPayloadRequest]]" value="{{headers}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" invalid="{{headersInvalid}}" no-docs="[[noDocs]]"></api-headers-editor>
-        <api-body-editor events-target="[[eventsTarget]]" amf-model="[[amfModel]]" amf-body="[[apiPayload]]" narrow="[[narrow]]" hidden$="[[!isPayloadRequest]]" content-type="{{contentType}}" value="{{payload}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
+        <authorization-panel
+          events-target="[[eventsTarget]]"
+          hidden$="[[authNotRequired]]"
+          secured-by="[[securedBy]]"
+          redirect-uri="[[redirectUri]]"
+          auth-required="{{authRequired}}"
+          auth-valid="{{authValid}}"></authorization-panel>
+        <api-url-params-editor
+          uri-model="{{pathModel}}"
+          query-model="{{queryModel}}"
+          narrow="[[narrow]]"
+          allow-custom="[[allowCustom]]"
+          invalid="{{paramsInvalid}}"
+          no-docs="[[noDocs]]"></api-url-params-editor>
+        <api-headers-editor
+          events-target="[[eventsTarget]]"
+          amf-headers="[[apiHeaders]]"
+          narrow="[[narrow]]"
+          content-type="{{contentType}}"
+          is-payload="[[isPayloadRequest]]"
+          value="{{headers}}"
+          narrow="[[narrow]]"
+          allow-custom="[[allowCustom]]"
+          allow-disable-params="[[allowDisableParams]]"
+          allow-hide-optional="[[allowHideOptional]]"
+          invalid="{{headersInvalid}}"
+          no-docs="[[noDocs]]"></api-headers-editor>
+        <api-body-editor
+          events-target="[[eventsTarget]]"
+          amf-model="[[amfModel]]"
+          amf-body="[[apiPayload]]"
+          narrow="[[narrow]]"
+          hidden$="[[!isPayloadRequest]]"
+          content-type="{{contentType}}"
+          value="{{payload}}"
+          narrow="[[narrow]]"
+          allow-custom="[[allowCustom]]"
+          allow-disable-params="[[allowDisableParams]]"
+          allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
       </iron-pages>
       <div class="action-bar">
-        <template is="dom-if" if="[[authValid]]">
-          <template is="dom-if" if="[[!loadingRequest]]">
-            <paper-button class="send-button" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
-          </template>
-          <template is="dom-if" if="[[loadingRequest]]">
-            <paper-button class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
-          </template>
+        <template is="dom-if" if="[[!loadingRequest]]">
+          <paper-button class="send-button" on-click="_sendHandler" disabled="[[invalid]]">[[_computeSendLabel(authValid)]]</paper-button>
         </template>
-        <template is="dom-if" if="[[!authValid]]">
-          <paper-button class="send-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+        <template is="dom-if" if="[[loadingRequest]]">
+          <paper-button class="send-button abort" on-click="_abortRequest">Abort</paper-button>
         </template>
-        <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
+        <template is="dom-if" if="[[invalid]]">
+          <span class="invalid-info">Fill in required parameters</span>
+        </template>
         <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
       </div>
     </div>
@@ -284,17 +317,30 @@
      * `--arc-font-body1` | Theme mixin, default font definition | `{}`
      * `--error-color` | Theme variable, error color.  | ``
      * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
-     * `--primary-button-background-color` | Theme property, background color of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
-     * `--primary-button-color` | Theme property, font color of the primary action button. Applied to "send" and "abort" buttons  | `#fff`
+     * `--primary-button-background-color` | Theme property, background color
+     * of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
+     * `--primary-button-color` | Theme property, font color of the primary
+     * action button. Applied to "send" and "abort" buttons  | `#fff`
      * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
-     * `--primary-button-hover-background-color` | Theme property, background color of the primary action button when hovering. Applied to "send" and "abort" buttons | `--accent-color`
-     * `--primary-button-hover-color` | Theme property, font color of the primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
-     * `--action-button-hover` | Theme mixin, applied to "send" and "abort" buttons when hovering | `{}`
-     * `--primary-button-disabled-background-color` | Theme property, background color of the primary action button when disabled. Applied to "send" and "abort" buttons | `--accent-color`
-     * `--primary-button-disabled-color` | Theme property, font color of the primary action button when disabled. Applied to "send" and "abort" buttons  | `#fff`
-     * `--action-button-disabled` | Theme mixin, applied to "send" and "abort" buttons when disabled | `{}`
-     * `--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`
-     * `--api-request-editor-send-valid-button` | Mixin applied to the send button when request is valid | `{}`
+     * `--primary-button-hover-background-color` | Theme property, background
+     * color of the primary action button when hovering. Applied to "send" and
+     * "abort" buttons | `--accent-color`
+     * `--primary-button-hover-color` | Theme property, font color of the
+     * primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
+     * `--action-button-hover` | Theme mixin, applied to "send" and "abort"
+     * buttons when hovering | `{}`
+     * `--primary-button-disabled-background-color` | Theme property, background
+     * color of the primary action button when disabled. Applied to "send"
+     * and "abort" buttons | `--accent-color`
+     * `--primary-button-disabled-color` | Theme property, font color of the
+     * primary action button when disabled. Applied to "send" and "abort"
+     * buttons  | `#fff`
+     * `--action-button-disabled` | Theme mixin, applied to "send" and "abort"
+     * buttons when disabled | `{}`
+     * `--api-request-editor-container-narrow` | Mixin applied to the main
+     * container when `narrow` property is set. | `{}`
+     * `--api-request-editor-send-valid-button` | Mixin applied to the send
+     * button when request is valid | `{}`
      * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
      *
      * @customElement
@@ -540,7 +586,16 @@
            * Prohibits rendering of the documentation (the icon and the
            * description).
            */
-          noDocs: Boolean
+          noDocs: Boolean,
+          /**
+           * Computed value, true if any of the editors has invalid state.
+           */
+          invalid: {
+            type: Boolean,
+            notify: true,
+            computed:
+            '_computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired)'
+          }
         };
       }
       static get observers() {
@@ -775,6 +830,8 @@
       }
       /**
        * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
+       *
+       * @param {Boolean} state
        */
       _isPayloadChanged(state) {
         if (!state) {
@@ -813,6 +870,19 @@
         });
         this.dispatchEvent(e);
       }
+      /**
+       * Handles send button click.
+       * Depending on authorization validity it either sends the
+       * request or forces authorization and sends the request.
+       */
+      _sendHandler() {
+        if (this.authValid) {
+          this.execute();
+        } else {
+          this.authAndExecute();
+        }
+      }
+
       /**
        * To be called when the user want to execute the request but
        * authorization is invalid (missin values).
@@ -901,6 +971,8 @@
        * It vary and depends on selected auth method.
        * For example in case of the NTLM it will be: `username`, `password` and
        * `domain`. See `advanced-rest-client/auth-methods` for model descriptions.
+       *
+       * @return {Object}
        */
       serializeRequest() {
         const result = {
@@ -936,6 +1008,8 @@
       /**
        * Handler for the `api-response` custom event.
        * Clears the loading state.
+       *
+       * @param {CustomEvent} e
        */
       _responseHandler(e) {
         if (e.detail.id !== this.requestId) {
@@ -951,7 +1025,10 @@
       _authRedirectChangedHandler(e) {
         this.redirectUri = e.detail.value;
       }
-
+      /**
+       * Handler for path model change
+       * @param {Object} record Polymer's change record
+       */
       _pathModelChanged(record) {
         const model = record.base;
         const path = record.path;
@@ -962,7 +1039,10 @@
           this._notifyModelChanged('path', model);
         }
       }
-
+      /**
+       * Handler for query model change
+       * @param {Object} record Polymer's change record
+       */
       _queryModelChanged(record) {
         const model = record.base;
         const path = record.path;
@@ -974,7 +1054,11 @@
           this._notifyModelChanged('query', model);
         }
       }
-
+      /**
+       * Dispatches model change event
+       * @param {String} type Model name
+       * @param {Array} model Current model value.
+       */
       _notifyModelChanged(type, model) {
         const result = [];
         if (model) {
@@ -1009,6 +1093,30 @@
             value: value
           }
         }));
+      }
+      /**
+       * Computes value if `invalid` property.
+       * @param {Boolean} urlInvalid
+       * @param {Boolean} paramsInvalid
+       * @param {Boolean} headersInvalid
+       * @param {Boolean} authValid
+       * @param {Boolean} authNotRequired
+       * @return {Boolean}
+       */
+      _computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired) {
+        if (!authNotRequired && !authValid) {
+          return false;
+        }
+        return urlInvalid || paramsInvalid || headersInvalid;
+      }
+      /**
+       * Computes label for the send button.
+       * If authorization state is ivalid then label is different.
+       * @param {Boolean} authValid [description]
+       * @return {String}
+       */
+      _computeSendLabel(authValid) {
+        return authValid ? 'Send' : 'Authorize and send';
       }
       /**
        * Dispatched when the user requests to send current request.
