@@ -641,19 +641,6 @@
         this.selectedTab = 0;
       }
       /**
-       * Computes base URI passed to the URL editor.
-       *
-       * @param {String} apiBaseUri Computed from AMF base uri
-       * @param {?String} customBaseUri Base URI that overrides api base uri
-       * @return {String} `customBaseUri` if present or `apiBaseUri`
-       */
-      _computeFinalBaseUri(apiBaseUri, customBaseUri) {
-        if (customBaseUri) {
-          return customBaseUri;
-        }
-        return apiBaseUri;
-      }
-      /**
        * Computes method model from the AMF model
        *
        * @param {Array|Object} api The AMF model for the API.
