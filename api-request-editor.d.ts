@@ -32,7 +32,8 @@
 
 /**
  * `api-request-editor`
- * A request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.
+ * A request editor that builds the UI based on
+ * [AMF](https://github.com/mulesoft/amf/) model.
  *
  * The fors are generated automatically based on endponit's definition.
  *
@@ -146,18 +147,30 @@
  * `--arc-font-body1` | Theme mixin, default font definition | `{}`
  * `--error-color` | Theme variable, error color.  | ``
  * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
- * `--primary-button-background-color` | Theme property, background color of the primary action button. Applied to "send" and "abort" buttons | `--accent-color`
- * `--primary-button-color` | Theme property, font color of the primary action button. Applied to "send" and "abort" buttons  | `#fff`
+ * `--primary-button-background-color` | Theme property, background color
+ * of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
+ * `--primary-button-color` | Theme property, font color of the primary
+ * action button. Applied to "send" and "abort" buttons  | `#fff`
  * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
- * `--primary-button-hover-background-color` | Theme property, background color of the primary action button when hovering. Applied to "send" and "abort" buttons | `--accent-color`
- * `--primary-button-hover-color` | Theme property, font color of the primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
- * `--action-button-hover` | Theme mixin, applied to "send" and "abort" buttons when hovering | `{}`
- * `--primary-button-disabled-background-color` | Theme property, background color of the primary action button when disabled. Applied to "send" and "abort" buttons | `--accent-color`
- * `--primary-button-disabled-color` | Theme property, font color of the primary action button when disabled. Applied to "send" and "abort" buttons  | `#fff`
- * `--action-button-disabled` | Theme mixin, applied to "send" and "abort" buttons when disabled | `{}`
- * `--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`
- * `--api-request-editor-send-valid-button` | Mixin applied to the send button when request is valid | `{}`
- * `--api-request-editor-send-invalid-button` | Mixin applied to the send button when request is invalid | `{}`
+ * `--primary-button-hover-background-color` | Theme property, background
+ * color of the primary action button when hovering. Applied to "send" and
+ * "abort" buttons | `--accent-color`
+ * `--primary-button-hover-color` | Theme property, font color of the
+ * primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
+ * `--action-button-hover` | Theme mixin, applied to "send" and "abort"
+ * buttons when hovering | `{}`
+ * `--primary-button-disabled-background-color` | Theme property, background
+ * color of the primary action button when disabled. Applied to "send"
+ * and "abort" buttons | `--accent-color`
+ * `--primary-button-disabled-color` | Theme property, font color of the
+ * primary action button when disabled. Applied to "send" and "abort"
+ * buttons  | `#fff`
+ * `--action-button-disabled` | Theme mixin, applied to "send" and "abort"
+ * buttons when disabled | `{}`
+ * `--api-request-editor-container-narrow` | Mixin applied to the main
+ * container when `narrow` property is set. | `{}`
+ * `--api-request-editor-send-valid-button` | Mixin applied to the send
+ * button when request is valid | `{}`
  * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
  */
 declare class ApiRequestEditor extends
@@ -346,6 +359,22 @@ declare class ApiRequestEditor extends
    * Computed when headers editor is invalid.
    */
   headersInvalid: boolean|null|undefined;
+
+  /**
+   * Prohibits rendering of the documentation (the icon and the
+   * description).
+   */
+  noDocs: boolean|null|undefined;
+
+  /**
+   * Computed value, true if any of the editors has invalid state.
+   */
+  readonly invalid: boolean|null|undefined;
+
+  /**
+   * Validity state of the URL editor
+   */
+  urlInvalid: boolean|null|undefined;
   _attachListeners(node: any): void;
   _detachListeners(node: any): void;
 
@@ -370,15 +399,6 @@ declare class ApiRequestEditor extends
    * Clears the request properties.
    */
   clearRequest(): void;
-
-  /**
-   * Computes base URI passed to the URL editor.
-   *
-   * @param apiBaseUri Computed from AMF base uri
-   * @param customBaseUri Base URI that overrides api base uri
-   * @returns `customBaseUri` if present or `apiBaseUri`
-   */
-  _computeFinalBaseUri(apiBaseUri: String|null, customBaseUri: String|null): String|null;
 
   /**
    * Computes endpoint `@id` for given `id`.
@@ -474,7 +494,7 @@ declare class ApiRequestEditor extends
   /**
    * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
    */
-  _isPayloadChanged(state: any): void;
+  _isPayloadChanged(state: Boolean|null): void;
 
   /**
    * Refreshes tabs selection. To be called when number of tabs changes.
@@ -488,6 +508,13 @@ declare class ApiRequestEditor extends
    * @param label Event label
    */
   _analyticsEvent(action: String|null, label: String|null): void;
+
+  /**
+   * Handles send button click.
+   * Depending on authorization validity it either sends the
+   * request or forces authorization and sends the request.
+   */
+  _sendHandler(): void;
 
   /**
    * To be called when the user want to execute the request but
@@ -542,7 +569,7 @@ declare class ApiRequestEditor extends
    * For example in case of the NTLM it will be: `username`, `password` and
    * `domain`. See `advanced-rest-client/auth-methods` for model descriptions.
    */
-  serializeRequest(): any;
+  serializeRequest(): object|null;
 
   /**
    * Handler for the `authorization-settings-changed` dispatched by
@@ -555,21 +582,53 @@ declare class ApiRequestEditor extends
    * Handler for the `api-response` custom event.
    * Clears the loading state.
    */
-  _responseHandler(e: any): void;
+  _responseHandler(e: CustomEvent|null): void;
 
   /**
    * Handler for the `oauth2-redirect-uri-changed` custom event. Changes
    * the `redirectUri` property.
    */
   _authRedirectChangedHandler(e: CustomEvent|null): void;
-  _pathModelChanged(record: any): void;
-  _queryModelChanged(record: any): void;
-  _notifyModelChanged(type: any, model: any): void;
+
+  /**
+   * Handler for path model change
+   *
+   * @param record Polymer's change record
+   */
+  _pathModelChanged(record: object|null): void;
+
+  /**
+   * Handler for query model change
+   *
+   * @param record Polymer's change record
+   */
+  _queryModelChanged(record: object|null): void;
+
+  /**
+   * Dispatches model change event
+   *
+   * @param type Model name
+   * @param model Current model value.
+   */
+  _notifyModelChanged(type: String|null, model: any[]|null): void;
 
   /**
    * Dispatches `url-value-changed` event when url value change.
    */
   _urlChanged(value: String|null): void;
+
+  /**
+   * Computes value if `invalid` property.
+   */
+  _computeInvalid(urlInvalid: Boolean|null, paramsInvalid: Boolean|null, headersInvalid: Boolean|null, authValid: Boolean|null, authNotRequired: Boolean|null): Boolean|null;
+
+  /**
+   * Computes label for the send button.
+   * If authorization state is ivalid then label is different.
+   *
+   * @param authValid [description]
+   */
+  _computeSendLabel(authValid: Boolean|null): String|null;
 }
 
 interface HTMLElementTagNameMap {
