@@ -66,13 +66,13 @@
     }
 
     .send-button {
-      background-color: var(--primary-button-background-color, var(--accent-color));
+      background-color: var(--primary-button-background-color, var(--primary-color));
       color: var(--primary-button-color, #fff);
       @apply --action-button;
     }
 
     .send-button:not([disabled]):hover {
-      background-color: var(--primary-button-hover-background-color, var(--accent-color));
+      background-color: var(--primary-button-hover-background-color, var(--primary-color));
       color: var(--primary-button-hover-color, #fff);
       @apply --action-button-hover;
     }
@@ -83,20 +83,8 @@
       @apply --action-button-disabled;
     }
 
-    .send-button:not([disabled]).valid {
-      @apply --api-request-editor-send-valid-button;
-    }
-
-    .send-button:not([disabled]).valid:hover {
-      @apply --api-request-editor-send-valid-button-hover;
-    }
-
-    .send-button:not([disabled]).invalid {
-      @apply --api-request-editor-send-invalid-button;
-    }
-
-    .send-button:not([disabled]).invalid:hover {
-      @apply --api-request-editor-send-invalid-button-hover;
+    .send-button:not([disabled]):hover {
+      @apply --api-request-editor-send-button-hover;
     }
 
     .send-button.abort {
@@ -161,14 +149,14 @@
       <div class="action-bar">
         <template is="dom-if" if="[[authValid]]">
           <template is="dom-if" if="[[!loadingRequest]]">
-            <paper-button raised class="send-button valid" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
+            <paper-button class="send-button" on-tap="execute" disabled="[[urlInvalid]]">Send</paper-button>
           </template>
           <template is="dom-if" if="[[loadingRequest]]">
-            <paper-button raised class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
+            <paper-button class="send-button abort" on-tap="_abortRequest">Abort</paper-button>
           </template>
         </template>
         <template is="dom-if" if="[[!authValid]]">
-          <paper-button raised class="send-button invalid" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
+          <paper-button class="send-button" on-tap="authAndExecute" disabled="[[urlInvalid]]">Authorize and send</paper-button>
         </template>
         <span class="url-invalid-info" hidden$="[[!urlInvalid]]">Request URL is invalid.</span>
         <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
@@ -181,7 +169,8 @@
   (function() {
     /**
      * `api-request-editor`
-     * A request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.
+     * A request editor that builds the UI based on
+     * [AMF](https://github.com/mulesoft/amf/) model.
      *
      * The fors are generated automatically based on endponit's definition.
      *
@@ -295,7 +284,7 @@
      * `--arc-font-body1` | Theme mixin, default font definition | `{}`
      * `--error-color` | Theme variable, error color.  | ``
      * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
-     * `--primary-button-background-color` | Theme property, background color of the primary action button. Applied to "send" and "abort" buttons | `--accent-color`
+     * `--primary-button-background-color` | Theme property, background color of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
      * `--primary-button-color` | Theme property, font color of the primary action button. Applied to "send" and "abort" buttons  | `#fff`
      * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
      * `--primary-button-hover-background-color` | Theme property, background color of the primary action button when hovering. Applied to "send" and "abort" buttons | `--accent-color`
@@ -306,7 +295,6 @@
      * `--action-button-disabled` | Theme mixin, applied to "send" and "abort" buttons when disabled | `{}`
      * `--api-request-editor-container-narrow` | Mixin applied to the main container when `narrow` property is set. | `{}`
      * `--api-request-editor-send-valid-button` | Mixin applied to the send button when request is valid | `{}`
-     * `--api-request-editor-send-invalid-button` | Mixin applied to the send button when request is invalid | `{}`
      * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
      *
      * @customElement
@@ -317,7 +305,7 @@
      */
     class ApiRequestEditor extends ApiElements.AmfHelperMixin(
       ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-      static get is() { return 'api-request-editor'; }
+      static get is() {return 'api-request-editor';}
       static get properties() {
         return {
           /**
@@ -446,6 +434,7 @@
           isPayloadRequest: {
             type: Boolean,
             value: false,
+            notify: true,
             computed: '_computeIsPayloadRequest(httpMethod)',
             observer: '_isPayloadChanged'
           },
@@ -459,18 +448,17 @@
            * required. Authorization may be not required if one of the
            * authorization methods is `nil` (RAML).
            */
-          authRequired: Boolean,
+          authRequired: {type: Boolean, notify: true},
           /**
            * Inheritet from the authorization panel state if authorization
            * data is valid.
            */
-          authValid: Boolean,
+          authValid: {type: Boolean, notify: true},
           /**
            * If set it will renders the view in the narrow layout.
            */
           narrow: {
             type: Boolean,
-            notify: true,
             reflectToAttribute: true
           },
           /**
@@ -481,6 +469,7 @@
           authNotRequired: {
             type: Boolean,
             value: true,
+            notify: true,
             computed: '_computeNoAuth(securedBy)',
             observer: '_noAuthChanged'
           },
@@ -565,20 +554,20 @@
        */
       constructor() {
         super();
-        super._authSettingsChanged = this._authSettingsChanged.bind(this);
+        this._authSettingsChanged = this._authSettingsChanged.bind(this);
         this._responseHandler = this._responseHandler.bind(this);
         this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
       }
 
       _attachListeners(node) {
-        this.addEventListener('authorization-settings-changed', super._authSettingsChanged);
-        node.addEventListener('api-response', this._responseHandler);
+        this.addEventListener('authorization-settings-changed', this._authSettingsChanged);
+        window.addEventListener('api-response', this._responseHandler);
         node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
       }
 
       _detachListeners(node) {
-        this.removeEventListener('authorization-settings-changed', super._authSettingsChanged);
-        node.removeEventListener('api-response', this._responseHandler);
+        this.removeEventListener('authorization-settings-changed', this._authSettingsChanged);
+        window.removeEventListener('api-response', this._responseHandler);
         node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
       }
       /**
@@ -835,10 +824,17 @@
        */
       authAndExecute() {
         this.__requestAuthAwaiting = true;
-        if (this.selectedTab !== 0) {
-          this.selectedTab = 0;
+        const panel = this.shadowRoot.querySelector('authorization-panel');
+        let result;
+        if (panel) {
+          result = panel.forceTokenAuthorization();
         }
-        this.$.authFormError.opened = true;
+        if (!result) {
+          if (this.selectedTab !== 0) {
+            this.selectedTab = 0;
+          }
+          this.$.authFormError.opened = true;
+        }
       }
       /**
        * Executes the request by dispatching `api-request` custom event.
