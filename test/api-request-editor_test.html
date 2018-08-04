@@ -197,7 +197,9 @@
           element = fixture(fix || 'Basic');
           element.amfModel = amf;
           element.selected = id;
-          flush(() => resolve());
+          setTimeout(() => {
+            flush(() => resolve());
+          }, 100);
         });
       }
 
@@ -307,7 +309,7 @@
           window.addEventListener('url-value-changed', function clb(e) {
             window.removeEventListener('url-value-changed', clb);
             assert.equal(e.detail.value,
-              'http://development.domain.com/people?nextPageToken=test');
+              'http://development.domain.com/people?limit=test');
             done();
           });
           element.set('queryModel.0.value', 'test');
