@@ -169,7 +169,8 @@
   (function() {
     /**
      * `api-request-editor`
-     * A request editor that builds the UI based on [AMF](https://github.com/mulesoft/amf/) model.
+     * A request editor that builds the UI based on
+     * [AMF](https://github.com/mulesoft/amf/) model.
      *
      * The fors are generated automatically based on endponit's definition.
      *
@@ -304,7 +305,7 @@
      */
     class ApiRequestEditor extends ApiElements.AmfHelperMixin(
       ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-      static get is() { return 'api-request-editor'; }
+      static get is() {return 'api-request-editor';}
       static get properties() {
         return {
           /**
@@ -433,6 +434,7 @@
           isPayloadRequest: {
             type: Boolean,
             value: false,
+            notify: true,
             computed: '_computeIsPayloadRequest(httpMethod)',
             observer: '_isPayloadChanged'
           },
@@ -446,18 +448,17 @@
            * required. Authorization may be not required if one of the
            * authorization methods is `nil` (RAML).
            */
-          authRequired: Boolean,
+          authRequired: {type: Boolean, notify: true},
           /**
            * Inheritet from the authorization panel state if authorization
            * data is valid.
            */
-          authValid: Boolean,
+          authValid: {type: Boolean, notify: true},
           /**
            * If set it will renders the view in the narrow layout.
            */
           narrow: {
             type: Boolean,
-            notify: true,
             reflectToAttribute: true
           },
           /**
@@ -468,6 +469,7 @@
           authNotRequired: {
             type: Boolean,
             value: true,
+            notify: true,
             computed: '_computeNoAuth(securedBy)',
             observer: '_noAuthChanged'
           },
