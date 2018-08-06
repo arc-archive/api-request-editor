@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
@@ -10,6 +11,7 @@
   <script src="amf-loader.js"></script>
   <link rel="import" href="../api-request-editor.html">
 </head>
+
 <body>
   <test-fixture id="Basic">
     <template>
@@ -29,7 +31,7 @@
     let element;
     suiteSetup(() => {
       return AmfLoader.load()
-      .then((model) => amf = model);
+        .then((model) => amf = model);
     });
 
     suite('computeEndpointId()', () => {
@@ -146,8 +148,66 @@
       });
     });
 
-    suite('Basic computations', () => {
+    suite('_computeHttpMethod()', () => {
       suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Finds method name', () => {
+        const id = API_ROOT + '%2Fpeople/post';
+        const methodModel = element._computeMethodModel(amf, id);
+        const result = element._computeHttpMethod(methodModel);
+        assert.equal(result, 'post');
+      });
+
+      test('Returns undefined for missing model', () => {
+        const result = element._computeHttpMethod();
+        assert.isUndefined(result);
+      });
+    });
+
+    suite('_computeApiPayload()', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Finds method name', () => {
+        const id = API_ROOT + '%2Fpeople/post';
+        const methodModel = element._computeMethodModel(amf, id);
+        const result = element._computeApiPayload(methodModel);
+        assert.typeOf(result, 'array');
+        assert.lengthOf(result, 2);
+      });
+
+      test('Returns undefined for missing model', () => {
+        const result = element._computeApiPayload();
+        assert.isUndefined(result);
+      });
+    });
+
+    suite('_computeIsPayloadRequest()', () => {
+      suiteSetup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Returns false for GET', () => {
+        const result = element._computeIsPayloadRequest('get');
+        assert.isFalse(result);
+      });
+
+      test('Returns false for HEAD', () => {
+        const result = element._computeIsPayloadRequest('head');
+        assert.isFalse(result);
+      });
+
+      test('Returns true for other inputs', () => {
+        const result = element._computeIsPayloadRequest('post');
+        assert.isTrue(result);
+      });
+    });
+
+    suite('Basic computations', () => {
+      setup(() => {
         element = fixture('Basic');
         element.amfModel = amf;
         element.selected = API_ROOT + '%2Fpeople%2F%7BpersonId%7D/get';
@@ -197,65 +257,65 @@
           element = fixture(fix || 'Basic');
           element.amfModel = amf;
           element.selected = id;
-          setTimeout(() => {
+          Polymer.RenderStatus.afterNextRender(this, () => {
             flush(() => resolve());
-          }, 150);
+          });
         });
       }
 
       test('Authorization tab is not rendered when there\'s no security', () => {
         return dataSetup(API_ROOT + '%2Fpeople/get')
-        .then(() => {
-          const panel = element.shadowRoot.querySelector('authorization-panel');
-          const display = getComputedStyle(panel).display;
-          assert.equal(display, 'none');
-        });
+          .then(() => {
+            const panel = element.shadowRoot.querySelector('authorization-panel');
+            const display = getComputedStyle(panel).display;
+            assert.equal(display, 'none');
+          });
       });
 
       test('Authorization tab is rendered when security is set', () => {
         return dataSetup(API_ROOT + '%2Fmessages/get')
-        .then(() => {
-          element.selectedTab = 0;
-          const panel = element.shadowRoot.querySelector('authorization-panel');
-          const display = getComputedStyle(panel).display;
-          assert.notEqual(display, 'none');
-        });
+          .then(() => {
+            element.selectedTab = 0;
+            const panel = element.shadowRoot.querySelector('authorization-panel');
+            const display = getComputedStyle(panel).display;
+            assert.notEqual(display, 'none');
+          });
       });
 
       test('Body tab is rendered', () => {
         return dataSetup(API_ROOT + '%2Fpeople/post')
-        .then(() => {
-          element.selectedTab = 3;
-          assert.isTrue(element.isPayloadRequest);
-          const panel = element.shadowRoot.querySelector('api-body-editor');
-          const display = getComputedStyle(panel).display;
-          assert.notEqual(display, 'none');
-        });
+          .then(() => {
+            element.selectedTab = 3;
+            assert.isTrue(element.isPayloadRequest);
+            const panel = element.shadowRoot.querySelector('api-body-editor');
+            const display = getComputedStyle(panel).display;
+            assert.notEqual(display, 'none');
+          });
       });
 
       test('api-url-editor is rendered', () => {
         return dataSetup(API_ROOT + '%2Fpeople/get')
-        .then(() => {
-          const panel = element.shadowRoot.querySelector('.url-editor');
-          const display = getComputedStyle(panel).display;
-          assert.notEqual(display, 'none');
-        });
+          .then(() => {
+            const panel = element.shadowRoot.querySelector('.url-editor');
+            const display = getComputedStyle(panel).display;
+            assert.notEqual(display, 'none');
+          });
       });
 
       test('api-url-editor is not rendered when noUrlEditor', () => {
         return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
-        .then(() => {
-          const panel = element.shadowRoot.querySelector('.url-editor');
-          const display = getComputedStyle(panel).display;
-          assert.equal(display, 'none');
-        });
+          .then(() => {
+            const panel = element.shadowRoot.querySelector('.url-editor');
+            const display = getComputedStyle(panel).display;
+            assert.equal(display, 'none');
+          });
       });
 
       test('Computes URL when noUrlEditor', () => {
         return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
-        .then(() => {
-          assert.equal(element.url, 'http://development.domain.com/people');
-        });
+          .then(() => {
+            assert.equal(element.url, 'http://development.domain.com/people');
+          });
       });
     });
 
@@ -284,10 +344,10 @@
           eventData = e.detail.value;
         });
         return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
-        .then(() => {
-          assert.typeOf(eventData, 'array');
-          assert.lengthOf(eventData, 3);
-        });
+          .then(() => {
+            assert.typeOf(eventData, 'array');
+            assert.lengthOf(eventData, 3);
+          });
       });
 
       test('Dispatches path event when model changes', () => {
@@ -297,26 +357,137 @@
           eventData = e.detail.value;
         });
         return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
-        .then(() => {
-          assert.typeOf(eventData, 'array');
-          assert.lengthOf(eventData, 1);
-        });
+          .then(() => {
+            assert.typeOf(eventData, 'array');
+            assert.lengthOf(eventData, 1);
+          });
       });
 
       test('Dispatches url-value-changed', (done) => {
         dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
-        .then(() => {
-          window.addEventListener('url-value-changed', function clb(e) {
-            window.removeEventListener('url-value-changed', clb);
-            assert.equal(e.detail.value,
-              'http://development.domain.com/people?limit=test');
+          .then(() => {
+            window.addEventListener('url-value-changed', function clb(e) {
+              window.removeEventListener('url-value-changed', clb);
+              assert.equal(e.detail.value,
+                'http://development.domain.com/people?limit=test');
+              done();
+            });
+            element.set('queryModel.0.value', 'test');
+          });
+      });
+    });
+  });
+  suite('Validation states', () => {
+    let amf;
+    let element;
+    suiteSetup(() => {
+      return AmfLoader.load()
+        .then((model) => amf = model);
+    });
+    const endpoints = [
+      API_ROOT + '%2Ftest-parameters%2F%7Bfeature%7D/get', // invalid QP
+      API_ROOT + '%2Ftest-parameters%2F%7Bfeature%7D%2F%7BtypeFeature%7D/get', // valid
+      API_ROOT + '%2Fpeople/get', // auth optional
+      API_ROOT + '%2Forgs%2F%7BorgId%7D/get'
+    ];
+
+    test('Editor is invalid when query parameters are invalid', (done) => {
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[0];
+      flush(() => {
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          assert.isTrue(element.paramsInvalid, 'Query parameters is invalid');
+          assert.isTrue(element.invalid, 'Editor is invalid');
+          done();
+        });
+      });
+    });
+
+    test('Editor is invalid when path parameters are invalid', (done) => {
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[3];
+      flush(() => {
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          assert.isTrue(element.paramsInvalid, 'Path parameters is invalid');
+          assert.isTrue(element.urlInvalid, 'urlInvalid is set');
+          assert.isTrue(element.invalid, 'Editor is invalid');
+          done();
+        });
+      });
+    });
+
+    test('Editor is valid', (done) => {
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[1];
+      flush(() => {
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          assert.isFalse(element.invalid, 'Editor is valid');
+          assert.isFalse(element.paramsInvalid, 'Query parameters is valid');
+          assert.isFalse(element.headersInvalid, 'Headers is valid');
+          assert.isTrue(element.authValid, 'Authorization is valid');
+          assert.isTrue(element.authNotRequired, 'Auth is not required');
+          done();
+        });
+      });
+    });
+
+    test('Editor is valid when auth is not required', (done) => {
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[2];
+      flush(() => {
+        element.selectedTab = 0;
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          assert.isFalse(element.invalid, 'Editor is valid');
+          assert.isTrue(element.authValid, 'Authorization is valid');
+          assert.isFalse(element.authNotRequired, 'Auth is not required');
+          done();
+        });
+      });
+    });
+
+    test('Editor is valid when no-auth is selected', (done) => {
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[2];
+      flush(() => {
+        element.selectedTab = 0;
+        const panel = element.shadowRoot.querySelector('authorization-panel');
+        panel.selected = 0;
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          assert.isFalse(element.invalid, 'Editor is valid');
+          assert.isTrue(element.authValid, 'Authorization is valid');
+          assert.isFalse(element.authNotRequired, 'Auth is not required');
+          done();
+        });
+      });
+    });
+
+    test('Editor is valid when invalid auth is selected', (done) => {
+      // The user is able to take "send" action but the action forces
+      // authorization
+      element = fixture('Basic');
+      element.amfModel = amf;
+      element.selected = endpoints[2];
+      flush(() => {
+        element.selectedTab = 0;
+        const panel = element.shadowRoot.querySelector('authorization-panel');
+        panel.selected = 1;
+        flush(() => {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            assert.isFalse(element.invalid, 'Editor is valid');
+            assert.isFalse(element.authValid, 'Authorization is invalid');
+            assert.isFalse(element.authNotRequired, 'Auth is not required');
             done();
           });
-          element.set('queryModel.0.value', 'test');
         });
       });
     });
   });
   </script>
 </body>
+
 </html>

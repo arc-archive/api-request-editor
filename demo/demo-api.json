@@ -1948,6 +1948,42 @@
                     ]
                   }
                 ],
+                "http://a.ml/vocabularies/security#security": [
+                  {
+                    "@id": "file://demo/demo-api/demo-api.raml#/web-api/end-points/%2Fpeople/get/basic",
+                    "@type": [
+                      "http://a.ml/vocabularies/security#SecurityScheme",
+                      "http://a.ml/vocabularies/document#DomainElement"
+                    ],
+                    "http://a.ml/vocabularies/security#name": [
+                      {
+                        "@value": "basic"
+                      }
+                    ],
+                    "http://a.ml/vocabularies/security#type": [
+                      {
+                        "@value": "Basic Authentication"
+                      }
+                    ],
+                    "http://schema.org/description": [
+                      {
+                        "@value": "This API supports Basic Authentication for staging environment.\n"
+                      }
+                    ]
+                  },
+                  {
+                    "@id": "file://demo/demo-api/demo-api.raml#/web-api/end-points/%2Fpeople/get/nil",
+                    "@type": [
+                      "http://a.ml/vocabularies/security#SecurityScheme",
+                      "http://a.ml/vocabularies/document#DomainElement"
+                    ],
+                    "http://a.ml/vocabularies/security#name": [
+                      {
+                        "@value": "nil"
+                      }
+                    ]
+                  }
+                ],
                 "http://a.ml/vocabularies/document#extends": [
                   {
                     "@id": "file://demo/demo-api/demo-api.raml#/web-api/end-points/%2Fpeople/get/Paginated",

@@ -23,31 +23,6 @@
     <link rel="import" href="../api-request-editor.html">
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
-      :root {
-        --code-type-text-value-color: #0d47a1;
-        --code-type-number-value-color: #03a9f4;
-        --code-type-boolean-value-color: #0288d1;
-        --code-type-null-value-color: #0288d1;
-        --code-punctuation-value-color: #757575;
-        --code-type-link-color: #757575;
-        --code-array-index-color: rgba(1, 87, 155, 0.57);
-        --code-background-color: #F4F5F6;
-        --code-mirror-background-color: #f5f2f0;
-        --code-mirror: {
-          background-color: var(--arc-code-mirror-background-color, #f5f2f0);
-        };
-        --code-mirror-editor: {
-          background-color: var(--arc-code-mirror-background-color, #f5f2f0);
-          z-index: 0;
-        };
-        --code-mirror-wrapper: {
-          display: block;
-        };
-        --arc-font-body1: {
-          @apply --paper-font-body1;
-        };
-      }
-
       html,
       body {
         margin: 0;
@@ -127,10 +102,13 @@
             is-payload-request="{{isPayloadRequest}}"
             auth-required="{{authRequired}}"
             auth-valid="{{authValid}}"
+            auth-required="{{authRequired}}"
             auth-not-required="{{authNotRequired}}"
             loading-request="{{loadingRequest}}"
             params-invalid="{{paramsInvalid}}"
-            headers-invalid="{{headersInvalid}}"></api-request-editor>
+            headers-invalid="{{headersInvalid}}"
+            url-invalid="{{urlInvalid}}"
+            invalid="{{invalid}}"></api-request-editor>
         </section>
         <section class="vertical-section-container centered">
           <h2>Configuration options</h2>
@@ -147,12 +125,14 @@
           <p>Selected editor tab: [[selectedTab]]</p>
           <p>Selected content type: [[contentType]]</p>
           <p>Is payload requested: [[isPayloadRequest]]</p>
-          <p>Authorization is required: [[authRequired]]</p>
+          <p>Authorization requirements are set: [[authRequired]]</p>
           <p>Authorization is valid: [[authValid]]</p>
-          <p>Authorization is not required: [[authNotRequired]]</p>
+          <p>Authorization is not required (null scheme present): [[authNotRequired]]</p>
           <p>Request is being loaded: [[loadingRequest]]</p>
           <p>Parameter form is invalid: [[paramsInvalid]]</p>
           <p>Headers for is invalid: [[headersInvalid]]</p>
+          <p>URL is invalid: [[urlInvalid]]</p>
+          <p>Editor is invalid: [[invalid]]</p>
         </section>
         <paper-toast text="Request send event detected" id="rsend"></paper-toast>
         <paper-toast text="Request abort event detected" id="rabort"></paper-toast>
