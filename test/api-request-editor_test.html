@@ -257,9 +257,9 @@
           element = fixture(fix || 'Basic');
           element.amfModel = amf;
           element.selected = id;
-          setTimeout(() => {
+          Polymer.RenderStatus.afterNextRender(this, () => {
             flush(() => resolve());
-          }, 150);
+          });
         });
       }
 
