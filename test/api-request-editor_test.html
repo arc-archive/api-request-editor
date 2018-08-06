@@ -207,7 +207,7 @@
     });
 
     suite('Basic computations', () => {
-      suiteSetup(() => {
+      setup(() => {
         element = fixture('Basic');
         element.amfModel = amf;
         element.selected = API_ROOT + '%2Fpeople%2F%7BpersonId%7D/get';
