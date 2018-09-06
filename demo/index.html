@@ -47,11 +47,17 @@
       header {
         padding: 12px 24px;
         background-color: #C5E1A5;
+        @apply --layout-horizontal;
+        @apply --layout-center;
         --iron-icon-fill-color: #3E2723;
         --paper-input-container-focus-color: #33691E;
         --paper-input-container-label: {
           color: #3E2723;
         };
+      }
+
+      .spacer {
+        @apply --layout-flex;
       }
 
       .content {
@@ -90,6 +96,15 @@
               <paper-item data-src="demo-api-compact.json">ARC demo api - compact model</paper-item>
             </paper-listbox>
           </paper-dropdown-menu>
+
+          <div class="spacer"></div>
+          <paper-dropdown-menu label="Override API's base uri">
+            <paper-listbox slot="dropdown-content" id="basesList" selected="{{selectedOverrideBase}}" attr-for-selected="data-url">
+              <paper-item data-url="">Restore API's base URI</paper-item>
+              <paper-item data-url="https://domain.com/base">https://domain.com/base</paper-item>
+              <paper-item data-url="https://www.google.com?q=">https://www.google.com?q=</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
         </header>
         <main role="main">
           <nav>
@@ -108,7 +123,7 @@
                 <api-request-editor
                   narrow="[[narrow]]"
                   amf-model="[[amfModel]]"
-                  base-uri="[[baseUri]]"
+                  base-uri="[[computeFinaleBaseUri(selectedOverrideBase, baseUri)]]"
                   selected="[[selectedAmfId]]"
                   narrow="[[narrow]]"
                   allow-custom="[[allowCustom]]"
@@ -210,6 +225,13 @@
 
     app._apiAbortHandler = function() {
       document.getElementById('rabort').opened = true;
+    };
+
+    app.computeFinaleBaseUri = function(selectedOverrideBase, baseUri) {
+      if (selectedOverrideBase) {
+        return selectedOverrideBase;
+      }
+      return baseUri;
     };
 
     window.addEventListener('WebComponentsReady', app._load);
