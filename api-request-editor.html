@@ -203,7 +203,7 @@
       </iron-pages>
       <div class="action-bar">
         <template is="dom-if" if="[[!loadingRequest]]">
-          <paper-button class="send-button" on-click="_sendHandler" disabled="[[invalid]]">[[_computeSendLabel(authValid)]]</paper-button>
+          <paper-button class="send-button" on-click="_sendHandler" disabled="[[_computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid)]]">[[_computeSendLabel(authValid)]]</paper-button>
         </template>
         <template is="dom-if" if="[[loadingRequest]]">
           <paper-button class="send-button abort" on-click="_abortRequest">Abort</paper-button>
@@ -616,6 +616,7 @@
           invalid: {
             type: Boolean,
             notify: true,
+            observer: '_invalidChnaged',
             computed:
             '_computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired)'
           },
@@ -1063,10 +1064,23 @@
        * @return {Boolean}
        */
       _computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired) {
-        if (!authNotRequired && !authValid) {
-          return false;
+        if (urlInvalid || paramsInvalid || headersInvalid) {
+          return true;
         }
-        return urlInvalid || paramsInvalid || headersInvalid;
+        return authNotRequired === false && authValid === false;
+      }
+      /**
+       * Sets `invalid` and `aria-invalid` attributes on the element.
+       * @param {Boolean} invalid Current state of ivalid state
+       */
+      _invalidChnaged(invalid) {
+        if (invalid) {
+          this.setAttribute('invalid', true);
+          this.setAttribute('aria-invalid', true);
+        } else {
+          this.removeAttribute('invalid');
+          this.removeAttribute('aria-invalid');
+        }
       }
       /**
        * Computes label for the send button.
@@ -1076,6 +1090,19 @@
        */
       _computeSendLabel(authValid) {
         return authValid ? 'Send' : 'Authorize and send';
+      }
+      /**
+       * Computes value to disable send button when the form is invalid.
+       * THe button is active when auth is the only invalid state
+       * @param {Boolean} invalid
+       * @param {Boolean} authValid
+       * @return {Boolean}
+       */
+      _computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid) {
+        if (urlInvalid || paramsInvalid || headersInvalid) {
+          return true;
+        }
+        return false;
       }
       /**
        * Dispatched when the user requests to send current request.
