@@ -117,10 +117,26 @@
     <template is="dom-if" if="[[aware]]">
       <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
     </template>
-    <api-url-data-model amf-model="[[amfModel]]" base-uri="[[baseUri]]" endpoint-path="{{endpointPath}}" api-base-uri="{{apiBaseUri}}" selected="[[selected]]" path-model="{{pathModel}}" query-model="{{queryModel}}"></api-url-data-model>
+    <api-url-data-model
+      amf-model="[[amfModel]]"
+      base-uri="[[baseUri]]"
+      endpoint-path="{{endpointPath}}"
+      api-base-uri="{{apiBaseUri}}"
+      selected="[[selected]]"
+      path-model="{{pathModel}}"
+      query-model="{{queryModel}}"></api-url-data-model>
     <div class="content">
       <div class="url-editor" hidden$="[[noUrlEditor]]">
-        <api-url-editor required auto-validate invalid="{{urlInvalid}}" base-uri="[[apiBaseUri]]" endpoint-path="[[endpointPath]]" query-model="{{queryModel}}" path-model="{{pathModel}}" events-target="[[eventsTarget]]" value="{{url}}"></api-url-editor>
+        <api-url-editor
+          required
+          auto-validate
+          invalid="{{urlInvalid}}"
+          base-uri="[[apiBaseUri]]"
+          endpoint-path="[[endpointPath]]"
+          query-model="{{queryModel}}"
+          path-model="{{pathModel}}"
+          events-target="[[eventsTarget]]"
+          value="{{url}}"></api-url-editor>
       </div>
       <paper-tabs selected="{{selectedTab}}">
         <paper-tab hidden$="[[authNotRequired]]">
@@ -143,6 +159,7 @@
       </paper-tabs>
       <iron-pages selected="{{selectedTab}}">
         <authorization-panel
+          amf-model="[[amfModel]]"
           events-target="[[eventsTarget]]"
           hidden$="[[authNotRequired]]"
           secured-by="[[securedBy]]"
@@ -159,6 +176,7 @@
           no-docs="[[noDocs]]"></api-url-params-editor>
         <api-headers-editor
           events-target="[[eventsTarget]]"
+          amf-model="[[amfModel]]"
           amf-headers="[[apiHeaders]]"
           narrow="[[narrow]]"
           content-type="{{contentType}}"
@@ -185,7 +203,7 @@
       </iron-pages>
       <div class="action-bar">
         <template is="dom-if" if="[[!loadingRequest]]">
-          <paper-button class="send-button" on-click="_sendHandler" disabled="[[invalid]]">[[_computeSendLabel(authValid)]]</paper-button>
+          <paper-button class="send-button" on-click="_sendHandler" disabled="[[_computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid)]]">[[_computeSendLabel(authValid)]]</paper-button>
         </template>
         <template is="dom-if" if="[[loadingRequest]]">
           <paper-button class="send-button abort" on-click="_abortRequest">Abort</paper-button>
@@ -370,12 +388,16 @@
            * and by using `selected`.
            */
           amfModel: Object,
+          _webApi: {
+            type: Object,
+            computed: '_computeWebApi(amfModel)'
+          },
           /**
            * Computed method declaration in the AMF model.
            */
           _methodModel: {
             type: Object,
-            computed: '_computeMethodModel(amfModel, selected)'
+            computed: '_computeMethodModel(_webApi, selected)'
           },
           /**
            * Hides the URL editor from the view.
@@ -594,6 +616,7 @@
           invalid: {
             type: Boolean,
             notify: true,
+            observer: '_invalidChnaged',
             computed:
             '_computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired)'
           },
@@ -642,86 +665,21 @@
         this.selectedTab = 0;
       }
       /**
-       * Computes method model from the AMF model
-       *
-       * @param {Array|Object} api The AMF model for the API.
-       * @param {String} id Method `@id` property value
-       * @return {Object|undefined} Method definition for an id.
-       */
-      _computeMethodModel(api, id) {
-        if (!id || !api) {
-          return;
-        }
-        const endpointId = this.computeEndpointId(id);
-        const endpoint = this.findEndpoint(endpointId, api);
-        if (!endpoint) {
-          return;
-        }
-        if (endpointId === id) {
-          return;
-        }
-        return this.findMethod(id, endpoint[this.ns.w3.hydra.core + 'supportedOperation']);
-      }
-      /**
-       * Computes endpoint `@id` for given `id`.
-       * On a base level it subrtacts the last part after `/` which
-       * is a delimiter between endpoint identifier and method name.
-       *
-       * @param {String} id Object ID. Can be operation's or endpoint's ID.
-       * @return {String} Endpoint id. It may return the same value if passed
-       * id is endpoint ID.
-       */
-      computeEndpointId(id) {
-        if (!id) {
-          throw new Error('Argument "id" is required.');
-        }
-        const parts = id.split('/');
-        if (parts[parts.length - 1][0] === '%') {
-          return id;
-        }
-        parts.pop();
-        return parts.join('/');
-      }
-      /**
-       * Finds an endpoint definition in the API.
-       *
-       * @param {String} endpointId Endpoint `@id` from AMF model
-       * @param {?Object} api AMD model for the api. If not set, `webApi` property
-       * is used.
-       * @return {Object|undefined} Definition of the endpoint.
-       */
-      findEndpoint(endpointId, api) {
-        const webApi = this._computeWebApi(api);
-        if (!webApi) {
-          return;
-        }
-        const endpoints = webApi[this.ns.raml.vocabularies.http + 'endpoint'];
-        if (!endpoints) {
-          return;
-        }
-        return endpoints.find((item) => item['@id'] === endpointId);
-      }
-      /**
-       * Finds a method definition on the list of operations for an endpoint.
-       *
-       * @param {String} id ID of the operation (method)
-       * @param {Array<Object>} operations List of endpoint's operations.
-       * @return {Object|undefined} Method definition.
-       */
-      findMethod(id, operations) {
-        if (!id || !operations || !operations.length) {
-          return;
-        }
-        return operations.find((item) => item['@id'] === id);
-      }
-      /**
        * Computes AMF model for authorization panel.
        *
        * @param {Object} model Current method model.
        * @return {Array|undefined} List of security definitions for the endpoint.
        */
       _computeSecuredBy(model) {
-        return model && model[this.ns.raml.vocabularies.security + 'security'];
+        if (!model) {
+          return;
+        }
+        const key = this._getAmfKey(this.ns.raml.vocabularies.security + 'security');
+        let data = model[key];
+        if (data && !(data instanceof Array)) {
+          data = [data];
+        }
+        return data;
       }
       /**
        * Computes model definition for headers.
@@ -733,12 +691,16 @@
         if (!model) {
           return;
         }
-        model = model[this.ns.w3.hydra.core + 'expects'];
-        if (!model) {
+        const expects = this._computeExpects(model);
+        if (!expects) {
           return;
         }
-        model = model[0];
-        return model[this.ns.raml.vocabularies.http + 'header'];
+        const key = this._getAmfKey(this.ns.raml.vocabularies.http + 'header');
+        let headers = expects[key];
+        if (headers && !(headers instanceof Array)) {
+          headers = [headers];
+        }
+        return headers;
       }
       /**
        * Computes if authorization for the endpoint is set.
@@ -770,12 +732,16 @@
         if (!model) {
           return;
         }
-        model = model[this.ns.w3.hydra.core + 'expects'];
-        if (!model) {
+        const expects = this._computeExpects(model);
+        if (!expects) {
           return;
         }
-        model = model[0];
-        return model[this.ns.raml.vocabularies.http + 'payload'];
+        const key = this._getAmfKey(this.ns.raml.vocabularies.http + 'payload');
+        let payload = expects[key];
+        if (payload && !(payload instanceof Array)) {
+          payload = [payload];
+        }
+        return payload;
       }
       /**
        * Computes value for `isPayloadRequest`.
@@ -1098,10 +1064,23 @@
        * @return {Boolean}
        */
       _computeInvalid(urlInvalid, paramsInvalid, headersInvalid, authValid, authNotRequired) {
-        if (!authNotRequired && !authValid) {
-          return false;
+        if (urlInvalid || paramsInvalid || headersInvalid) {
+          return true;
         }
-        return urlInvalid || paramsInvalid || headersInvalid;
+        return authNotRequired === false && authValid === false;
+      }
+      /**
+       * Sets `invalid` and `aria-invalid` attributes on the element.
+       * @param {Boolean} invalid Current state of ivalid state
+       */
+      _invalidChnaged(invalid) {
+        if (invalid) {
+          this.setAttribute('invalid', true);
+          this.setAttribute('aria-invalid', true);
+        } else {
+          this.removeAttribute('invalid');
+          this.removeAttribute('aria-invalid');
+        }
       }
       /**
        * Computes label for the send button.
@@ -1111,6 +1090,19 @@
        */
       _computeSendLabel(authValid) {
         return authValid ? 'Send' : 'Authorize and send';
+      }
+      /**
+       * Computes value to disable send button when the form is invalid.
+       * THe button is active when auth is the only invalid state
+       * @param {Boolean} invalid
+       * @param {Boolean} authValid
+       * @return {Boolean}
+       */
+      _computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid) {
+        if (urlInvalid || paramsInvalid || headersInvalid) {
+          return true;
+        }
+        return false;
       }
       /**
        * Dispatched when the user requests to send current request.
