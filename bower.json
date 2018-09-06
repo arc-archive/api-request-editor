@@ -42,6 +42,7 @@
     "api-property-form-item": "advanced-rest-client/api-property-form-item#^2.0.4",
     "xhr-simple-request": "advanced-rest-client/xhr-simple-request#^2.0.0",
     "arc-polyfills": "advanced-rest-client/arc-polyfills#^0.1.11",
+    "api-navigation": "advanced-rest-client/api-navigation#^2.0.0",
     "api-console-default-theme": "advanced-rest-client/api-console-default-theme#5.0.0-preview"
   }
 }

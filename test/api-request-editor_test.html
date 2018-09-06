@@ -25,138 +25,39 @@
   </test-fixture>
   <script>
   /* global AmfLoader */
-  const API_ROOT = 'file://demo/demo-api/demo-api.raml#/web-api/end-points/';
   suite('api-request-editor', () => {
     let amf;
+    function readMethodId(element, path, methodIndex) {
+      methodIndex = methodIndex || 0;
+      const webApi = element._computeWebApi(amf);
+      const endpoint = element._computeEndpointByPath(webApi, path);
+      const ops = element._computeOperations(webApi, endpoint['@id']);
+      return ops[methodIndex]['@id'];
+    }
+
+    function clearCache() {
+      const transformer = document.createElement('api-view-model-transformer');
+      transformer.clearCache();
+    }
+
     let element;
     suiteSetup(() => {
       return AmfLoader.load()
-        .then((model) => amf = model);
-    });
-
-    suite('computeEndpointId()', () => {
-      suiteSetup(() => {
-        element = fixture('Basic');
-      });
-      test('Renturns the same ID for endpoint ID', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element.computeEndpointId(id);
-        assert.equal(result, id);
-      });
-
-      test('Renturns endpoint id for method', () => {
-        const compare = API_ROOT + '%2Fpeople';
-        const result = element.computeEndpointId(compare + '/get');
-        assert.equal(result, compare);
-      });
-
-      test('Throws an error when no argument', () => {
-        assert.throws(() => {
-          element.computeEndpointId();
-        });
-      });
-    });
-
-    suite('findEndpoint()', () => {
-      suiteSetup(() => {
-        element = fixture('Basic');
-      });
-
-      test('Finds endpoint by id', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element.findEndpoint(id, amf);
-        assert.typeOf(result, 'object');
-        assert.equal(result['@id'], id);
-      });
-
-      test('Finds endpoint by id for API as an object', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element.findEndpoint(id, amf[0]);
-        assert.typeOf(result, 'object');
-        assert.equal(result['@id'], id);
-      });
-
-      test('Returns undefined when not a Document', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element.findEndpoint(id, {
-          '@type': ['http://a.ml/vocabularies/document#Unit']
-        });
-        assert.isUndefined(result);
-      });
-
-      test('Returns undefined when no WebApi', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element.findEndpoint(id, {
-          '@type': ['http://a.ml/vocabularies/document#Document'],
-          'http://a.ml/vocabularies/document#encodes': [{
-            '@type': ['http://a.ml/vocabularies/document#DomainElement']
-          }]
-        });
-        assert.isUndefined(result);
-      });
-    });
-
-    suite('findMethod()', () => {
-      const model = [{
-        '@id': 'id1'
-      }, {
-        '@id': 'id2'
-      }];
-      suiteSetup(() => {
-        element = fixture('Basic');
-      });
-
-      test('Finds method model by id', () => {
-        let result = element.findMethod('id1', model);
-        assert.typeOf(result, 'object');
-        result = element.findMethod('id2', model);
-        assert.typeOf(result, 'object');
-      });
-
-      test('Returns undefined when model is not found', () => {
-        let result = element.findMethod('id3', model);
-        assert.isUndefined(result);
-      });
-
-      test('Returns undefined when no id', () => {
-        let result = element.findMethod('', model);
-        assert.isUndefined(result);
-      });
-
-      test('Returns undefined when no model', () => {
-        let result = element.findMethod('id1');
-        assert.isUndefined(result);
-      });
-    });
-
-    suite('_computeMethodModel()', () => {
-      suiteSetup(() => {
-        element = fixture('Basic');
-      });
-
-      test('Finds method by id', () => {
-        const id = API_ROOT + '%2Fpeople/post';
-        const result = element._computeMethodModel(amf, id);
-        assert.typeOf(result, 'object');
-        assert.equal(result['@id'], id);
-      });
-
-      test('Returns undefined for enpoing id', () => {
-        const id = API_ROOT + '%2Fpeople';
-        const result = element._computeMethodModel(amf, id);
-        assert.isUndefined(result);
-      });
+      .then((model) => amf = model);
     });
 
     suite('_computeHttpMethod()', () => {
+      let webApi;
       suiteSetup(() => {
         element = fixture('Basic');
+        webApi = element._computeWebApi(amf);
       });
 
       test('Finds method name', () => {
-        const id = API_ROOT + '%2Fpeople/post';
-        const methodModel = element._computeMethodModel(amf, id);
-        const result = element._computeHttpMethod(methodModel);
+        const endpoint = element._computeEndpointByPath(webApi, '/people');
+        const ops = element._computeOperations(webApi, endpoint['@id']);
+        // it's POST
+        const result = element._computeHttpMethod(ops[1]);
         assert.equal(result, 'post');
       });
 
@@ -167,14 +68,16 @@
     });
 
     suite('_computeApiPayload()', () => {
+      let webApi;
       suiteSetup(() => {
         element = fixture('Basic');
+        webApi = element._computeWebApi(amf);
       });
 
       test('Finds method name', () => {
-        const id = API_ROOT + '%2Fpeople/post';
-        const methodModel = element._computeMethodModel(amf, id);
-        const result = element._computeApiPayload(methodModel);
+        const endpoint = element._computeEndpointByPath(webApi, '/people');
+        const ops = element._computeOperations(webApi, endpoint['@id']);
+        const result = element._computeApiPayload(ops[1]);
         assert.typeOf(result, 'array');
         assert.lengthOf(result, 2);
       });
@@ -208,9 +111,13 @@
 
     suite('Basic computations', () => {
       setup(() => {
+        clearCache();
         element = fixture('Basic');
         element.amfModel = amf;
-        element.selected = API_ROOT + '%2Fpeople%2F%7BpersonId%7D/get';
+        const webApi = element._computeWebApi(amf);
+        const endpoint = element._computeEndpointByPath(webApi, '/people/{personId}');
+        const ops = element._computeOperations(webApi, endpoint['@id']);
+        element.selected = ops[0]['@id'];
       });
 
       test('_methodModel is computed', () => {
@@ -254,6 +161,7 @@
     suite('View control', () => {
       function dataSetup(id, fix) {
         return new Promise((resolve) => {
+          clearCache();
           element = fixture(fix || 'Basic');
           element.amfModel = amf;
           element.selected = id;
@@ -264,7 +172,8 @@
       }
 
       test('Authorization tab is not rendered when there\'s no security', () => {
-        return dataSetup(API_ROOT + '%2Fpeople/get')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id)
           .then(() => {
             const panel = element.shadowRoot.querySelector('authorization-panel');
             const display = getComputedStyle(panel).display;
@@ -273,7 +182,8 @@
       });
 
       test('Authorization tab is rendered when security is set', () => {
-        return dataSetup(API_ROOT + '%2Fmessages/get')
+        const id = readMethodId(element, '/messages');
+        return dataSetup(id)
           .then(() => {
             element.selectedTab = 0;
             const panel = element.shadowRoot.querySelector('authorization-panel');
@@ -283,7 +193,8 @@
       });
 
       test('Body tab is rendered', () => {
-        return dataSetup(API_ROOT + '%2Fpeople/post')
+        const id = readMethodId(element, '/people', 1);
+        return dataSetup(id)
           .then(() => {
             element.selectedTab = 3;
             assert.isTrue(element.isPayloadRequest);
@@ -294,7 +205,8 @@
       });
 
       test('api-url-editor is rendered', () => {
-        return dataSetup(API_ROOT + '%2Fpeople/get')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id)
           .then(() => {
             const panel = element.shadowRoot.querySelector('.url-editor');
             const display = getComputedStyle(panel).display;
@@ -303,7 +215,8 @@
       });
 
       test('api-url-editor is not rendered when noUrlEditor', () => {
-        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id, 'NoUrl')
           .then(() => {
             const panel = element.shadowRoot.querySelector('.url-editor');
             const display = getComputedStyle(panel).display;
@@ -312,20 +225,13 @@
       });
 
       test('Computes URL when noUrlEditor', () => {
-        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id, 'NoUrl')
           .then(() => {
             assert.equal(element.url, 'http://development.domain.com/people');
           });
       });
     });
-
-    // test('instantiating the element with default properties works', () => {
-    //   const element = fixture('BasicTestFixture');
-    //   assert.equal(element.prop1, 'api-request-editor');
-    //   const elementShadowRoot = element.shadowRoot;
-    //   const elementHeader = elementShadowRoot.querySelector('h2');
-    //   assert.equal(elementHeader.innerHTML, 'Hello api-request-editor!');
-    // });
 
     suite('Query / path model changed events', () => {
       function dataSetup(id) {
@@ -343,7 +249,8 @@
           window.removeEventListener('request-query-model-changed', clb);
           eventData = e.detail.value;
         });
-        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id, 'NoUrl')
           .then(() => {
             assert.typeOf(eventData, 'array');
             assert.lengthOf(eventData, 3);
@@ -356,7 +263,8 @@
           window.removeEventListener('request-path-model-changed', clb);
           eventData = e.detail.value;
         });
-        return dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        const id = readMethodId(element, '/people');
+        return dataSetup(id, 'NoUrl')
           .then(() => {
             assert.typeOf(eventData, 'array');
             assert.lengthOf(eventData, 1);
@@ -364,7 +272,8 @@
       });
 
       test('Dispatches url-value-changed', (done) => {
-        dataSetup(API_ROOT + '%2Fpeople/get', 'NoUrl')
+        const id = readMethodId(element, '/people');
+        dataSetup(id, 'NoUrl')
           .then(() => {
             window.addEventListener('url-value-changed', function clb(e) {
               window.removeEventListener('url-value-changed', clb);
@@ -376,112 +285,103 @@
           });
       });
     });
-  });
-  suite('Validation states', () => {
-    let amf;
-    let element;
-    suiteSetup(() => {
-      return AmfLoader.load()
-        .then((model) => amf = model);
-    });
-    const endpoints = [
-      API_ROOT + '%2Ftest-parameters%2F%7Bfeature%7D/get', // invalid QP
-      API_ROOT + '%2Ftest-parameters%2F%7Bfeature%7D%2F%7BtypeFeature%7D/get', // valid
-      API_ROOT + '%2Fpeople/get', // auth optional
-      API_ROOT + '%2Forgs%2F%7BorgId%7D/get'
-    ];
 
-    test('Editor is invalid when query parameters are invalid', (done) => {
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[0];
-      flush(() => {
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          assert.isTrue(element.paramsInvalid, 'Query parameters is invalid');
-          assert.isTrue(element.invalid, 'Editor is invalid');
-          done();
+    suite('Validation states', () => {
+      let amf;
+      let element;
+      let endpoints;
+      setup(() => {
+        clearCache();
+        element = fixture('Basic');
+        element.amfModel = amf;
+        endpoints = [
+          readMethodId(element, '/test-parameters/{feature}'),
+          readMethodId(element, '/test-parameters/{feature}/{typeFeature}'),
+          readMethodId(element, '/people'),
+          readMethodId(element, '/orgs/{orgId}')
+        ];
+      });
+
+      test('Editor is invalid when query parameters are invalid', (done) => {
+        element.selected = endpoints[0];
+        flush(() => {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            assert.isTrue(element.paramsInvalid, 'Query parameters is invalid');
+            assert.isTrue(element.invalid, 'Editor is invalid');
+            done();
+          });
         });
       });
-    });
 
-    test('Editor is invalid when path parameters are invalid', (done) => {
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[3];
-      flush(() => {
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          assert.isTrue(element.paramsInvalid, 'Path parameters is invalid');
-          assert.isTrue(element.urlInvalid, 'urlInvalid is set');
-          assert.isTrue(element.invalid, 'Editor is invalid');
-          done();
+      test('Editor is invalid when path parameters are invalid', (done) => {
+        element.selected = endpoints[3];
+        flush(() => {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            assert.isTrue(element.paramsInvalid, 'Path parameters is invalid');
+            assert.isTrue(element.urlInvalid, 'urlInvalid is set');
+            assert.isTrue(element.invalid, 'Editor is invalid');
+            done();
+          });
         });
       });
-    });
 
-    test('Editor is valid', (done) => {
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[1];
-      flush(() => {
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          assert.isFalse(element.invalid, 'Editor is valid');
-          assert.isFalse(element.paramsInvalid, 'Query parameters is valid');
-          assert.isFalse(element.headersInvalid, 'Headers is valid');
-          assert.isTrue(element.authValid, 'Authorization is valid');
-          assert.isTrue(element.authNotRequired, 'Auth is not required');
-          done();
-        });
-      });
-    });
-
-    test('Editor is valid when auth is not required', (done) => {
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[2];
-      flush(() => {
-        element.selectedTab = 0;
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          assert.isFalse(element.invalid, 'Editor is valid');
-          assert.isTrue(element.authValid, 'Authorization is valid');
-          assert.isFalse(element.authNotRequired, 'Auth is not required');
-          done();
-        });
-      });
-    });
-
-    test('Editor is valid when no-auth is selected', (done) => {
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[2];
-      flush(() => {
-        element.selectedTab = 0;
-        const panel = element.shadowRoot.querySelector('authorization-panel');
-        panel.selected = 0;
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          assert.isFalse(element.invalid, 'Editor is valid');
-          assert.isTrue(element.authValid, 'Authorization is valid');
-          assert.isFalse(element.authNotRequired, 'Auth is not required');
-          done();
-        });
-      });
-    });
-
-    test('Editor is valid when invalid auth is selected', (done) => {
-      // The user is able to take "send" action but the action forces
-      // authorization
-      element = fixture('Basic');
-      element.amfModel = amf;
-      element.selected = endpoints[2];
-      flush(() => {
-        element.selectedTab = 0;
-        const panel = element.shadowRoot.querySelector('authorization-panel');
-        panel.selected = 1;
+      test('Editor is valid', (done) => {
+        element.selected = endpoints[1];
         flush(() => {
           Polymer.RenderStatus.afterNextRender(this, () => {
             assert.isFalse(element.invalid, 'Editor is valid');
-            assert.isFalse(element.authValid, 'Authorization is invalid');
+            assert.isFalse(element.paramsInvalid, 'Query parameters is valid');
+            assert.isFalse(element.headersInvalid, 'Headers is valid');
+            assert.isTrue(element.authValid, 'Authorization is valid');
+            assert.isTrue(element.authNotRequired, 'Auth is not required');
+            done();
+          });
+        });
+      });
+
+      test('Editor is valid when auth is not required', (done) => {
+        element.selected = endpoints[2];
+        flush(() => {
+          element.selectedTab = 0;
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            assert.isFalse(element.invalid, 'Editor is valid');
+            assert.isTrue(element.authValid, 'Authorization is valid');
             assert.isFalse(element.authNotRequired, 'Auth is not required');
             done();
+          });
+        });
+      });
+
+      test('Editor is valid when no-auth is selected', (done) => {
+        element.selected = endpoints[2];
+        flush(() => {
+          element.selectedTab = 0;
+          const panel = element.shadowRoot.querySelector('authorization-panel');
+          panel.selected = 0;
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            assert.isFalse(element.invalid, 'Editor is valid');
+            assert.isTrue(element.authValid, 'Authorization is valid');
+            assert.isFalse(element.authNotRequired, 'Auth is not required');
+            done();
+          });
+        });
+      });
+
+      test('Editor is valid when invalid auth is selected', (done) => {
+        // The user is able to take "send" action but the action forces
+        // authorization
+        element.selected = endpoints[2];
+        flush(() => {
+          element.selectedTab = 0;
+          const panel = element.shadowRoot.querySelector('authorization-panel');
+          panel.selected = 1;
+          flush(() => {
+            Polymer.RenderStatus.afterNextRender(this, () => {
+              assert.isFalse(element.invalid, 'Editor is valid');
+              assert.isFalse(element.authValid, 'Authorization is invalid');
+              assert.isFalse(element.authNotRequired, 'Auth is not required');
+              done();
+            });
           });
         });
       });
