@@ -439,3 +439,18 @@ documentation:
         description: |
           This demonstrates a body as an Array
         type: AppPerson[]
+/defaultValues:
+  get:
+    headers:
+      x-string:
+        type: string
+        default: TestDefault
+      x-integer:
+        type: integer
+        default: 1234
+      x-boolean:
+        type: boolean
+        default: false
+      x-array:
+        type: string[]
+        default: [ArrayTest, OtherTest]

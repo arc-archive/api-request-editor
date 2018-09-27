@@ -1,3 +1,9 @@
+<a name="2.0.7"></a>
+## [2.0.7](https://github.com/advanced-rest-client/api-request-editor/compare/2.0.6...2.0.7) (2018-09-27)
+
+
+
+
 <a name="2.0.6"></a>
 ## 2.0.6 (2018-09-06)
 
