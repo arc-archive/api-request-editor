@@ -238,7 +238,7 @@
             const id = readMethodId(element, amf, '/people');
             return dataSetup(id, 'NoUrl')
               .then(() => {
-                assert.equal(element.url, 'http://development.domain.com/people');
+                assert.equal(element.url, 'http://production.domain.com/people');
               });
           });
         });
@@ -288,7 +288,7 @@
                 window.addEventListener('url-value-changed', function clb(e) {
                   window.removeEventListener('url-value-changed', clb);
                   assert.equal(e.detail.value,
-                    'http://development.domain.com/people?limit=test');
+                    'http://production.domain.com/people?limit=test');
                   done();
                 });
                 element.set('queryModel.0.value', 'test');
