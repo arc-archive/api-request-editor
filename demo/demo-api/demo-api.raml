@@ -108,6 +108,7 @@ securitySchemes:
   oauth_2_0: !include securitySchemes/oauth_2_0.raml
   x-custom: !include securitySchemes/x-custom.raml
   basic: !include securitySchemes/basic.raml
+  pass_through: !include securitySchemes/passthrough.raml
 
 documentation:
   - title: Test doc
@@ -163,7 +164,7 @@ documentation:
     displayName: List people
     description: Use this method to list all the people.
     is: [Paginated: {resourceType: AppPerson}]
-    securedBy: [basic, nil]
+    securedBy: [basic, null]
     headers:
       x-people-op-id:
         (annotationTest):
@@ -454,3 +455,19 @@ documentation:
       x-array:
         type: string[]
         default: [ArrayTest, OtherTest]
+/post-headers:
+  post:
+    headers:
+      x-string:
+        required: true
+        type: string
+        default: my-value
+    body:
+      application/json:
+        type: AppPerson
+/basicauth:
+  get:
+    securedBy: [basic]
+/passthroogh:
+  securedBy: [pass_through]
+  get:

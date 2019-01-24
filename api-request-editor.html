@@ -231,9 +231,9 @@
      * API specification model (first element is a shape of
      * `http://raml.org/vocabularies/document#Document` type).
      *
-     * To build request editor view for an endpoint, set `selected`
-     * property to an id of an operation that is defined in the spec. The
-     * element looks up for the definition and applied to the editors.
+     * To build request editor view for an endpoint defined in an API, set `selected`
+     * property to the id of the operation that is defined in the spec. The
+     * element lookup for the definition and applies it to the editors.
      *
      * This element is to replace deprecated `advanced-rest-client/raml-request-editor`.
      *
@@ -324,6 +324,17 @@
      * This element does not act on this event. See `api-request-panel`
      * documentation for more information.
      *
+     * ## Limitations
+     *
+     * Editors used in this element usually don't perform operations right after
+     * a property change. Body/Headers/Auth editors uses
+     * `Polymer.RenderStatus.afterNextRender` method before they start computing
+     * properties from model. Then, if DOM change is required then this operation
+     * is also async. This causes a delay between selection/AMF model change
+     * and reseting the properties. For example authorization state can be passed
+     * to this element after at least 2 calls to `requestAnimationFrame()`.
+     * Take this into the ccount when using element's API.
+     *
      * ## Styling
      *
      * `<api-request-editor>` provides the following custom properties and
@@ -368,10 +379,13 @@
      * @demo demo/index.html
      * @appliesMixin ArcBehaviors.EventsTargetBehavior
      * @appliesMixin ApiElements.AmfHelperMixin
+     * @memberof ApiElements
      */
     class ApiRequestEditor extends ApiElements.AmfHelperMixin(
       ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-      static get is() {return 'api-request-editor';}
+      static get is() {
+        return 'api-request-editor';
+      }
       static get properties() {
         return {
           /**
@@ -655,15 +669,52 @@
         node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
       }
       /**
+       * Dispatches bubbling and composed custom event.
+       * By default the event is cancelable until `cancelable` property is set to false.
+       * @param {String} type Event type
+       * @param {?any} detail A detail to set
+       * @param {?Boolean} cancelable When false the event is not cancelable.
+       * @return {CustomEvent}
+       */
+      _dispatch(type, detail, cancelable) {
+        if (typeof cancelable !== 'boolean') {
+          cancelable = true;
+        }
+        const e = new CustomEvent(type, {
+          bubbles: true,
+          composed: true,
+          cancelable,
+          detail
+        });
+        this.dispatchEvent(e);
+        return e;
+      }
+
+      /**
+       * Sends usage google analytics event
+       * @param {String} action Action description
+       * @param {String} label Event label
+       * @return {CustomEvent}
+       */
+      _sendGaEvent(action, label) {
+        return this._dispatch('send-analytics', {
+          type: 'event',
+          category: 'Request editor',
+          action,
+          label
+        }, false);
+      }
+      /**
        * Clears the request properties.
        */
       clearRequest() {
         this.set('url', '');
         this.set('headers', '');
         this.set('payload', '');
-        this.set('method', 'GET');
         this.shadowRoot.querySelector('authorization-panel').clear();
         this.selectedTab = 0;
+        this._dispatch('request-clear-state');
+        this._sendGaEvent('Clear request');
       }
       /**
        * Computes AMF model for authorization panel.
@@ -769,7 +820,7 @@
           this.selectedTab = 1;
         }
         this._refreshTabs();
-        this._analyticsEvent('no-auth-changed', String(value));
+        this._sendGaEvent('no-auth-changed', String(value));
       }
       /**
        * Updates the state of the body editor when switching to it.
@@ -787,7 +838,7 @@
             } catch (_) {}
           });
         }
-        this._analyticsEvent('tab-changed', selected);
+        this._sendGaEvent('tab-changed', selected);
       }
       /**
        * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
@@ -812,24 +863,6 @@
           return;
         }
         tabs.notifyResize();
-      }
-      /**
-       * Dispatches analytics event.
-       * @param {String} action Event action
-       * @param {String} label Event label
-       */
-      _analyticsEvent(action, label) {
-        const e = new CustomEvent('send-analytics', {
-          detail: {
-            type: 'event',
-            category: ApiRequestEditor.is,
-            action: action,
-            label: label
-          },
-          bubbles: true,
-          composed: true
-        });
-        this.dispatchEvent(e);
       }
       /**
        * Handles send button click.
@@ -880,36 +913,31 @@
        */
       execute() {
         this.loadingRequest = true;
-        const detail = this.serializeRequest();
+        const request = this.serializeRequest();
         this.requestId = this.$.uuid.generate();
-        detail.id = this.requestId;
-        const e = new CustomEvent('api-request', {
-          cancelable: true,
-          bubbles: true,
-          composed: true,
-          detail: detail
-        });
-        this.dispatchEvent(e);
-        this._analyticsEvent('request-execute', 'true');
+        request.id = this.requestId;
+        this._dispatch('api-request', request);
+        this._sendGaEvent('request-execute', 'true');
       }
       /**
        * Sends the `abort-api-request` custom event to cancel the request.
        * Calling this method befor sending request may have unexpected
        * behavior because `requestId` is only set with `execute()` method.
        */
-      _abortRequest() {
-        this.dispatchEvent(new CustomEvent('abort-api-request', {
-          cancelable: true,
-          bubbles: true,
-          composed: true,
-          detail: {
-            url: this.url,
-            id: this.requestId
-          }
-        }));
-        this._analyticsEvent('request-abort', 'true');
+      abort() {
+        this._dispatch('abort-api-request', {
+          url: this.url,
+          id: this.requestId
+        });
+        this._sendGaEvent('request-abort', 'true');
         this.loadingRequest = false;
         this.requestId = undefined;
+      }
+      /**
+       * Event handler for abort click.
+       */
+      _abortRequest() {
+        this.abort();
       }
       /**
        * Returns an object with the request properties.
@@ -939,7 +967,7 @@
         const result = {
           method: (this.httpMethod || 'get').toUpperCase(),
           url: this.url,
-          headers: this.headers,
+          headers: this.headers || '',
           payload: this.payload,
           queryModel: this.queryModel,
           pathModel: this.pathModel,
@@ -973,7 +1001,7 @@
        * @param {CustomEvent} e
        */
       _responseHandler(e) {
-        if (e.detail.id !== this.requestId) {
+        if (!e.detail || (e.detail.id !== this.requestId)) {
           return;
         }
         this.loadingRequest = false;
@@ -1034,26 +1062,18 @@
             });
           });
         }
-        this.dispatchEvent(new CustomEvent('request-' + type + '-model-changed', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            value: result
-          }
-        }));
+        this._dispatch('request-' + type + '-model-changed', {
+          value: result
+        });
       }
       /**
        * Dispatches `url-value-changed` event when url value change.
        * @param {String} value
        */
       _urlChanged(value) {
-        this.dispatchEvent(new CustomEvent('url-value-changed', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            value: value
-          }
-        }));
+        this._dispatch('url-value-changed', {
+          value
+        });
       }
       /**
        * Computes value if `invalid` property.
