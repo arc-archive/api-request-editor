@@ -833,9 +833,7 @@
       _selectedTabChanged(selected) {
         if (selected === 3) {
           Polymer.RenderStatus.afterNextRender(this, () => {
-            try {
-              this.shadowRoot.querySelector('api-body-editor').currentPanel.refresh();
-            } catch (_) {}
+            this.shadowRoot.querySelector('api-body-editor').refreshPanel();
           });
         }
         this._sendGaEvent('tab-changed', selected);
