@@ -258,3 +258,20 @@
 
 
 
+## [2.0.8](https://github.com/advanced-rest-client/api-request-editor/compare/2.0.6...2.0.8) (2019-01-25)
+
+
+### Fix
+
+* Fixing tests ([6076bbd707c4225ce19705b5dff3bba5330418f9](https://github.com/advanced-rest-client/api-request-editor/commit/6076bbd707c4225ce19705b5dff3bba5330418f9))
+
+### New
+
+* Adding abort() method. Update: Updating tests. Update: Non-breaking API changes ([7ede280671502e920ff32d3d86245e5757e1c39b](https://github.com/advanced-rest-client/api-request-editor/commit/7ede280671502e920ff32d3d86245e5757e1c39b))
+
+### Update
+
+* Using body editor's own API to refresh current panel. ([46b66b4f477039e349e96903df8e001bcfc3657f](https://github.com/advanced-rest-client/api-request-editor/commit/46b66b4f477039e349e96903df8e001bcfc3657f))
+
+
+
