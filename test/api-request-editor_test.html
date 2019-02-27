@@ -4,11 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
   <title>api-request-editor test</title>
-  <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
-  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="../../web-component-tester/browser.js"></script>
-  <script src="amf-loader.js"></script>
-  <link rel="import" href="../api-request-editor.html">
+
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
+  <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
+  <script src="../node_modules/sinon/pkg/sinon.js"></script>
+
+  <script src="./amf-loader.js"></script>
+
+  <script src="../../../jsonlint/lib/jsonlint.js"></script>
+  <script src="../../../codemirror/lib/codemirror.js"></script>
+  <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+  <script src="../../../codemirror/mode/meta.js"></script>
+  <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+  <script src="../../../codemirror/mode/xml/xml.js"></script>
+  <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="../../../codemirror/addon/lint/lint.js"></script>
+  <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+  <script>
+  /* global CodeMirror */
+  CodeMirror.modeURL = '../../../codemirror/mode/%N/%N.js';
+  </script>
+  <script src="../../../cryptojslib/components/core.js"></script>
+  <script src="../../../cryptojslib/rollups/sha1.js"></script>
+  <script src="../../../cryptojslib/components/enc-base64-min.js"></script>
+  <script src="../../../cryptojslib/rollups/md5.js"></script>
+  <script src="../../../cryptojslib/rollups/hmac-sha1.js"></script>
+  <script src="../../../jsrsasign/lib/jsrsasign-rsa-min.js"></script>
 </head>
 
 <body>
@@ -23,7 +50,9 @@
       <api-request-editor no-url-editor></api-request-editor>
     </template>
   </test-fixture>
-  <script>
+  <script type="module">
+  import '../api-request-editor.js';
+  import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
   /* global AmfLoader */
   function readMethodId(element, amf, path, methodIndex) {
     methodIndex = methodIndex || 0;
@@ -174,7 +203,7 @@
               element = fixture(fix || 'Basic');
               element.amfModel = amf;
               element.selected = id;
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 flush(() => resolve());
               });
             });
@@ -304,7 +333,7 @@
             element.amfModel = amf;
             endpoints = [
               readMethodId(element, amf, '/people/{personId}', 2),
-              readMethodId(element, amf, '/test-parameters/{feature}/{typeFeature}'),
+              readMethodId(element, amf, '/products'),
               readMethodId(element, amf, '/people'),
               readMethodId(element, amf, '/orgs/{orgId}')
             ];
@@ -313,7 +342,7 @@
           test('Editor is invalid when query parameters are invalid', (done) => {
             element.selected = endpoints[0];
             flush(() => {
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 assert.isTrue(element.paramsInvalid, 'Query parameters is invalid');
                 assert.isTrue(element.invalid, 'Editor is invalid');
                 done();
@@ -324,7 +353,7 @@
           test('Editor is invalid when path parameters are invalid', (done) => {
             element.selected = endpoints[3];
             flush(() => {
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 assert.isTrue(element.paramsInvalid, 'Path parameters is invalid');
                 assert.isTrue(element.invalid, 'Editor is invalid');
                 done();
@@ -335,7 +364,7 @@
           test('Editor is valid', (done) => {
             element.selected = endpoints[1];
             flush(() => {
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 assert.isFalse(element.invalid, 'Editor is valid');
                 assert.isFalse(element.paramsInvalid, 'Query parameters is valid');
                 assert.isFalse(element.headersInvalid, 'Headers is valid');
@@ -350,7 +379,7 @@
             element.selected = endpoints[2];
             flush(() => {
               element.selectedTab = 0;
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 assert.isFalse(element.invalid, 'Editor is valid');
                 assert.isTrue(element.authValid, 'Authorization is valid');
                 assert.isFalse(element.authNotRequired, 'Auth is not required');
@@ -365,7 +394,7 @@
               element.selectedTab = 0;
               const panel = element.shadowRoot.querySelector('authorization-panel');
               panel.selected = 0;
-              Polymer.RenderStatus.afterNextRender(element, () => {
+              afterNextRender(element, () => {
                 assert.isFalse(element.invalid, 'Editor is valid');
                 assert.isTrue(element.authValid, 'Authorization is valid');
                 assert.isFalse(element.authNotRequired, 'Auth is not required');
@@ -654,7 +683,7 @@
 
     test('Sets headers from the editor', (done) => {
       element.selected = readMethodId(element, amf, '/post-headers');
-      Polymer.RenderStatus.afterNextRender(element, () => {
+      afterNextRender(element, () => {
         flush(() => {
           const result = element.serializeRequest();
           assert.equal(result.headers, 'x-string: \nContent-Type: application/json');
@@ -683,9 +712,9 @@
 
     test('Aurth data is set', (done) => {
       element.selected = readMethodId(element, amf, '/people/{personId}');
-      Polymer.RenderStatus.afterNextRender(element, () => {
+      afterNextRender(element, () => {
         flush(() => {
-          Polymer.RenderStatus.afterNextRender(element, () => {
+          afterNextRender(element, () => {
             const result = element.serializeRequest();
             assert.equal(result.authType, 'x-custom');
             assert.typeOf(result.auth, 'object');
@@ -854,7 +883,7 @@
 
     test('Sets auth settings', () => {
       if (element.authSettings.settings === undefined) {
-        // The authorization panel makes asynk comutation then additional
+        // The authorization panel makes async comutation then additional
         // async operations are performed in authorization method and sometimes
         // it may happen that the settings are not yet ready. So far it was
         // always a false-positive error.

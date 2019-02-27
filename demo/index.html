@@ -4,24 +4,44 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
     <title>api-request-editor demo</title>
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
-    <link rel="import" href="../../paper-item/paper-item.html">
-    <link rel="import" href="../../paper-listbox/paper-listbox.html">
-    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
-    <link rel="import" href="../../paper-toast/paper-toast.html">
-    <link rel="import" href="../../paper-input/paper-input.html">
-    <link rel="import" href="../../neon-animation/web-animations.html">
-    <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
-    <link rel="import" href="../../oauth-authorization/oauth1-authorization.html">
-    <link rel="import" href="../../xhr-simple-request/xhr-simple-request.html">
-    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
-    <link rel="import" href="../../api-navigation/api-navigation.html">
-    <link rel="import" href="../../api-console-default-theme/api-console-default-theme.html">
-    <link rel="import" href="../api-request-editor.html">
+
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../../web-animations-js/web-animations-next.min.js"></script>
+
+    <!--
+    Previously this was included into the compoennt.
+    Since compoennts are ES6 modules this libraries cannot be loaded into
+    the component as they do not export anything and won't set global variable.
+    -->
+    <script src="../../../jsonlint/lib/jsonlint.js"></script>
+    <script src="../../../codemirror/lib/codemirror.js"></script>
+    <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+    <script src="../../../codemirror/mode/meta.js"></script>
+    <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+    <script src="../../../codemirror/mode/xml/xml.js"></script>
+    <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <script src="../../../codemirror/addon/lint/lint.js"></script>
+    <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+    <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+    <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+    <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+    <!--
+    From the inside of a web component it is hard to determine where
+    scripts are actually located. This should be set if the page won't load all possible
+    scripts at run time. The component will download the "mode" from this location.
+    -->
+    <script>
+    /* global CodeMirror */
+    CodeMirror.modeURL = '../../../codemirror/mode/%N/%N.js';
+    </script>
+    <!-- Finally dependencies for authorization panel.  -->
+    <script src="../../../cryptojslib/components/core.js"></script>
+    <script src="../../../cryptojslib/rollups/sha1.js"></script>
+    <script src="../../../cryptojslib/components/enc-base64-min.js"></script>
+    <script src="../../../cryptojslib/rollups/md5.js"></script>
+    <script src="../../../cryptojslib/rollups/hmac-sha1.js"></script>
+    <script src="../../../jsrsasign/lib/jsrsasign-rsa-min.js"></script>
+
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
       html,
@@ -108,7 +128,7 @@
         </header>
         <main role="main">
           <nav>
-            <api-navigation amf-model="[[amfModel]]" endpoints-opened></api-navigation>
+            <api-navigation amf-model="[[amfModel]]" endpoints-opened=""></api-navigation>
           </nav>
 
           <template is="dom-if" if="[[!hasData]]">
@@ -120,30 +140,7 @@
           <template is="dom-if" if="[[hasData]]">
             <section class="content">
               <div class="card">
-                <api-request-editor
-                  narrow="[[narrow]]"
-                  amf-model="[[amfModel]]"
-                  base-uri="[[computeFinaleBaseUri(selectedOverrideBase, baseUri)]]"
-                  selected="[[selectedAmfId]]"
-                  narrow="[[narrow]]"
-                  allow-custom="[[allowCustom]]"
-                  allow-disable-params="[[allowDisableParams]]"
-                  allow-hide-optional="[[allowHideOptional]]"
-                  redirect-uri="[[redirectUri]]"
-                  no-url-editor="[[noUrlEditor]]"
-                  no-docs="[[noDocs]]"
-                  selected-tab="{{selectedTab}}"
-                  content-type="{{contentType}}"
-                  is-payload-request="{{isPayloadRequest}}"
-                  auth-required="{{authRequired}}"
-                  auth-valid="{{authValid}}"
-                  auth-required="{{authRequired}}"
-                  auth-not-required="{{authNotRequired}}"
-                  loading-request="{{loadingRequest}}"
-                  params-invalid="{{paramsInvalid}}"
-                  headers-invalid="{{headersInvalid}}"
-                  url-invalid="{{urlInvalid}}"
-                  invalid="{{invalid}}"></api-request-editor>
+                <api-request-editor narrow="[[narrow]]" amf-model="[[amfModel]]" base-uri="[[computeFinaleBaseUri(selectedOverrideBase, baseUri)]]" selected="[[selectedAmfId]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" redirect-uri="[[redirectUri]]" no-url-editor="[[noUrlEditor]]" no-docs="[[noDocs]]" selected-tab="{{selectedTab}}" content-type="{{contentType}}" is-payload-request="{{isPayloadRequest}}" auth-required="{{authRequired}}" auth-valid="{{authValid}}" auth-not-required="{{authNotRequired}}" loading-request="{{loadingRequest}}" params-invalid="{{paramsInvalid}}" headers-invalid="{{headersInvalid}}" url-invalid="{{urlInvalid}}" invalid="{{invalid}}"></api-request-editor>
               </div>
 
               <div class="card">
@@ -179,7 +176,22 @@
         <paper-toast text="Request abort event detected" id="rabort"></paper-toast>
       </template>
     </dom-bind>
-    <script>
+    <script type="module">
+    import '@polymer/polymer/lib/elements/dom-bind.js';
+    import '@polymer/iron-demo-helpers/demo-pages-shared-styles.js';
+    import '@polymer/iron-demo-helpers/demo-snippet.js';
+    import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+    import '@polymer/paper-item/paper-item.js';
+    import '@polymer/paper-listbox/paper-listbox.js';
+    import '@polymer/paper-checkbox/paper-checkbox.js';
+    import '@polymer/paper-toast/paper-toast.js';
+    import '@polymer/paper-input/paper-input.js';
+    import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
+    import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
+    import '@advanced-rest-client/xhr-simple-request/xhr-simple-request.js';
+    import '@api-components/api-navigation/api-navigation.js';
+    import '@api-components/api-console-default-theme/api-console-default-theme.js';
+    import '../api-request-editor.js';
     (function(app) {
     app.redirectUri = 'https://auth.advancedrestclient.com/oauth-popup.html';
     app.allowCustom = true;
@@ -239,6 +251,6 @@
     window.addEventListener('api-request', app._apiRequestHandler);
     window.addEventListener('abort-api-request', app._apiAbortHandler);
     })(document.getElementById('demo'));
-  </script>
+    </script>
   </body>
 </html>

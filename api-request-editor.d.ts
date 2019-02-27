@@ -5,34 +5,22 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   api-request-editor.html
+ *   api-request-editor.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-/// <reference path="../polymer/types/polymer-element.d.ts" />
-/// <reference path="../polymer/types/lib/elements/dom-if.d.ts" />
-/// <reference path="../polymer/types/lib/utils/render-status.d.ts" />
-/// <reference path="../api-url-data-model/api-url-data-model.d.ts" />
-/// <reference path="../api-url-editor/api-url-editor.d.ts" />
-/// <reference path="../api-url-params-editor/api-url-params-editor.d.ts" />
-/// <reference path="../authorization-panel/authorization-panel.d.ts" />
-/// <reference path="../api-headers-editor/api-headers-editor.d.ts" />
-/// <reference path="../api-body-editor/api-body-editor.d.ts" />
-/// <reference path="../raml-aware/raml-aware.d.ts" />
-/// <reference path="../paper-tabs/paper-tabs.d.ts" />
-/// <reference path="../paper-tabs/paper-tab.d.ts" />
-/// <reference path="../iron-flex-layout/iron-flex-layout.d.ts" />
-/// <reference path="../iron-pages/iron-pages.d.ts" />
-/// <reference path="../paper-button/paper-button.d.ts" />
-/// <reference path="../paper-spinner/paper-spinner.d.ts" />
-/// <reference path="../paper-toast/paper-toast.d.ts" />
-/// <reference path="../api-form-mixin/api-form-styles.d.ts" />
-/// <reference path="../uuid-generator/uuid-generator.d.ts" />
-/// <reference path="../events-target-behavior/events-target-behavior.d.ts" />
-/// <reference path="../amf-helper-mixin/amf-helper-mixin.d.ts" />
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+
+import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
+
+import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+
+import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+
+import {html} from '@polymer/polymer/lib/utils/html-tag.js';
 
 declare namespace ApiElements {
 
@@ -191,8 +179,8 @@ declare namespace ApiElements {
    * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
    */
   class ApiRequestEditor extends
-    ArcBehaviors.EventsTargetBehavior(
-    ApiElements.AmfHelperMixin(
+    EventsTargetMixin(
+    AmfHelperMixin(
     Object)) {
 
     /**
@@ -635,10 +623,13 @@ declare namespace ApiElements {
      * Computes value to disable send button when the form is invalid.
      * THe button is active when auth is the only invalid state
      */
-    _computeSendDisabled(urlInvalid: any, paramsInvalid: any, headersInvalid: any): Boolean|null;
+    _computeSendDisabled(urlInvalid: Boolean|null, paramsInvalid: Boolean|null, headersInvalid: Boolean|null): Boolean|null;
   }
 }
 
-interface HTMLElementTagNameMap {
-  "api-request-editor": ApiElements.ApiRequestEditor;
+declare global {
+
+  interface HTMLElementTagNameMap {
+    "api-request-editor": ApiElements.ApiRequestEditor;
+  }
 }
