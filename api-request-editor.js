@@ -1,25 +1,25 @@
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
-import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
-import {html} from '@polymer/polymer/lib/utils/html-tag.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@api-components/api-url-data-model/api-url-data-model.js';
-import '@api-components/api-url-editor/api-url-editor.js';
-import '@api-components/api-url-params-editor/api-url-params-editor.js';
-import '@api-components/authorization-panel/authorization-panel.js';
-import '@api-components/api-headers-editor/api-headers-editor.js';
-import '@api-components/api-body-editor/api-body-editor.js';
-import '@api-components/raml-aware/raml-aware.js';
-import '@polymer/paper-tabs/paper-tabs.js';
-import '@polymer/paper-tabs/paper-tab.js';
-import '@polymer/iron-flex-layout/iron-flex-layout.js';
-import '@polymer/iron-pages/iron-pages.js';
-import '@polymer/paper-button/paper-button.js';
-import '@polymer/paper-spinner/paper-spinner.js';
-import '@polymer/paper-toast/paper-toast.js';
-import '@api-components/api-form-mixin/api-form-styles.js';
-import '@advanced-rest-client/uuid-generator/uuid-generator.js';
+import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
+import {afterNextRender} from '../../@polymer/polymer/lib/utils/render-status.js';
+import {EventsTargetMixin} from '../../@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import {AmfHelperMixin} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
+import '../../@polymer/polymer/lib/elements/dom-if.js';
+import '../../@api-components/api-url-data-model/api-url-data-model.js';
+import '../../@api-components/api-url-editor/api-url-editor.js';
+import '../../@api-components/api-url-params-editor/api-url-params-editor.js';
+import '../../@api-components/authorization-panel/authorization-panel.js';
+import '../../@api-components/api-headers-editor/api-headers-editor.js';
+import '../../@api-components/api-body-editor/api-body-editor.js';
+import '../../@api-components/raml-aware/raml-aware.js';
+import '../../@polymer/paper-tabs/paper-tabs.js';
+import '../../@polymer/paper-tabs/paper-tab.js';
+import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
+import '../../@polymer/iron-pages/iron-pages.js';
+import '../../@polymer/paper-button/paper-button.js';
+import '../../@polymer/paper-spinner/paper-spinner.js';
+import '../../@polymer/paper-toast/paper-toast.js';
+import '../../@api-components/api-form-mixin/api-form-styles.js';
+import '../../@advanced-rest-client/uuid-generator/uuid-generator.js';
 /**
  * `api-request-editor`
  * A request editor that builds the UI based on
