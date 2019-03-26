@@ -7,7 +7,7 @@ import '../../@polymer/polymer/lib/elements/dom-if.js';
 import '../../@api-components/api-url-data-model/api-url-data-model.js';
 import '../../@api-components/api-url-editor/api-url-editor.js';
 import '../../@api-components/api-url-params-editor/api-url-params-editor.js';
-import '../../@api-components/authorization-panel/authorization-panel.js';
+import '../../@advanced-rest-client/authorization-panel/authorization-panel.js';
 import '../../@api-components/api-headers-editor/api-headers-editor.js';
 import '../../@api-components/api-body-editor/api-body-editor.js';
 import '../../@api-components/raml-aware/raml-aware.js';

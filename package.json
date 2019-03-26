@@ -58,7 +58,7 @@
     "@api-components/api-url-data-model": "^3.0.0-preview.1",
     "@api-components/api-url-editor": "^3.0.0-preview.1",
     "@api-components/api-url-params-editor": "^3.0.0-preview.1",
-    "@api-components/authorization-panel": "^3.0.0-preview.1",
+    "@advanced-rest-client/authorization-panel": "^3.0.0-preview.2",
     "@polymer/iron-flex-layout": "^3.0.0",
     "@polymer/iron-pages": "^3.0.0",
     "@polymer/paper-button": "^3.0.0",
