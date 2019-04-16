@@ -24,6 +24,22 @@ A HTTP request editor that builds the UI based on AMF model.
   content-type="application/json"></api-request-editor>
 ```
 
+### Working with AMF partial model
+
+Only endpoint model with selection set to a method node that is already in the model make sense.
+Because the model don't have server, protocols, and version definition it has to be computed and set manually.
+
+```javascript
+const elm = document.querySelector('api-request-editor');
+const summaryModel = await downloadPartialApiModelSummary();
+const endpointModel = await downloadPartialApiModelEndpoint();
+elm.amfModel = endpointModel; // This must be set before any computation, it contains `@context` property.
+elm.selected = '#123'; // Selected node ID, must be method ID that is in endpoint definition.
+elm.server = elm._computeServer(summaryModel); // This is element's inherited method
+elm.version = conputeApiVersion(summaryModel); // Compute version from `server` model.
+elm.protocols = ['http', 'https']; // This is encoded in AMF model.
+```
+
 ### API components
 
 This components is a part of [API components ecosystem](https://elements.advancedrestclient.com/)

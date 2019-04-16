@@ -1,7 +1,7 @@
 import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
 import {afterNextRender} from '../../@polymer/polymer/lib/utils/render-status.js';
 import {EventsTargetMixin} from '../../@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {AmfHelperMixin} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import {AmfHelperMixin, ns} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
 import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
 import '../../@polymer/polymer/lib/elements/dom-if.js';
 import '../../@api-components/api-url-data-model/api-url-data-model.js';
@@ -280,9 +280,17 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     <template is="dom-if" if="[[aware]]">
       <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
     </template>
-    <api-url-data-model amf-model="[[amfModel]]" base-uri="[[baseUri]]"
-      endpoint-path="{{endpointPath}}" api-base-uri="{{apiBaseUri}}" selected="[[selected]]"
-      path-model="{{pathModel}}" query-model="{{queryModel}}"></api-url-data-model>
+    <api-url-data-model
+      amf-model="[[amfModel]]"
+      base-uri="[[baseUri]]"
+      endpoint-path="{{endpointPath}}"
+      api-base-uri="{{apiBaseUri}}"
+      selected="[[selected]]"
+      path-model="{{pathModel}}"
+      query-model="{{queryModel}}"
+      server="[[server]]"
+      protocols="[[protocols]]"
+      version="[[version]]"></api-url-data-model>
     <div class="content">
       <div class="url-editor" hidden\$="[[noUrlEditor]]">
         <api-url-editor required="" auto-validate="" invalid="{{urlInvalid}}"
@@ -370,16 +378,12 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
        * and by using `selected`.
        */
       amfModel: Object,
-      _webApi: {
-        type: Object,
-        computed: '_computeWebApi(amfModel)'
-      },
       /**
        * Computed method declaration in the AMF model.
        */
       _methodModel: {
         type: Object,
-        computed: '_computeMethodModel(_webApi, selected)'
+        computed: '_computeMethodAmfModel(amfModel, selected)'
       },
       /**
        * Hides the URL editor from the view.
@@ -605,7 +609,40 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
       /**
        * Validity state of the URL editor
        */
-      urlInvalid: {type: Boolean, notify: true}
+      urlInvalid: {type: Boolean, notify: true},
+      /**
+       * API server definition from the AMF model.
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      server: {type: Object},
+      /**
+       * Supported protocl versions.
+       *
+       * E.g.
+       *
+       * ```json
+       * ["http", "https"]
+       * ```
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      protocols: {type: Array},
+      /**
+       * API version name.
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      version: {type: String},
     };
   }
   static get observers() {
@@ -682,6 +719,29 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     this.selectedTab = 0;
     this._dispatch('request-clear-state');
     this._sendGaEvent('Clear request');
+  }
+
+  _computeMethodAmfModel(model, selected) {
+    if (!model || !selected) {
+      return;
+    }
+    if (model instanceof Array) {
+      model = model[0];
+    }
+    if (this._hasType(model, ns.raml.vocabularies.document + 'Document')) {
+      const webApi = this._computeWebApi(model);
+      return this._computeMethodModel(webApi, selected);
+    }
+    const key = this._getAmfKey(ns.w3.hydra.supportedOperation);
+    const methods = this._ensureArray(model[key]);
+    if (!methods) {
+      return;
+    }
+    for (let i = 0; i < methods.length; i++) {
+      if (methods[i]['@id'] === selected) {
+        return methods[i];
+      }
+    }
   }
   /**
    * Computes AMF model for authorization panel.
