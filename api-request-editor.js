@@ -1,601 +1,242 @@
-import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
-import {afterNextRender} from '../../@polymer/polymer/lib/utils/render-status.js';
-import {EventsTargetMixin} from '../../@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {AmfHelperMixin, ns} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
-import {html} from '../../@polymer/polymer/lib/utils/html-tag.js';
-import '../../@polymer/polymer/lib/elements/dom-if.js';
-import '../../@api-components/api-url-data-model/api-url-data-model.js';
-import '../../@api-components/api-url-editor/api-url-editor.js';
-import '../../@api-components/api-url-params-editor/api-url-params-editor.js';
-import '../../@advanced-rest-client/authorization-panel/authorization-panel.js';
-import '../../@api-components/api-headers-editor/api-headers-editor.js';
-import '../../@api-components/api-body-editor/api-body-editor.js';
-import '../../@api-components/raml-aware/raml-aware.js';
-import '../../@polymer/paper-tabs/paper-tabs.js';
-import '../../@polymer/paper-tabs/paper-tab.js';
-import '../../@polymer/iron-flex-layout/iron-flex-layout.js';
-import '../../@polymer/iron-pages/iron-pages.js';
-import '../../@polymer/paper-button/paper-button.js';
-import '../../@polymer/paper-spinner/paper-spinner.js';
-import '../../@polymer/paper-toast/paper-toast.js';
-import '../../@api-components/api-form-mixin/api-form-styles.js';
-import '../../@advanced-rest-client/uuid-generator/uuid-generator.js';
+import { html, css, LitElement } from 'lit-element';
+import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import formStyles from '@api-components/api-form-mixin/api-form-styles.js';
+import '@api-components/api-url-data-model/api-url-data-model.js';
+import '@api-components/api-url-editor/api-url-editor.js';
+import '@api-components/api-url-params-editor/api-url-params-editor.js';
+import '@advanced-rest-client/authorization-panel/authorization-panel.js';
+import '@api-components/api-headers-editor/api-headers-editor.js';
+import '@api-components/api-body-editor/api-body-editor.js';
+import '@api-components/raml-aware/raml-aware.js';
+import '@anypoint-web-components/anypoint-button/anypoint-icon-button.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-toast/paper-toast.js';
+import '@advanced-rest-client/uuid-generator/uuid-generator.js';
 /**
  * `api-request-editor`
- * A request editor that builds the UI based on
- * [AMF](https://github.com/mulesoft/amf/) model.
- *
- * The fors are generated automatically based on endponit's definition.
- *
- * Set AMF json/ld model to `amfModel` property. It accepts the generated
- * API specification model (first element is a shape of
- * `http://raml.org/vocabularies/document#Document` type).
- *
- * To build request editor view for an endpoint defined in an API, set `selected`
- * property to the id of the operation that is defined in the spec. The
- * element lookup for the definition and applies it to the editors.
- *
- * This element is to replace deprecated `advanced-rest-client/raml-request-editor`.
- *
- * ## Changes in version 2
- *
- * - XHR element is not included in the element. Use
- * `advanced-rest-client/xhr-simple-request` in your application or handle
- * `api-request` custom event to make a request
- * - The element does not include any polyfills
- * - `redirectUrl` is now `redirectUri`
- * - `api-console-request` event is now `api-request` event
- * - `api-console-response` event is now `api-response` event
- * - Added more details to `api-request` custom event (comparing to
- * `api-console-request`)
- * - The user is able to enable/disable query parameters and headers. Set
- * `allow-disable-params` attribute to enable this behavior.
- * - The user is able to add custom query parameters or headers.
- * Set `allow-custom` attribute to enable this behavior.
- * - From authorization panel changes:
- *  - `auth-settings-changed` custom event is stopped from bubbling.
- *  Listen for `authorization-settings-changed` event instead.
- * - From auth-method-oauth2 changes:
- *  - Added `deliveryMethod` and `deliveryName` properties to the
- *  `detail.setting` object.
- * - From auth-method-oauth1 changes:
- *  - Crypto library is no longer included into the element. Use
- *  `advanced-rest-client/cryptojs-lib` component to include the library
- *  if your project doesn't use crypto libraries already.
- *
- * ## api-request event
- *
- * Dispatched when "send" button is pressed by the user and the element passes
- * validation.
- * The application should handle the event and make the connection to remote
- * server using passed parameters. When the response is ready the application
- * must inform the elements about the response by dispatching `api-response`
- * custom event.
- *
- * Note that if you set `eventsTarget` property the event must be dispatched
- * at most on `eventsTarget` node (or any child node).
- *
- * API components has `advanced-rest-client/xhr-simple-request` element to
- * handle `api-request` and `abort-api-request` events and to use XHR to
- * make the connection. Note that it may not always work if the API does not
- * allows CORS.
- *
- * The api-request event has the following properties:
- *
- * - url (`String`) - Endpoint full and final url. Note that if the API does
- * not specify base uri and `baseUri` property is not set then the `url`
- * can be relative url to the resource.
- * - method (`String`) - HTTP method. User cannot change this value, it is
- * encoded in the endpoint description
- * - headers (`String`) - valid HTTP headers string
- * - payload (`String|FormData|File|Blob|undefined`) - Request body
- * - id (`String`) - A unique request identifier. This ID has to be
- *   reported back by `api-response` event. It is generated when `execute()`
- *   function is called.
- * - auth (`Object|undefined`) - Current authorization settings received
- *   from the authorization panel.
- *   In case of basic, oauth 1 and oauth 2 authorizations, the token is
- *   applied to the headers or query parameters so no action is required.
- * - authType (`String|undefined`) - Name of the authorization methods.
- *   One of `advanced-rest-client/auth-methods`.
- * - queryModel (`Array<Object>`) - Query parameters data view model.
- * - pathModel (`Array<Object>`) - URI parameters data view model
- * - headersModel (`Array<Object>`) - Headers data view model
- *
- * Do not change `queryModel`, `pathModel` and `headersModel` as it would
- * make it out of sync with the application and any change won't be
- * reflected in the editor. In future release this may be read only object.
- *
- * ## abort-api-request event
- *
- * The event is dispatched when the user press `abort` button.
- * The transport must send `api-response` custom event with error message
- * so the state of the UI is updated.
- *
- * The event contains the following properties:
- *
- * - url (`String`) The request URL. Can be empty string. Also, it may be
- * different URL that the one used to send the request if the user changed
- * it in between. Use the `id` property to compare requests.
- * - id (`String`)  Generated UUID of the request with `api-request` event.
- *
- * ## api-response event
- *
- * This element does not act on this event. See `api-request-panel`
- * documentation for more information.
- *
- * ## Limitations
- *
- * Editors used in this element usually don't perform operations right after
- * a property change. Body/Headers/Auth editors uses
- * `Polymer.RenderStatus.afterNextRender` method before they start computing
- * properties from model. Then, if DOM change is required then this operation
- * is also async. This causes a delay between selection/AMF model change
- * and reseting the properties. For example authorization state can be passed
- * to this element after at least 2 calls to `requestAnimationFrame()`.
- * Take this into the ccount when using element's API.
- *
- * ## Styling
- *
- * `<api-request-editor>` provides the following custom properties and
- * mixins for styling:
- *
- * Custom property | Description | Default
- * ----------------|-------------|----------
- * `--api-request-editor` | Mixin applied to this elment | `{}`
- * `--api-request-editor-container` | Mixin applied to the main container | `{}`
- * `--warning-primary-color` | Theme property, warning primary color | `#FF7043`
- * `--arc-font-body1` | Theme mixin, default font definition | `{}`
- * `--error-color` | Theme variable, error color.  | ``
- * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
- * `--primary-button-background-color` | Theme property, background color
- * of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
- * `--primary-button-color` | Theme property, font color of the primary
- * action button. Applied to "send" and "abort" buttons  | `#fff`
- * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
- * `--primary-button-hover-background-color` | Theme property, background
- * color of the primary action button when hovering. Applied to "send" and
- * "abort" buttons | `--accent-color`
- * `--primary-button-hover-color` | Theme property, font color of the
- * primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
- * `--action-button-hover` | Theme mixin, applied to "send" and "abort"
- * buttons when hovering | `{}`
- * `--primary-button-disabled-background-color` | Theme property, background
- * color of the primary action button when disabled. Applied to "send"
- * and "abort" buttons | `--accent-color`
- * `--primary-button-disabled-color` | Theme property, font color of the
- * primary action button when disabled. Applied to "send" and "abort"
- * buttons  | `#fff`
- * `--action-button-disabled` | Theme mixin, applied to "send" and "abort"
- * buttons when disabled | `{}`
- * `--api-request-editor-container-narrow` | Mixin applied to the main
- * container when `narrow` property is set. | `{}`
- * `--api-request-editor-send-valid-button` | Mixin applied to the send
- * button when request is valid | `{}`
- * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
  *
  * @customElement
- * @polymer
  * @demo demo/index.html
  * @appliesMixin EventsTargetMixin
  * @appliesMixin AmfHelperMixin
  * @memberof ApiElements
  */
-class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement)) {
-  static get template() {
-    return html`
-    <style include="api-form-styles">
-    :host {
-      display: block;
-      @apply --arc-font-body1;
-      @apply --api-request-editor;
-    }
+class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
+  static get styles() {
+    return [
+      formStyles,
+      css`:host {
+        display: block;
+      }
 
-    .content {
-      height: 100%;
-      @apply --layout-vertical;
-      @apply --api-request-editor-container;
-    }
+      .content {
+        height: 100%;
+        display: flex;
+        flex-direction: columns;
+      }
 
-    [hidden] {
-      display: none !important;
-    }
+      [hidden] {
+        display: none !important;
+      }
 
-    .panel-warning {
-      width: 16px;
-      height: 16px;
-      margin-left: 4px;
-      color: var(--error-color, #FF7043);
-    }
+      .panel-warning {
+        width: 16px;
+        height: 16px;
+        margin-left: 4px;
+        color: var(--error-color, #FF7043);
+      }
 
-    .invalid-info {
-      @apply --arc-font-body2;
-      color: var(--error-color);
-      margin-left: 12px;
-    }
+      .invalid-info {
+        color: var(--error-color);
+        margin-left: 12px;
+      }
 
-    paper-spinner {
-      margin-right: 8px;
-    }
+      paper-spinner {
+        margin-right: 8px;
+      }
 
-    iron-pages>* {
-      border: 1px var(--api-request-editor-editors-border-color, transparent) solid;
-      min-height: 120px;
-    }
+      .action-bar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-top: 8px;
+      }
 
-    .action-bar {
-      @apply --layout-horizontal;
-      @apply --layout-center;
-      margin-top: 8px;
-    }
+      .url-editor {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
 
-    .send-button {
-      background-color: var(--primary-button-background-color, var(--primary-color));
-      color: var(--primary-button-color, #fff);
-      @apply --action-button;
-    }
+      api-url-editor {
+        flex: 1;
+      }
 
-    .send-button:not([disabled]):hover {
-      background-color: var(--primary-button-hover-background-color, var(--primary-color));
-      color: var(--primary-button-hover-color, #fff);
-      @apply --action-button-hover;
-    }
+      :host([narrow]) .content {
+        display: flex;
+        flex-direction: columns;
+      }
 
-    .send-button[disabled] {
-      background-color: var(--primary-button-disabled-background-color, rgb(234, 234, 234));
-      color: var(--primary-button-disabled-color, #a8a8a8);
-      @apply --action-button-disabled;
-    }
-
-    .send-button:not([disabled]):hover {
-      @apply --api-request-editor-send-button-hover;
-    }
-
-    .send-button.abort {
-      @apply --api-request-editor-abort-button;
-    }
-
-    .send-button.abort:hover {
-      @apply --api-request-editor-abort-button-hover;
-    }
-
-    .url-editor {
-      @apply --layout-horizontal;
-      @apply --layout-center;
-    }
-
-    api-url-editor {
-      @apply --layout-flex;
-    }
-
-    :host([narrow]) .content {
-      @apply --layout-vertical;
-      @apply --api-request-editor-container-narrow;
-    }
-
-    :host([narrow]) api-url-editor {
-      width: auto;
-    }
-    </style>
-    <template is="dom-if" if="[[aware]]">
-      <raml-aware raml="{{amfModel}}" scope="[[aware]]"></raml-aware>
-    </template>
-    <api-url-data-model
-      amf-model="[[amfModel]]"
-      base-uri="[[baseUri]]"
-      endpoint-path="{{endpointPath}}"
-      api-base-uri="{{apiBaseUri}}"
-      selected="[[selected]]"
-      path-model="{{pathModel}}"
-      query-model="{{queryModel}}"
-      server="[[server]]"
-      protocols="[[protocols]]"
-      version="[[version]]"></api-url-data-model>
-    <div class="content">
-      <div class="url-editor" hidden\$="[[noUrlEditor]]">
-        <api-url-editor required="" auto-validate="" invalid="{{urlInvalid}}"
-        base-uri="[[apiBaseUri]]" endpoint-path="[[endpointPath]]"
-        query-model="{{queryModel}}" path-model="{{pathModel}}"
-        events-target="[[eventsTarget]]" value="{{url}}"></api-url-editor>
-      </div>
-      <paper-tabs selected="{{selectedTab}}">
-        <paper-tab hidden\$="[[authNotRequired]]">
-          Authorization
-          <iron-icon icon="arc:warning" class="panel-warning"
-            hidden\$="[[authValid]]" title="Fill up missing authorization data"></iron-icon>
-        </paper-tab>
-        <paper-tab>
-          Parameters
-          <template is="dom-if" if="[[paramsInvalid]]">
-            <iron-icon icon="arc:warning" class="panel-warning" title="Fill up missing parameter"></iron-icon>
-          </template>
-        </paper-tab>
-        <paper-tab>
-          Headers
-          <template is="dom-if" if="[[headersInvalid]]">
-            <iron-icon icon="arc:warning" class="panel-warning" title="Fill up missing headers"></iron-icon>
-          </template>
-        </paper-tab>
-        <paper-tab hidden\$="[[!isPayloadRequest]]">Body</paper-tab>
-      </paper-tabs>
-      <iron-pages selected="{{selectedTab}}">
-        <authorization-panel amf-model="[[amfModel]]"
-          events-target="[[eventsTarget]]" hidden\$="[[authNotRequired]]"
-          secured-by="[[securedBy]]" redirect-uri="[[redirectUri]]"
-          auth-required="{{authRequired}}" auth-valid="{{authValid}}"
-          no-docs="[[noDocs]]"></authorization-panel>
-        <api-url-params-editor uri-model="{{pathModel}}"
-          query-model="{{queryModel}}" narrow="[[narrow]]" allow-custom="[[allowCustom]]"
-          invalid="{{paramsInvalid}}" no-docs="[[noDocs]]"></api-url-params-editor>
-        <api-headers-editor events-target="[[eventsTarget]]" amf-model="[[amfModel]]"
-          amf-headers="[[apiHeaders]]" narrow="[[narrow]]" content-type="{{contentType}}"
-          is-payload="[[isPayloadRequest]]" value="{{headers}}" allow-custom="[[allowCustom]]"
-          allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]"
-          auto-validate="" invalid="{{headersInvalid}}" no-docs="[[noDocs]]"></api-headers-editor>
-        <api-body-editor events-target="[[eventsTarget]]"
-          amf-model="[[amfModel]]" amf-body="[[apiPayload]]" narrow="[[narrow]]"
-          hidden\$="[[!isPayloadRequest]]" content-type="{{contentType}}"
-          value="{{payload}}" allow-custom="[[allowCustom]]"
-          allow-disable-params="[[allowDisableParams]]"
-          allow-hide-optional="[[allowHideOptional]]"></api-body-editor>
-      </iron-pages>
-      <div class="action-bar">
-        <template is="dom-if" if="[[!loadingRequest]]">
-          <paper-button class="send-button" on-click="_sendHandler" disabled="[[_computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid)]]">[[_computeSendLabel(authValid)]]</paper-button>
-        </template>
-        <template is="dom-if" if="[[loadingRequest]]">
-          <paper-button class="send-button abort" on-click="_abortRequest">Abort</paper-button>
-        </template>
-        <template is="dom-if" if="[[invalid]]">
-          <span class="invalid-info">Fill in required parameters</span>
-        </template>
-        <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
-      </div>
-    </div>
-    <paper-toast text="Authorization for this endpoint is required" id="authFormError"
-      horizontal-align="right" horizontal-offset="12"></paper-toast>
-    <uuid-generator id="uuid"></uuid-generator>
-`;
+      :host([narrow]) api-url-editor {
+        width: auto;
+      }`
+    ];
   }
 
-  static get is() {
-    return 'api-request-editor';
-  }
   static get properties() {
     return {
       /**
        * `raml-aware` scope property to use.
        */
-      aware: String,
+      aware: { type: String },
       /**
        * An `@id` of selected AMF shape. When changed it computes
        * method model for the selection.
        */
-      selected: String,
-      /**
-       * AMF API model.
-       * The element extracts method definition from passed model
-       * and by using `selected`.
-       */
-      amfModel: Object,
+      selected: { type: String },
       /**
        * Computed method declaration in the AMF model.
        */
-      _methodModel: {
-        type: Object,
-        computed: '_computeMethodAmfModel(amfModel, selected)'
-      },
+      _methodModel: { type: Object },
       /**
        * Hides the URL editor from the view.
        * The editor is still in the DOM and the `urlInvalid` property still will be set.
        */
-      noUrlEditor: Boolean,
+      noUrlEditor: { type: Boolean },
       /**
        * A base URI for the API. To be set if RAML spec is missing `baseUri`
        * declaration and this produces invalid URL input. This information
        * is passed to the URL editor that prefixes the URL with `baseUri` value
        * if passed URL is a relative URL.
        */
-      baseUri: String,
+      baseUri: { type: String },
       /**
        * Computed from AMF model for the metod HTTP method name.
        *
        * @type {String}
        */
-      httpMethod: {
-        type: Boolean,
-        value: false,
-        computed: '_computeHttpMethod(_methodModel)',
-        notify: true
-      },
+      _httpMethod: { type: String },
       /**
        * Headers for the request.
        *
        * @type {String|undefined}
        */
-      headers: {
-        type: String,
-        notify: true
-      },
+      _headers: { type: String },
       /**
        * Body for the request. The type of the body depends on
        * defined in the API media type.
        *
        * @type {String|FormData|File}
        */
-      payload: {
-        type: String,
-        notify: true
-      },
+      _payload: { type: String },
       /**
        * Final request URL including settings like `baseUri`, AMF
        * model settings and user provided parameters.
-       * This value is always compoted by `api-url-editor` even if it's
+       * This value is always computed by the `api-url-editor` even if it's
        * hidden from the view.
        */
-      url: {
-        type: String,
-        notify: true,
-        observer: '_urlChanged'
-      },
-      /**
-       * Selected request tab.
-       */
-      selectedTab: {
-        type: Number,
-        value: 0,
-        notify: true,
-        observer: '_selectedTabChanged'
-      },
+      _url: { type: String },
       /**
        * Current content type.
        *
        * @type {String|undefined}
        */
-      contentType: {
-        type: String,
-        notify: true
-      },
+      _contentType: { type: String },
       /**
        * Computed value of security scheme from selected method.
        *
        * @type {Array<Object>}
        */
-      securedBy: {
-        type: Array,
-        computed: '_computeSecuredBy(_methodModel)'
-      },
+      _securedBy: { type: Array },
       /**
        * Computed list of headers in the AMF model
        *
        * @type {Array<Object>}
        */
-      apiHeaders: {
-        type: Array,
-        computed: '_computeHeaders(_methodModel)'
-      },
+      _apiHeaders: { type: Array },
       /**
        * Defined by the API payload data.
        *
        * @type {Array<Object>|undefined}
        */
-      apiPayload: {
-        type: Array,
-        computed: '_computeApiPayload(_methodModel)'
-      },
+      _apiPayload: { type: Array },
       /**
        * Computed value if the method can carry a payload.
        */
-      isPayloadRequest: {
-        type: Boolean,
-        value: false,
-        notify: true,
-        computed: '_computeIsPayloadRequest(httpMethod)',
-        observer: '_isPayloadChanged'
-      },
+      _isPayloadRequest: { type: Boolean },
       /**
        * OAuth2 redirect URI.
        * This value **must** be set in order for OAuth 1/2 to work properly.
        */
-      redirectUri: String,
+      redirectUri: { type: String },
       /**
        * Inheritet from the authorization panel state if authorization is
        * required. Authorization may be not required if one of the
        * authorization methods is `nil` (RAML).
        */
-      authRequired: {type: Boolean, notify: true},
+      _authRequired: { type: Boolean },
       /**
        * Inheritet from the authorization panel state if authorization
        * data is valid.
        */
-      authValid: {type: Boolean, notify: true},
+      _authValid: { type: Boolean },
       /**
        * If set it will renders the view in the narrow layout.
        */
-      narrow: {
-        type: Boolean,
-        reflectToAttribute: true
-      },
-      /**
-       * Computed value of if authorization is required for the endpoint.
-       * If the auth is not required then the authorization tab is removed
-       * from the view.
-       */
-      authNotRequired: {
-        type: Boolean,
-        value: true,
-        notify: true,
-        computed: '_computeNoAuth(securedBy)',
-        observer: '_noAuthChanged'
-      },
+      narrow: { type: Boolean, reflect: true },
       /**
        * Flag set when the request is being made.
        */
-      loadingRequest: {
-        type: Boolean,
-        notify: true,
-        value: false
-      },
+      _loadingRequest: { type: Boolean },
       /**
        * If set it computes `hasOptional` property and shows checkbox in the
        * form to show / hide optional properties.
        */
-      allowHideOptional: Boolean,
+      allowHideOptional: { type: Boolean },
       /**
        * If set, enable / disable param checkbox is rendered next to each
        * form item.
        */
-      allowDisableParams: Boolean,
+      allowDisableParams: { type: Boolean },
       /**
        * When set, renders "add custom" item button.
        * If the element is to be used withouth AMF model this should always
        * be enabled. Otherwise users won't be able to add a parameter.
        */
-      allowCustom: Boolean,
+      allowCustom: { type: Boolean },
       // Selected by the user auth method (if any)
-      authMethod: String,
+      _authMethod: { type: String },
       // Current authorization settings.
-      authSettings: Object,
+      _authSettings: { type: Object },
       /**
        * Generated request ID when the request is sent. This value is reported
        * in send and abort events
        */
-      requestId: String,
+      _requestId: { type: String },
       /**
        * Request query parameters view model
        * @type {Array<Object>}
        */
-      queryModel: {
-        type: Array,
-        notify: true
-      },
+      _queryModel: { type: Array },
       /**
        * Request path parameters view model
        * @type {Array<Object>}
        */
-      pathModel: {
-        type: Array,
-        notify: true
-      },
+      _pathModel: { type: Array },
       /**
        * Computed when URL params editor is invalid.
        */
-      paramsInvalid: {
-        type: Boolean,
-        notify: true
-      },
+      _paramsInvalid: { type: Boolean },
       /**
        * Computed when headers editor is invalid.
        */
-      headersInvalid: {
-        type: Boolean,
-        notify: true
-      },
+      headersInvalid: { type: Boolean },
       /**
        * Prohibits rendering of the documentation (the icon and the
        * description).
        */
-      noDocs: Boolean,
+      noDocs: { type: Boolean },
       /**
        * Computed value, true if any of the editors has invalid state.
        */
@@ -609,7 +250,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
       /**
        * Validity state of the URL editor
        */
-      urlInvalid: {type: Boolean, notify: true},
+      _urlInvalid: { type: Boolean },
       /**
        * API server definition from the AMF model.
        *
@@ -618,7 +259,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
        *
        * Do not set with full AMF web API model.
        */
-      server: {type: Object},
+      server: { type: Object },
       /**
        * Supported protocl versions.
        *
@@ -633,7 +274,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
        *
        * Do not set with full AMF web API model.
        */
-      protocols: {type: Array},
+      protocols: { type: Array },
       /**
        * API version name.
        *
@@ -642,9 +283,123 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
        *
        * Do not set with full AMF web API model.
        */
-      version: {type: String},
+      version: { type: String },
+      /**
+       * Enables Anypoint legacy styling
+       */
+      legacy: { type: Boolean, reflect: true },
+      /**
+       * Enables Material Design outlined style
+       */
+      outlined: { type: Boolean },
+      /**
+       * When set the editor is in read only mode.
+       */
+      readOnly: { type: Boolean },
+      /**
+       * When set all controls are disabled in the form
+       */
+      disabled: { type: Boolean },
+      _endpointUri: { type: String },
+      _apiBaseUri: { type: String }
     };
   }
+
+  get selected() {
+    return this._selected;
+  }
+
+  set selected(value) {
+    const old = this._selected;
+    /* istanbul ignore if */
+    if (old === value) {
+      return false;
+    }
+    this._selected = value;
+    this.requestUpdate('selected', old);
+    this._selectedChanged();
+  }
+
+  get amf() {
+    return this._amf;
+  }
+
+  set amf(value) {
+    const old = this._amf;
+    /* istanbul ignore if */
+    if (old === value) {
+      return false;
+    }
+    this._amf = value;
+    this._selectedChanged();
+  }
+
+  get url() {
+    return this._url;
+  }
+
+  set url(value) {
+    const old = this._url;
+    /* istanbul ignore if */
+    if (old === value) {
+      return false;
+    }
+    this._url = value;
+    this._urlChanged(value);
+  }
+
+  get methodModel() {
+    return this._methodModel;
+  }
+
+  get httpMethod() {
+    return this._httpMethod;
+  }
+
+  get headers() {
+    return this._headers;
+  }
+
+  get payload() {
+    return this._payload;
+  }
+
+  get contentType() {
+    return this._contentType;
+  }
+
+  get securedBy() {
+    return this._securedBy;
+  }
+
+  get apiHeaders() {
+    return this._apiHeaders;
+  }
+
+  get apiPayload() {
+    return this._apiPayload;
+  }
+
+  get isPayloadRequest() {
+    return this._isPayloadRequest;
+  }
+
+  get authRequired() {
+    return this._authRequired;
+  }
+
+  get authValid() {
+    return this._authValid;
+  }
+
+  get loadingRequest() {
+    return this._loadingRequest;
+  }
+
+  get requestId() {
+    return this._requestId;
+  }
+
   static get observers() {
     return [
       '_pathModelChanged(pathModel.*)',
@@ -716,9 +471,24 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     this.set('headers', '');
     this.set('payload', '');
     this.shadowRoot.querySelector('authorization-panel').clear();
-    this.selectedTab = 0;
     this._dispatch('request-clear-state');
     this._sendGaEvent('Clear request');
+  }
+
+  _selectedChanged() {
+    const { amf, selected } = this;
+    if (!amf || !selected) {
+      return;
+    }
+    const model = this._methodModel = this._computeMethodAmfModel(amf, selected);
+    if (!model) {
+      return;
+    }
+    const method = this._httpMethod = this._getValue(model, this.ns.w3.hydra.core + 'method');
+    this._isPayloadRequest = this._computeIsPayloadRequest(method);
+    this._securedBy = this._computeSecuredBy(model);
+    this._apiHeaders = this. _computeHeaders(model);
+    this._apiPayload = this._computeApiPayload(model);
   }
 
   _computeMethodAmfModel(model, selected) {
@@ -728,11 +498,11 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     if (model instanceof Array) {
       model = model[0];
     }
-    if (this._hasType(model, ns.raml.vocabularies.document + 'Document')) {
+    if (this._hasType(model, this.ns.raml.vocabularies.document + 'Document')) {
       const webApi = this._computeWebApi(model);
       return this._computeMethodModel(webApi, selected);
     }
-    const key = this._getAmfKey(ns.w3.hydra.supportedOperation);
+    const key = this._getAmfKey(this.ns.w3.hydra.supportedOperation);
     const methods = this._ensureArray(model[key]);
     if (!methods) {
       return;
@@ -791,16 +561,6 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     return !(model && model[0]);
   }
   /**
-   * Computes value for `httpMethod` property from AMF model for current
-   * operation.
-   *
-   * @param {Object} model Operation model.
-   * @return {String} Method name.
-   */
-  _computeHttpMethod(model) {
-    return this._getValue(model, this.ns.w3.hydra.core + 'method');
-  }
-  /**
    * Computes value for `apiPayload` property from AMF model for current
    * method.
    *
@@ -848,46 +608,6 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     }
     this._refreshTabs();
     this._sendGaEvent('no-auth-changed', String(value));
-  }
-  /**
-   * Updates the state of the body editor when switching to it.
-   * Code mirror does not property calculate it's value when
-   * the editor is not visible. This forces to refresh the value of the
-   * editor.
-   *
-   * @param {Number} selected Selected tam index.
-   */
-  _selectedTabChanged(selected) {
-    if (selected === 3) {
-      afterNextRender(this, () => {
-        this.shadowRoot.querySelector('api-body-editor').refreshPanel();
-      });
-    }
-    this._sendGaEvent('tab-changed', selected);
-  }
-  /**
-   * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
-   *
-   * @param {Boolean} state
-   */
-  _isPayloadChanged(state) {
-    if (!state) {
-      this.payload = undefined;
-    }
-    if (!state && this.selectedTab === 3) {
-      this.selectedTab = 1;
-    }
-    this._refreshTabs();
-  }
-  /**
-   * Refreshes tabs selection. To be called when number of tabs changes.
-   */
-  _refreshTabs() {
-    const tabs = this.shadowRoot && this.shadowRoot.querySelector('paper-tabs');
-    if (!tabs) {
-      return;
-    }
-    tabs.notifyResize();
   }
   /**
    * Handles send button click.
@@ -990,12 +710,12 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
    */
   serializeRequest() {
     const result = {
-      method: (this.httpMethod || 'get').toUpperCase(),
-      url: this.url,
-      headers: this.headers || '',
-      payload: this.payload,
-      queryModel: this.queryModel,
-      pathModel: this.pathModel,
+      method: (this._httpMethod || 'get').toUpperCase(),
+      url: this._url,
+      headers: this._headers || '',
+      payload: this._payload,
+      queryModel: this._queryModel,
+      pathModel: this._pathModel,
       headersModel: this.shadowRoot.querySelector('api-headers-editor').viewModel
     };
     if (this.authMethod && this.authSettings) {
@@ -1151,6 +871,155 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
     }
     return false;
   }
+
+  _apiChanged(e) {
+    this.amf = e.detail.value;
+  }
+
+  _urlInvalidChanged(e) {
+    this._urlInvalid = e.detail.value;
+  }
+
+  _urlHandler(e) {
+    this.url = e.detail.value;
+  }
+
+  _endpointUriHandler(e) {
+    this._endpointUri = e.detail.endpointUri;
+  }
+
+  _apiBaseUriHandler(e) {
+    this._apiBaseUri = e.detail.apiBaseUri;
+  }
+
+  _pathModelHandler(e) {
+    this._pathModel = e.detail.pathModel;
+  }
+
+  _queryModelHandler(e) {
+    this._queryModel = e.detail.queryModel;
+  }
+
+  render() {
+    const {
+      aware,
+      amf,
+      baseUri,
+      selected,
+      server,
+      protocols,
+      version,
+      noUrlEditor,
+      eventsTarget,
+      redirectUri,
+      noDocs,
+      narrow,
+      allowCustom,
+      allowDisableParams,
+      allowHideOptional,
+
+      _endpointUri,
+      _apiBaseUri,
+      _pathModel,
+      _queryModel,
+      _securedBy,
+      _apiHeaders,
+      _isPayloadRequest,
+      _apiPayload,
+      _loadingRequest
+    } = this;
+    return html`
+    ${aware ? html`<raml-aware
+      .scope="${aware}"
+      @api-changed-"${this._apiChanged}"></raml-aware>` : ''}
+
+    <api-url-data-model
+      .amf="${amf}"
+      .baseUri="${baseUri}"
+      .selected="${selected}"
+      .server="${server}"
+      .protocols="${protocols}"
+      .version="${version}"
+      @apibaseuri-changed="${this._apiBaseUriHandler}"
+      @pathmodel-changed="${this._pathModelHandler}"
+      @querymodel-changed="${this._queryModelHandler}"
+      @endpointuri-changed="${this._endpointUriHandler}"
+    ></api-url-data-model>
+    <div class="content">
+      <div class="url-editor" ?hidden="${noUrlEditor}">
+        <api-url-editor
+          ?required="${!noUrlEditor}"
+          autovalidate
+          .baseUri="${_apiBaseUri}"
+          .endpointPath="${_endpointUri}"
+          .queryModel="${_queryModel}"
+          .pathModel="${_pathModel}"
+          .eventsTarget="${eventsTarget}"
+          @value-changed="${this._urlHandler}"
+          @invalid-changed="${this._urlInvalidChanged}"></api-url-editor>
+      </div>
+
+      <authorization-panel
+        .amf="${amf}"
+        .eventsTarget="${eventsTarget}"
+        hidden="[[authNotRequired]]"
+        .securedBy="${_securedBy}"
+        .redirectUri="${redirectUri}"
+        .noDocs="${noDocs}"
+        auth-required="{{authRequired}}"
+        auth-valid="{{authValid}}"
+      ></authorization-panel>
+      <api-url-params-editor
+        .uriModel="${_pathModel}"
+        .queryModel="${_queryModel}"
+        .noDocs="${noDocs}"
+        ?narrow="${narrow}"
+        ?allowcustom="${allowCustom}"
+        invalid="{{paramsInvalid}}"
+      ></api-url-params-editor>
+      <api-headers-editor
+        .eventsTarget="${eventsTarget}"
+        .amf="${amf}"
+        .amfHeaders="${_apiHeaders}"
+        .noDocs="${noDocs}"
+        .isPayload="${_isPayloadRequest}"
+        ?narrow="${narrow}"
+        content-type="{{contentType}}"
+        value="{{headers}}"
+        ?allowcustom="${allowCustom}"
+        allow-disable-params="[[allowDisableParams]]"
+        allow-hide-optional="[[allowHideOptional]]"
+        autovalidate
+        invalid="{{headersInvalid}}"
+      ></api-headers-editor>
+      ${_isPayloadRequest ? html`<api-body-editor
+        .eventsTarget="${eventsTarget}"
+        .amf="${amf}"
+        .amfBody="${_apiPayload}"
+        ?narrow="${narrow}"
+        content-type="{{contentType}}"
+        value="{{payload}}"
+        ?allowcustom="${allowCustom}"
+        ?allowDisableParams="${allowDisableParams}"
+        ?allowHideOptional="${allowHideOptional}"
+      ></api-body-editor>` : ''}
+
+      <div class="action-bar">
+        ${_loadingRequest ?
+          html`<paper-button class="send-button abort" @click="${this._abortRequest}">Abort</paper-button>` :
+          html`<paper-button class="send-button" @click="${this._sendHandler}" disabled="[[_computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid)]]">[[_computeSendLabel(authValid)]]</paper-button>`}
+        <template is="dom-if" if="[[invalid]]">
+          <span class="invalid-info">Fill in required parameters</span>
+        </template>
+        <paper-spinner alt="Loading request" active="[[loadingRequest]]"></paper-spinner>
+      </div>
+    </div>
+    <paper-toast
+      text="Authorization for this endpoint is required"
+      id="authFormError"
+      horizontal-align="right" horizontal-offset="12"></paper-toast>
+    <uuid-generator id="uuid"></uuid-generator>`;
+  }
   /**
    * Dispatched when the user requests to send current request.
    *
@@ -1209,4 +1078,4 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(PolymerElement))
    * @param {String} value New value of request URL
    */
 }
-window.customElements.define(ApiRequestEditor.is, ApiRequestEditor);
+window.customElements.define('api-request-editor', ApiRequestEditor);
