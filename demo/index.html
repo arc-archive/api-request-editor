@@ -1,256 +1,135 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
-    <title>api-request-editor demo</title>
 
-    <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../../../web-animations-js/web-animations-next.min.js"></script>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>api-request-editor</title>
 
-    <!--
-    Previously this was included into the compoennt.
-    Since compoennts are ES6 modules this libraries cannot be loaded into
-    the component as they do not export anything and won't set global variable.
-    -->
-    <script src="../../../jsonlint/lib/jsonlint.js"></script>
-    <script src="../../../codemirror/lib/codemirror.js"></script>
-    <script src="../../../codemirror/addon/mode/loadmode.js"></script>
-    <script src="../../../codemirror/mode/meta.js"></script>
-    <script src="../../../codemirror/mode/javascript/javascript.js"></script>
-    <script src="../../../codemirror/mode/xml/xml.js"></script>
-    <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="../../../codemirror/addon/lint/lint.js"></script>
-    <script src="../../../codemirror/addon/lint/json-lint.js"></script>
-    <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
-    <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
-    <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
-    <!--
-    From the inside of a web component it is hard to determine where
-    scripts are actually located. This should be set if the page won't load all possible
-    scripts at run time. The component will download the "mode" from this location.
-    -->
-    <script>
-    /* global CodeMirror */
-    CodeMirror.modeURL = '../../../codemirror/mode/%N/%N.js';
-    </script>
-    <!-- Finally dependencies for authorization panel.  -->
-    <script src="../../../cryptojslib/components/core.js"></script>
-    <script src="../../../cryptojslib/rollups/sha1.js"></script>
-    <script src="../../../cryptojslib/components/enc-base64-min.js"></script>
-    <script src="../../../cryptojslib/rollups/md5.js"></script>
-    <script src="../../../cryptojslib/rollups/hmac-sha1.js"></script>
-    <script src="../../../jsrsasign/lib/jsrsasign-rsa-min.js"></script>
+  <link media="all" rel="stylesheet" href="../node_modules/codemirror/addon/lint/lint.css" />
 
-    <custom-style>
-      <style is="custom-style" include="demo-pages-shared-styles">
-      html,
-      body {
-        background-color: #e5e5e5;
-        margin: 0;
-        padding: 0;
-      }
+  <script src="../node_modules/web-animations-js/web-animations-next.min.js"></script>
+  <script src="../node_modules/cryptojslib/components/core.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/sha1.js"></script>
+  <script src="../node_modules/cryptojslib/components/enc-base64-min.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/md5.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/hmac-sha1.js"></script>
+  <script src="../node_modules/jsrsasign/lib/jsrsasign-rsa-min.js"></script>
+  <!--
+  Previously this was included into the compoennt.
+  Since compoennts are ES6 modules this libraries cannot be loaded into
+  the component as they do not export anything and won't set global variable.
+  -->
+  <script src="../node_modules/jsonlint/lib/jsonlint.js"></script>
+  <script src="../node_modules/codemirror/lib/codemirror.js"></script>
+  <script src="../node_modules/codemirror/addon/mode/loadmode.js"></script>
+  <script src="../node_modules/codemirror/mode/meta.js"></script>
+  <script src="../node_modules/codemirror/mode/javascript/javascript.js"></script>
+  <script src="../node_modules/codemirror/mode/xml/xml.js"></script>
+  <script src="../node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="../node_modules/codemirror/addon/lint/lint.js"></script>
+  <script src="../node_modules/codemirror/addon/lint/json-lint.js"></script>
+  <!--
+  From the inside of a web component it is hard to determine where
+  scripts are actually located. This should be set if the page won't load all possible
+  scripts at run time. The component will download the "mode" from this location.
+  -->
+  <script>
+  /* global CodeMirror */
+  CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js';
+  </script>
+  <!-- Finally dependencies for authorization panel.  -->
+  <script src="../node_modules/cryptojslib/components/core.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/sha1.js"></script>
+  <script src="../node_modules/cryptojslib/components/enc-base64-min.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/md5.js"></script>
+  <script src="../node_modules/cryptojslib/rollups/hmac-sha1.js"></script>
+  <script src="../node_modules/jsrsasign/lib/jsrsasign-rsa-min.js"></script>
+  <style>
+  [role="main"].centered {
+    max-width: 1440px;
+  }
 
-      main {
-        @apply --layout-horizontal;
-        margin-right: 20px;
-      }
+  output {
+    background-color: #FFF3E0;
+    white-space: pre-wrap;
+    margin-top: 40px;
+  }
 
-      nav {
-        width: 256px;
-      }
+  body.styled {
+    --anypoiont-dropdown-shaddow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+    --anypoiont-autocomplete-dropdown-shaddow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+    --arc-font-subhead-font-size: 16px;
+    --arc-font-subhead-font-weight: 400;
+    --arc-font-subhead-line-height: 24px;
+  }
 
-      h2 {
-        @apply --paper-font-title;
-      }
+  body.styled.dark output {
+    background-color: #3a3a3a;
+  }
 
-      header {
-        padding: 12px 24px;
-        background-color: #C5E1A5;
-        @apply --layout-horizontal;
-        @apply --layout-center;
-        --iron-icon-fill-color: #3E2723;
-        --paper-input-container-focus-color: #33691E;
-        --paper-input-container-label: {
-          color: #3E2723;
-        };
-      }
+  body.styled.dark {
+    --secondary-text-color: #616161;
+    --primary-background-color: #424242;
 
-      .spacer {
-        @apply --layout-flex;
-      }
+    --anypoint-input-legacy-label-color: #F5F5F5;
+    --arc-interactive-demo-options-color: #F5F5F5;
+    --anypoint-checkbox-label-color:  #F5F5F5;
+    --anypoint-input-background-color: #494949;
+    --anypoint-input-label-color: #fff;
+    --anypoint-input-input-color: #fff;
+    --anypoint-input-border-bottom-color: #fff;
+    --anypoint-input-focused-border-bottom-color: #fff;
+    --anypoint-input-label-background-color: rgb(66, 66, 66);
+    --anypoint-input-legacy-focus-background-color: #3a3b3c;
+    --anypoint-input-legacy-focus-border-color: #178bea;
+    --anypoint-input-info-message-color: #fff;
 
-      .content {
-        @apply --layout-flex;
-        max-width: 700px;
-      }
+    --inline-documentation-background-color: #3a3a3a;
 
-      .card {
-        @apply --shadow-elevation-4dp;
-        padding: 20px;
-        margin: 20px;
-        box-sizing: border-box;
-        background-color: #fff;
-      }
+    --anypoint-dropdown-menu-background-color: #494949;
+    --anypoint-dropdown-menu-label-background-color: var(--primary-background-color);
+    --anypoint-listbox-background-color: #494949;
+    --anypoint-dropdown-menu-focus-background-color: #9E9E9E;
+    --anypoint-dropdown-menu-label-color: #fff;
+    --anypoint-dropdown-menu-info-message-color: #fff;
+    --anypoint-item-hover-background-color: #9E9E9E;
+    --anypoiont-autocomplete-background-color: #494949;
+    --anypoint-icon-button-emphasis-low-color: #fff;
 
-      paper-checkbox {
-        margin-bottom: 12px;
-      }
+    --from-row-action-icon-color: #fff;
+    --icon-button-color: #fff;
+    --api-form-action-icon-color: #fff;
+    --api-form-action-button-color: #fff;
+    --anypoint-icon-button-emphasis-low-color: #fff;
+    --anypoiont-autocomplete-background-color: #494949;
 
-      [invalid] {
-        border: 1px red dashed;
-      }
-      </style>
-    </custom-style>
-  </head>
-  <body>
-    <dom-bind id="demo">
-      <template is="dom-bind">
-        <oauth2-authorization></oauth2-authorization>
-        <oauth1-authorization></oauth1-authorization>
-        <xhr-simple-request></xhr-simple-request>
-        <header>
-          <paper-dropdown-menu label="Select demo API">
-            <paper-listbox slot="dropdown-content" id="apisList" on-selected-changed="_apiChanged">
-              <paper-item data-src="demo-api.json">ARC demo api</paper-item>
-              <paper-item data-src="demo-api-compact.json">ARC demo api - compact model</paper-item>
-            </paper-listbox>
-          </paper-dropdown-menu>
+    --auth-method-oauth2-redirect-info-color: #fff;
+    --from-row-action-icon-color: #fff;
+    --inline-documentation-color: #fff;
 
-          <div class="spacer"></div>
-          <paper-dropdown-menu label="Override API's base uri">
-            <paper-listbox slot="dropdown-content" id="basesList" selected="{{selectedOverrideBase}}" attr-for-selected="data-url">
-              <paper-item data-url="">Restore API's base URI</paper-item>
-              <paper-item data-url="https://domain.com/base">https://domain.com/base</paper-item>
-              <paper-item data-url="https://www.google.com?q=">https://www.google.com?q=</paper-item>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </header>
-        <main role="main">
-          <nav>
-            <api-navigation amf-model="[[amfModel]]" endpoints-opened=""></api-navigation>
-          </nav>
+    --code-mirror-background-color: #37474F;
+    --code-mirror-string-color: #C3E88D;
+    --code-mirror-punctuation-color: #EEFFFF;
+    --code-mirror-atom-color: #F07178;
+    --code-mirror-number-color: #F78C6A;
+    --code-mirror-cursor-color: #009688;
+  }
 
-          <template is="dom-if" if="[[!hasData]]">
-            <section class="intro">
-              <p class="usage-info">Select a HTTP method in the navigation</p>
-            </section>
-          </template>
+  api-request-editor {
+    width: 600px;
+    margin: 12px;
+    padding: 12px;
+  }
 
-          <template is="dom-if" if="[[hasData]]">
-            <section class="content">
-              <div class="card">
-                <api-request-editor narrow="[[narrow]]" amf-model="[[amfModel]]" base-uri="[[computeFinaleBaseUri(selectedOverrideBase, baseUri)]]" selected="[[selectedAmfId]]" allow-custom="[[allowCustom]]" allow-disable-params="[[allowDisableParams]]" allow-hide-optional="[[allowHideOptional]]" redirect-uri="[[redirectUri]]" no-url-editor="[[noUrlEditor]]" no-docs="[[noDocs]]" selected-tab="{{selectedTab}}" content-type="{{contentType}}" is-payload-request="{{isPayloadRequest}}" auth-required="{{authRequired}}" auth-valid="{{authValid}}" auth-not-required="{{authNotRequired}}" loading-request="{{loadingRequest}}" params-invalid="{{paramsInvalid}}" headers-invalid="{{headersInvalid}}" url-invalid="{{urlInvalid}}" invalid="{{invalid}}"></api-request-editor>
-              </div>
+  api-request-editor[invalid] {
+    border: 1px red solid;
+  }
+  </style>
+</head>
 
-              <div class="card">
-                <h2>Configuration options</h2>
-                <paper-checkbox checked="{{narrow}}">Render narrow view</paper-checkbox>
-                <paper-checkbox checked="{{allowCustom}}">Allow custom properties</paper-checkbox>
-                <paper-checkbox checked="{{allowHideOptional}}">Allow auto hide optional headers</paper-checkbox>
-                <paper-checkbox checked="{{allowDisableParams}}">Allow disabling parameters</paper-checkbox>
-                <paper-checkbox checked="{{noUrlEditor}}">Remove URL editor</paper-checkbox>
-                <paper-checkbox checked="{{noDocs}}">Remove inline documentatrion</paper-checkbox>
-                <paper-input label="Override base uri" value="{{baseUri}}"></paper-input>
-              </div>
+<body class="styled">
+  <div id="demo"></div>
+  <script type="module" src="index.js"></script>
 
-              <div class="card">
-                <h2>Editor state</h2>
-                <p>Selected editor tab: [[selectedTab]]</p>
-                <p>Selected content type: [[contentType]]</p>
-                <p>Is payload required: [[isPayloadRequest]]</p>
-                <p>Authorization requirements are set: [[authRequired]]</p>
-                <p>Authorization is valid: [[authValid]]</p>
-                <p>Authorization is not required (null scheme present): [[authNotRequired]]</p>
-                <p>Request is being loaded: [[loadingRequest]]</p>
-                <p>Parameter form is invalid: [[paramsInvalid]]</p>
-                <p>Headers for is invalid: [[headersInvalid]]</p>
-                <p>URL is invalid: [[urlInvalid]]</p>
-                <p>Editor is invalid: [[invalid]]</p>
-              </div>
-            </section>
-          </template>
-        </main>
-
-        <paper-toast text="Request send event detected" id="rsend"></paper-toast>
-        <paper-toast text="Request abort event detected" id="rabort"></paper-toast>
-      </template>
-    </dom-bind>
-    <script type="module">
-    import '../../../@polymer/polymer/lib/elements/dom-bind.js';
-    import '../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js';
-    import '../../../@polymer/iron-demo-helpers/demo-snippet.js';
-    import '../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-    import '../../../@polymer/paper-item/paper-item.js';
-    import '../../../@polymer/paper-listbox/paper-listbox.js';
-    import '../../../@polymer/paper-checkbox/paper-checkbox.js';
-    import '../../../@polymer/paper-toast/paper-toast.js';
-    import '../../../@polymer/paper-input/paper-input.js';
-    import '../../../@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
-    import '../../../@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
-    import '../../../@advanced-rest-client/xhr-simple-request/xhr-simple-request.js';
-    import '../../../@api-components/api-navigation/api-navigation.js';
-    import '../../../@api-components/api-console-default-theme/api-console-default-theme.js';
-    import '../api-request-editor.js';
-    (function(app) {
-    app.redirectUri = 'https://auth.advancedrestclient.com/oauth-popup.html';
-    app.allowCustom = true;
-    app.allowHideOptional = true;
-    app.allowDisableParams = true;
-
-    app._load = function() {
-      document.getElementById('apisList').selected = 0;
-    };
-
-    app._loadFile = function(file) {
-      app.selectedAmfId = undefined;
-      app.amfModel = undefined;
-      fetch('./' + file)
-      .then((response) => response.json())
-      .then((data) => {
-        app.amfModel = data;
-      });
-    };
-
-    app._apiChanged = function(e) {
-      const file = e.target.selectedItem.dataset.src;
-      app._loadFile(file);
-    };
-
-    app._navChanged = function(e) {
-      const type = e.detail.type;
-      if (type === 'method') {
-        app.setData(e.detail.selected);
-        app.hasData = true;
-      } else {
-        app.hasData = false;
-      }
-    };
-
-    app.setData = function(selected) {
-      app.selectedAmfId = selected;
-    };
-
-    app._apiRequestHandler = function() {
-      document.getElementById('rsend').opened = true;
-    };
-
-    app._apiAbortHandler = function() {
-      document.getElementById('rabort').opened = true;
-    };
-
-    app.computeFinaleBaseUri = function(selectedOverrideBase, baseUri) {
-      if (selectedOverrideBase) {
-        return selectedOverrideBase;
-      }
-      return baseUri;
-    };
-
-    window.addEventListener('WebComponentsReady', app._load);
-    window.addEventListener('api-navigation-selection-changed', app._navChanged);
-    window.addEventListener('api-request', app._apiRequestHandler);
-    window.addEventListener('abort-api-request', app._apiAbortHandler);
-    })(document.getElementById('demo'));
-    </script>
-  </body>
 </html>
