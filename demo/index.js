@@ -8,6 +8,7 @@ import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
 import '@api-components/api-navigation/api-navigation.js';
 import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
 import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
+import '@advanced-rest-client/xhr-simple-request/xhr-simple-request.js';
 import '../api-request-editor.js';
 
 class DemoElement extends AmfHelperMixin(LitElement) {}
@@ -28,7 +29,8 @@ class ComponentDemo extends ApiDemoPageBase {
       'allowCustom',
       'allowHideOptional',
       'allowDisableParams',
-      'noDocs'
+      'noDocs',
+      'noUrlEditor'
     ]);
     this.allowCustom = false;
     this.allowHideOptional = true;
@@ -90,6 +92,8 @@ class ComponentDemo extends ApiDemoPageBase {
 
   _apiListTemplate() {
     return [
+      ['google-drive-api', 'Google Drive'],
+      ['httpbin', 'httpbin.org'],
       ['demo-api', 'Demo API'],
     ].map(([file, label]) => html`
       <paper-item data-src="${file}-compact.json">${label} - compact model</paper-item>
@@ -112,7 +116,8 @@ class ComponentDemo extends ApiDemoPageBase {
       allowHideOptional,
       allowDisableParams,
       selectedAmfId,
-      noDocs
+      noDocs,
+      noUrlEditor
     } = this;
     return html `
     <section class="documentation-section">
@@ -145,6 +150,7 @@ class ComponentDemo extends ApiDemoPageBase {
               ?readOnly="${readOnly}"
               ?disabled="${disabled}"
               ?noDocs="${noDocs}"
+              ?noUrlEditor="${noUrlEditor}"
               .redirectUri="${redirectUri}"></api-request-editor>
 
             <label slot="options" id="mainOptionsLabel">Options</label>
@@ -199,6 +205,13 @@ class ComponentDemo extends ApiDemoPageBase {
               name="noDocs"
               @change="${this._toggleMainOption}"
               >No docs</anypoint-checkbox
+            >
+            <anypoint-checkbox
+              aria-describedby="mainOptionsLabel"
+              slot="options"
+              name="noUrlEditor"
+              @change="${this._toggleMainOption}"
+              >No url editor</anypoint-checkbox
             >
           </arc-interactive-demo>
         </div>
