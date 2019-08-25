@@ -38,15 +38,10 @@
   /* global CodeMirror */
   CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js';
   </script>
-  <!-- Finally dependencies for authorization panel.  -->
-  <script src="../node_modules/cryptojslib/components/core.js"></script>
-  <script src="../node_modules/cryptojslib/rollups/sha1.js"></script>
-  <script src="../node_modules/cryptojslib/components/enc-base64-min.js"></script>
-  <script src="../node_modules/cryptojslib/rollups/md5.js"></script>
-  <script src="../node_modules/cryptojslib/rollups/hmac-sha1.js"></script>
-  <script src="../node_modules/jsrsasign/lib/jsrsasign-rsa-min.js"></script>
+
+
   <style>
-  [role="main"].centered {
+  .main.centered {
     max-width: 1440px !important;
   }
 
@@ -54,6 +49,13 @@
     background-color: #FFF3E0;
     white-space: pre-wrap;
     margin-top: 40px;
+  }
+
+  .response-output {
+    max-height: 300px;
+    overflow: auto;
+    display: block;
+    width: 700px;
   }
 
   body.styled {
@@ -115,6 +117,7 @@
     --code-mirror-atom-color: #F07178;
     --code-mirror-number-color: #F78C6A;
     --code-mirror-cursor-color: #009688;
+    --code-mirror-gutters-background-color: #37474F;
   }
 
   api-request-editor {

@@ -1,5 +1,4 @@
 {
-  "protocol": "https",
   "schemes": [
     "https"
   ],
@@ -510,7 +509,8 @@
           {
             "in": "path",
             "name": "delay",
-            "type": "integer"
+            "type": "integer",
+            "description": "Number of seconds to wait before sending the response."
           }
         ],
         "produces": [

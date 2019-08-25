@@ -126,10 +126,6 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
        */
       selected: { type: String },
       /**
-       * Computed method declaration in the AMF model.
-       */
-      _methodModel: { type: Object },
-      /**
        * Hides the URL editor from the view.
        * The editor is still in the DOM and the `urlInvalid` property still will be set.
        */
@@ -141,6 +137,89 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
        * if passed URL is a relative URL.
        */
       baseUri: { type: String },
+      /**
+       * If set it computes `hasOptional` property and shows checkbox in the
+       * form to show / hide optional properties.
+       */
+      allowHideOptional: { type: Boolean },
+      /**
+       * If set, enable / disable param checkbox is rendered next to each
+       * form item.
+       */
+      allowDisableParams: { type: Boolean },
+      /**
+       * When set, renders "add custom" item button.
+       * If the element is to be used withouth AMF model this should always
+       * be enabled. Otherwise users won't be able to add a parameter.
+       */
+      allowCustom: { type: Boolean },
+      /**
+       * API server definition from the AMF model.
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      server: { type: Object },
+      /**
+       * Supported protocl versions.
+       *
+       * E.g.
+       *
+       * ```json
+       * ["http", "https"]
+       * ```
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      protocols: { type: Array },
+      /**
+       * API version name.
+       *
+       * This value to be set when partial AMF mnodel for an endpoint is passed
+       * instead of web api to be passed to the `api-url-data-model` element.
+       *
+       * Do not set with full AMF web API model.
+       */
+      version: { type: String },
+      /**
+       * Enables Anypoint legacy styling
+       */
+      legacy: { type: Boolean, reflect: true },
+      /**
+       * Enables Material Design outlined style
+       */
+      outlined: { type: Boolean },
+      /**
+       * When set the editor is in read only mode.
+       */
+      readOnly: { type: Boolean },
+      /**
+       * When set all controls are disabled in the form
+       */
+      disabled: { type: Boolean },
+      /**
+       * OAuth2 redirect URI.
+       * This value **must** be set in order for OAuth 1/2 to work properly.
+       */
+      redirectUri: { type: String },
+      /**
+       * If set it will renders the view in the narrow layout.
+       */
+      narrow: { type: Boolean, reflect: true },
+      /**
+       * Prohibits rendering of the documentation (the icon and the
+       * description).
+       */
+      noDocs: { type: Boolean },
+      /**
+       * Computed value, true if any of the editors has invalid state.
+       */
+      invalid: { type: Boolean },
       /**
        * Computed from AMF model for the metod HTTP method name.
        *
@@ -196,39 +275,15 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
        */
       _isPayloadRequest: { type: Boolean },
       /**
-       * OAuth2 redirect URI.
-       * This value **must** be set in order for OAuth 1/2 to work properly.
-       */
-      redirectUri: { type: String },
-      /**
        * Inheritet from the authorization panel state if authorization
        * data is valid.
        */
       _authInvalid: { type: Boolean },
       /**
-       * If set it will renders the view in the narrow layout.
-       */
-      narrow: { type: Boolean, reflect: true },
-      /**
        * Flag set when the request is being made.
        */
       _loadingRequest: { type: Boolean },
-      /**
-       * If set it computes `hasOptional` property and shows checkbox in the
-       * form to show / hide optional properties.
-       */
-      allowHideOptional: { type: Boolean },
-      /**
-       * If set, enable / disable param checkbox is rendered next to each
-       * form item.
-       */
-      allowDisableParams: { type: Boolean },
-      /**
-       * When set, renders "add custom" item button.
-       * If the element is to be used withouth AMF model this should always
-       * be enabled. Otherwise users won't be able to add a parameter.
-       */
-      allowCustom: { type: Boolean },
+
       // Selected by the user auth method (if any)
       _authMethod: { type: String },
       // Current authorization settings.
@@ -257,67 +312,10 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
        */
       _headersInvalid: { type: Boolean },
       /**
-       * Prohibits rendering of the documentation (the icon and the
-       * description).
-       */
-      noDocs: { type: Boolean },
-      /**
-       * Computed value, true if any of the editors has invalid state.
-       */
-      invalid: { type: Boolean },
-      /**
        * Validity state of the URL editor
        */
       _urlInvalid: { type: Boolean },
-      /**
-       * API server definition from the AMF model.
-       *
-       * This value to be set when partial AMF mnodel for an endpoint is passed
-       * instead of web api to be passed to the `api-url-data-model` element.
-       *
-       * Do not set with full AMF web API model.
-       */
-      server: { type: Object },
-      /**
-       * Supported protocl versions.
-       *
-       * E.g.
-       *
-       * ```json
-       * ["http", "https"]
-       * ```
-       *
-       * This value to be set when partial AMF mnodel for an endpoint is passed
-       * instead of web api to be passed to the `api-url-data-model` element.
-       *
-       * Do not set with full AMF web API model.
-       */
-      protocols: { type: Array },
-      /**
-       * API version name.
-       *
-       * This value to be set when partial AMF mnodel for an endpoint is passed
-       * instead of web api to be passed to the `api-url-data-model` element.
-       *
-       * Do not set with full AMF web API model.
-       */
-      version: { type: String },
-      /**
-       * Enables Anypoint legacy styling
-       */
-      legacy: { type: Boolean, reflect: true },
-      /**
-       * Enables Material Design outlined style
-       */
-      outlined: { type: Boolean },
-      /**
-       * When set the editor is in read only mode.
-       */
-      readOnly: { type: Boolean },
-      /**
-       * When set all controls are disabled in the form
-       */
-      disabled: { type: Boolean },
+
       _endpointUri: { type: String },
       _apiBaseUri: { type: String }
     };
@@ -331,7 +329,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     const old = this._selected;
     /* istanbul ignore if */
     if (old === value) {
-      return false;
+      return;
     }
     this._selected = value;
     this.requestUpdate('selected', old);
@@ -346,7 +344,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     const old = this._amf;
     /* istanbul ignore if */
     if (old === value) {
-      return false;
+      return;
     }
     this._amf = value;
     this._selectedChanged();
@@ -360,14 +358,25 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     const old = this._url;
     /* istanbul ignore if */
     if (old === value) {
-      return false;
+      return;
     }
     this._url = value;
     this._urlChanged(value);
   }
 
-  get methodModel() {
-    return this._methodModel;
+  get invalid() {
+    return this._invalid;
+  }
+
+  set invalid(value) {
+    const old = this._invalid;
+    /* istanbul ignore if */
+    if (old === value) {
+      return;
+    }
+    this._invalid = value;
+    this._invalidChnaged(value);
+    this.requestUpdate('invalid', old);
   }
 
   get httpMethod() {
@@ -474,9 +483,9 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
    * Clears the request properties.
    */
   clearRequest() {
-    this.url = '';
-    this.headers = '';
-    this.payload = '';
+    this._url = '';
+    this._headers = '';
+    this._payload = '';
     const node = this.shadowRoot.querySelector('authorization-panel');
     if (node) {
       node.clear();
@@ -490,15 +499,21 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     if (!amf || !selected) {
       return;
     }
-    const model = this._methodModel = this._computeMethodAmfModel(amf, selected);
+    const model = this._computeMethodAmfModel(amf, selected);
     if (!model) {
       return;
     }
+    this._authInvalid = false;
+    this._headersInvalid = false;
+    this._paramsInvalid = false;
+    this._authSettings = undefined;
+    this._authMethod = undefined;
     const method = this._httpMethod = this._getValue(model, this.ns.w3.hydra.core + 'method');
     this._isPayloadRequest = this._computeIsPayloadRequest(method);
     this._securedBy = this._computeSecuredBy(model);
     this._apiHeaders = this. _computeHeaders(model);
     this._apiPayload = this._computeApiPayload(model);
+    this._reValidate();
   }
 
   _computeMethodAmfModel(model, selected) {
@@ -721,6 +736,7 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
       this.__requestAuthAwaiting = false;
       this.execute();
     }
+    this._reValidate();
   }
   /**
    * Handler for the `api-response` custom event.
@@ -757,8 +773,8 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
    */
   _invalidChnaged(invalid) {
     if (invalid) {
-      this.setAttribute('invalid', true);
-      this.setAttribute('aria-invalid', true);
+      this.setAttribute('invalid', '');
+      this.setAttribute('aria-invalid', 'true');
     } else {
       this.removeAttribute('invalid');
       this.removeAttribute('aria-invalid');
@@ -767,20 +783,6 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
 
   get _sendLabel() {
     return this._additionalAuth ? 'Authorize and send' : 'Send';
-  }
-  /**
-   * Computes value to disable send button when the form is invalid.
-   * THe button is active when auth is the only invalid state
-   * @param {Boolean} urlInvalid
-   * @param {Boolean} paramsInvalid
-   * @param {Boolean} headersInvalid
-   * @return {Boolean}
-   */
-  _computeSendDisabled(urlInvalid, paramsInvalid, headersInvalid) {
-    if (urlInvalid || paramsInvalid || headersInvalid) {
-      return true;
-    }
-    return false;
   }
 
   _apiChanged(e) {
@@ -846,12 +848,9 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
 
   async _reValidate() {
     await this.updateComplete;
-    const { _authInvalid, _urlInvalid, _headersInvalid, _authMethod, _authSettings } = this;
-    const state = !!(_authInvalid || _urlInvalid || _headersInvalid);
+    const { _authInvalid, _urlInvalid, _paramsInvalid, _headersInvalid, _authMethod, _authSettings } = this;
+    const state = !!(_authInvalid || _urlInvalid || _headersInvalid || _paramsInvalid);
     const noOauthToken = _authMethod === 'OAuth 2.0' && (!_authSettings || !_authSettings.accessToken);
-    // if (!state && noOauthToken) {
-    //   state = true;
-    // }
     this.invalid = state;
     if (noOauthToken) {
       this._additionalAuth = true;
@@ -859,6 +858,14 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
       this._additionalAuth = false;
     }
     this.requestUpdate();
+  }
+
+  get _hideParamsEditor() {
+    if (this.allowCustom) {
+      return false;
+    }
+    const { _pathModel, _queryModel } = this;
+    return (!_pathModel || _pathModel.length === 0) && (!_queryModel || _queryModel.length === 0);
   }
 
   render() {
@@ -894,29 +901,32 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
       _apiPayload,
       _loadingRequest,
       _contentType,
-      _sendLabel
+      _sendLabel,
+      _hideParamsEditor
     } = this;
-    const hideParamsEditor = (!_pathModel || _pathModel.length === 0) && (!_queryModel || _queryModel.length === 0);
     return html`
     ${aware ? html`<raml-aware
       .scope="${aware}"
-      @api-changed-"${this._apiChanged}"></raml-aware>` : ''}
+      @api-changed="${this._apiChanged}"></raml-aware>` : ''}
 
     <api-url-data-model
+      @apibaseuri-changed="${this._apiBaseUriHandler}"
+      @pathmodel-changed="${this._pathModelHandler}"
+      @querymodel-changed="${this._queryModelHandler}"
+      @endpointpath-changed="${this._endpointUriHandler}"
       .amf="${amf}"
-      .baseUri="${baseUri}"
+      .apiUri="${baseUri}"
       .selected="${selected}"
       .server="${ifDefined(server)}"
       .protocols="${ifDefined(protocols)}"
       .version="${ifDefined(version)}"
-      @apibaseuri-changed="${this._apiBaseUriHandler}"
-      @pathmodel-changed="${this._pathModelHandler}"
-      @querymodel-changed="${this._queryModelHandler}"
-      @endpointpath-changed="${this._endpointUriHandler}"></api-url-data-model>
+    ></api-url-data-model>
 
     <div class="content">
       <div class="url-editor" ?hidden="${noUrlEditor}">
         <api-url-editor
+          @value-changed="${this._urlHandler}"
+          @invalid-changed="${this._urlInvalidChanged}"
           ?required="${!noUrlEditor}"
           autovalidate
           .baseUri="${_apiBaseUri}"
@@ -928,12 +938,14 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
           .disabled="${disabled}"
           ?outlined="${outlined}"
           ?legacy="${legacy}"
-          @value-changed="${this._urlHandler}"
-          @invalid-changed="${this._urlInvalidChanged}"></api-url-editor>
+        ></api-url-editor>
       </div>
 
-      <div class="editor-section" ?hidden="${hideParamsEditor}">
+      <div class="editor-section" ?hidden="${_hideParamsEditor}">
         <api-url-params-editor
+          @invalid-changed="${this._paramsInvalidChanged}"
+          @urimodel-changed="${this._pathModelHandler}"
+          @querymodel-changed="${this._queryModelHandler}"
           .uriModel="${_pathModel}"
           .queryModel="${_queryModel}"
           .noDocs="${noDocs}"
@@ -943,14 +955,15 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
           .disabled="${disabled}"
           ?outlined="${outlined}"
           ?legacy="${legacy}"
-          @invalid-changed="${this._paramsInvalidChanged}"
-          @urimodel-changed="${this._pathModelHandler}"
-          @querymodel-changed="${this._queryModelHandler}"></api-url-params-editor>
+        ></api-url-params-editor>
       </div>
 
       <div class="editor-section" ?hidden="${!_apiHeaders}">
         <div role="heading" aria-level="2" class="section-title">Headers</div>
         <api-headers-editor
+          @contenttype-changed="${this._contentTypeHandler}"
+          @value-changed="${this._headersHandler}"
+          @invalid-changed="${this._headersInvalidChanged}"
           .eventsTarget="${eventsTarget}"
           .amf="${amf}"
           .amfHeaders="${_apiHeaders}"
@@ -965,46 +978,44 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
           ?allowDisableParams="${allowDisableParams}"
           ?allowHideOptional="${allowHideOptional}"
           autovalidate
-          @contenttype-changed="${this._contentTypeHandler}"
-          @value-changed="${this._headersHandler}"
-          @invalid-changed="${this._headersInvalidChanged}"></api-headers-editor>
+          ></api-headers-editor>
       </div>
 
       ${_isPayloadRequest && _apiPayload ? html`
         <div class="editor-section">
           <div role="heading" aria-level="2" class="section-title">Body</div>
           <api-body-editor
-          .eventsTarget="${eventsTarget}"
-          .amf="${amf}"
-          .amfBody="${_apiPayload}"
-          ?narrow="${narrow}"
-          .readOnly="${readOnly}"
-          .disabled="${disabled}"
-          ?outlined="${outlined}"
-          ?legacy="${legacy}"
-          .contentType="${_contentType}"
-          @value-changed="${this._payloadHandler}"
-          ?allowcustom="${allowCustom}"
-          ?allowDisableParams="${allowDisableParams}"
-          ?allowHideOptional="${allowHideOptional}"
-          linenumbers></api-body-editor>
+            @value-changed="${this._payloadHandler}"
+            .eventsTarget="${eventsTarget}"
+            .amf="${amf}"
+            .amfBody="${_apiPayload}"
+            ?narrow="${narrow}"
+            .readOnly="${readOnly}"
+            .disabled="${disabled}"
+            ?outlined="${outlined}"
+            ?legacy="${legacy}"
+            .contentType="${_contentType}"
+            ?allowcustom="${allowCustom}"
+            ?allowDisableParams="${allowDisableParams}"
+            ?allowHideOptional="${allowHideOptional}"
+            linenumbers></api-body-editor>
         </div>` : ''}
 
       ${_securedBy ? html`
         <div class="editor-section">
           <div role="heading" aria-level="2" class="section-title">Credentials</div>
           <authorization-panel
-          .amf="${amf}"
-          .eventsTarget="${eventsTarget}"
-          .securedBy="${_securedBy}"
-          .redirectUri="${redirectUri}"
-          .noDocs="${noDocs}"
-          .readOnly="${readOnly}"
-          .disabled="${disabled}"
-          ?outlined="${outlined}"
-          ?legacy="${legacy}"
-          @invalid-changed="${this._authInvalidChanged}"
-        ></authorization-panel>
+            .amf="${amf}"
+            .eventsTarget="${eventsTarget}"
+            .securedBy="${_securedBy}"
+            .redirectUri="${redirectUri}"
+            .noDocs="${noDocs}"
+            .readOnly="${readOnly}"
+            .disabled="${disabled}"
+            ?outlined="${outlined}"
+            ?legacy="${legacy}"
+            @invalid-changed="${this._authInvalidChanged}"
+          ></authorization-panel>
       </div>` : undefined}
 
       <div class="action-bar">
