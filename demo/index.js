@@ -99,6 +99,9 @@ class ComponentDemo extends ApiDemoPageBase {
       ['google-drive-api', 'Google Drive'],
       ['httpbin', 'httpbin.org'],
       ['demo-api', 'Demo API'],
+      ['SE-12042', 'SE-12042: Default values issue'],
+      ['SE-12224', 'SE-12224: Scope is not an array issues'],
+      ['APIC-168', 'APIC-168: Custom scheme support']
     ].map(([file, label]) => html`
       <paper-item data-src="${file}-compact.json">${label} - compact model</paper-item>
       <paper-item data-src="${file}.json">${label}</paper-item>
