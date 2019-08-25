@@ -12,200 +12,52 @@
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-
-import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
+import {html, css, LitElement} from 'lit-element';
 
 import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 
 import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
 
-import {html} from '@polymer/polymer/lib/utils/html-tag.js';
-
 declare namespace ApiElements {
 
   /**
    * `api-request-editor`
-   * A request editor that builds the UI based on
-   * [AMF](https://github.com/mulesoft/amf/) model.
-   *
-   * The fors are generated automatically based on endponit's definition.
-   *
-   * Set AMF json/ld model to `amfModel` property. It accepts the generated
-   * API specification model (first element is a shape of
-   * `http://raml.org/vocabularies/document#Document` type).
-   *
-   * To build request editor view for an endpoint defined in an API, set `selected`
-   * property to the id of the operation that is defined in the spec. The
-   * element lookup for the definition and applies it to the editors.
-   *
-   * This element is to replace deprecated `advanced-rest-client/raml-request-editor`.
-   *
-   * ## Changes in version 2
-   *
-   * - XHR element is not included in the element. Use
-   * `advanced-rest-client/xhr-simple-request` in your application or handle
-   * `api-request` custom event to make a request
-   * - The element does not include any polyfills
-   * - `redirectUrl` is now `redirectUri`
-   * - `api-console-request` event is now `api-request` event
-   * - `api-console-response` event is now `api-response` event
-   * - Added more details to `api-request` custom event (comparing to
-   * `api-console-request`)
-   * - The user is able to enable/disable query parameters and headers. Set
-   * `allow-disable-params` attribute to enable this behavior.
-   * - The user is able to add custom query parameters or headers.
-   * Set `allow-custom` attribute to enable this behavior.
-   * - From authorization panel changes:
-   *  - `auth-settings-changed` custom event is stopped from bubbling.
-   *  Listen for `authorization-settings-changed` event instead.
-   * - From auth-method-oauth2 changes:
-   *  - Added `deliveryMethod` and `deliveryName` properties to the
-   *  `detail.setting` object.
-   * - From auth-method-oauth1 changes:
-   *  - Crypto library is no longer included into the element. Use
-   *  `advanced-rest-client/cryptojs-lib` component to include the library
-   *  if your project doesn't use crypto libraries already.
-   *
-   * ## api-request event
-   *
-   * Dispatched when "send" button is pressed by the user and the element passes
-   * validation.
-   * The application should handle the event and make the connection to remote
-   * server using passed parameters. When the response is ready the application
-   * must inform the elements about the response by dispatching `api-response`
-   * custom event.
-   *
-   * Note that if you set `eventsTarget` property the event must be dispatched
-   * at most on `eventsTarget` node (or any child node).
-   *
-   * API components has `advanced-rest-client/xhr-simple-request` element to
-   * handle `api-request` and `abort-api-request` events and to use XHR to
-   * make the connection. Note that it may not always work if the API does not
-   * allows CORS.
-   *
-   * The api-request event has the following properties:
-   *
-   * - url (`String`) - Endpoint full and final url. Note that if the API does
-   * not specify base uri and `baseUri` property is not set then the `url`
-   * can be relative url to the resource.
-   * - method (`String`) - HTTP method. User cannot change this value, it is
-   * encoded in the endpoint description
-   * - headers (`String`) - valid HTTP headers string
-   * - payload (`String|FormData|File|Blob|undefined`) - Request body
-   * - id (`String`) - A unique request identifier. This ID has to be
-   *   reported back by `api-response` event. It is generated when `execute()`
-   *   function is called.
-   * - auth (`Object|undefined`) - Current authorization settings received
-   *   from the authorization panel.
-   *   In case of basic, oauth 1 and oauth 2 authorizations, the token is
-   *   applied to the headers or query parameters so no action is required.
-   * - authType (`String|undefined`) - Name of the authorization methods.
-   *   One of `advanced-rest-client/auth-methods`.
-   * - queryModel (`Array<Object>`) - Query parameters data view model.
-   * - pathModel (`Array<Object>`) - URI parameters data view model
-   * - headersModel (`Array<Object>`) - Headers data view model
-   *
-   * Do not change `queryModel`, `pathModel` and `headersModel` as it would
-   * make it out of sync with the application and any change won't be
-   * reflected in the editor. In future release this may be read only object.
-   *
-   * ## abort-api-request event
-   *
-   * The event is dispatched when the user press `abort` button.
-   * The transport must send `api-response` custom event with error message
-   * so the state of the UI is updated.
-   *
-   * The event contains the following properties:
-   *
-   * - url (`String`) The request URL. Can be empty string. Also, it may be
-   * different URL that the one used to send the request if the user changed
-   * it in between. Use the `id` property to compare requests.
-   * - id (`String`)  Generated UUID of the request with `api-request` event.
-   *
-   * ## api-response event
-   *
-   * This element does not act on this event. See `api-request-panel`
-   * documentation for more information.
-   *
-   * ## Limitations
-   *
-   * Editors used in this element usually don't perform operations right after
-   * a property change. Body/Headers/Auth editors uses
-   * `Polymer.RenderStatus.afterNextRender` method before they start computing
-   * properties from model. Then, if DOM change is required then this operation
-   * is also async. This causes a delay between selection/AMF model change
-   * and reseting the properties. For example authorization state can be passed
-   * to this element after at least 2 calls to `requestAnimationFrame()`.
-   * Take this into the ccount when using element's API.
-   *
-   * ## Styling
-   *
-   * `<api-request-editor>` provides the following custom properties and
-   * mixins for styling:
-   *
-   * Custom property | Description | Default
-   * ----------------|-------------|----------
-   * `--api-request-editor` | Mixin applied to this elment | `{}`
-   * `--api-request-editor-container` | Mixin applied to the main container | `{}`
-   * `--warning-primary-color` | Theme property, warning primary color | `#FF7043`
-   * `--arc-font-body1` | Theme mixin, default font definition | `{}`
-   * `--error-color` | Theme variable, error color.  | ``
-   * `--api-request-editor-editors-border-color | Border color of editors in tabs | `transparent`
-   * `--primary-button-background-color` | Theme property, background color
-   * of the primary action button. Applied to "send" and "abort" buttons | `--primary-color`
-   * `--primary-button-color` | Theme property, font color of the primary
-   * action button. Applied to "send" and "abort" buttons  | `#fff`
-   * `--action-button` | Theme mixin, applied to "send" and "abort" buttons | `{}`
-   * `--primary-button-hover-background-color` | Theme property, background
-   * color of the primary action button when hovering. Applied to "send" and
-   * "abort" buttons | `--accent-color`
-   * `--primary-button-hover-color` | Theme property, font color of the
-   * primary action button when hovering. Applied to "send" and "abort" buttons  | `#fff`
-   * `--action-button-hover` | Theme mixin, applied to "send" and "abort"
-   * buttons when hovering | `{}`
-   * `--primary-button-disabled-background-color` | Theme property, background
-   * color of the primary action button when disabled. Applied to "send"
-   * and "abort" buttons | `--accent-color`
-   * `--primary-button-disabled-color` | Theme property, font color of the
-   * primary action button when disabled. Applied to "send" and "abort"
-   * buttons  | `#fff`
-   * `--action-button-disabled` | Theme mixin, applied to "send" and "abort"
-   * buttons when disabled | `{}`
-   * `--api-request-editor-container-narrow` | Mixin applied to the main
-   * container when `narrow` property is set. | `{}`
-   * `--api-request-editor-send-valid-button` | Mixin applied to the send
-   * button when request is valid | `{}`
-   * `--api-request-editor-abort-button` | Mixin applied to the abort button | `{}`
    */
   class ApiRequestEditor extends
     EventsTargetMixin(
     AmfHelperMixin(
     Object)) {
-
-    /**
-     * AMF API model.
-     * The element extracts method definition from passed model
-     * and by using `selected`.
-     */
-    amfModel: object|null|undefined;
-
-    /**
-     * `raml-aware` scope property to use.
-     */
-    aware: string|null|undefined;
+    amf: any;
 
     /**
      * An `@id` of selected AMF shape. When changed it computes
      * method model for the selection.
      */
     selected: string|null|undefined;
-    readonly _webApi: object|null|undefined;
+    url: any;
 
     /**
-     * Computed method declaration in the AMF model.
+     * Computed value, true if any of the editors has invalid state.
      */
-    readonly _methodModel: object|null|undefined;
+    invalid: boolean|null|undefined;
+    readonly httpMethod: any;
+    readonly headers: any;
+    readonly payload: any;
+    readonly contentType: any;
+    readonly securedBy: any;
+    readonly apiHeaders: any;
+    readonly apiPayload: any;
+    readonly isPayloadRequest: any;
+    readonly authInvalid: any;
+    readonly loadingRequest: any;
+    readonly requestId: any;
+    readonly _sendLabel: any;
+    readonly _hideParamsEditor: any;
+
+    /**
+     * `raml-aware` scope property to use.
+     */
+    aware: string|null|undefined;
 
     /**
      * Hides the URL editor from the view.
@@ -220,96 +72,6 @@ declare namespace ApiElements {
      * if passed URL is a relative URL.
      */
     baseUri: string|null|undefined;
-
-    /**
-     * Computed from AMF model for the metod HTTP method name.
-     */
-    readonly httpMethod: String|null;
-
-    /**
-     * Headers for the request.
-     */
-    headers: String|null|undefined;
-
-    /**
-     * Body for the request. The type of the body depends on
-     * defined in the API media type.
-     */
-    payload: String|FormData|File|null;
-
-    /**
-     * Final request URL including settings like `baseUri`, AMF
-     * model settings and user provided parameters.
-     * This value is always compoted by `api-url-editor` even if it's
-     * hidden from the view.
-     */
-    url: string|null|undefined;
-
-    /**
-     * Selected request tab.
-     */
-    selectedTab: number|null|undefined;
-
-    /**
-     * Current content type.
-     */
-    contentType: String|null|undefined;
-
-    /**
-     * Computed value of security scheme from selected method.
-     */
-    readonly securedBy: Array<object|null>|null;
-
-    /**
-     * Computed list of headers in the AMF model
-     */
-    readonly apiHeaders: Array<object|null>|null;
-
-    /**
-     * Defined by the API payload data.
-     */
-    readonly apiPayload: Array<object|null>|null|undefined;
-
-    /**
-     * Computed value if the method can carry a payload.
-     */
-    readonly isPayloadRequest: boolean|null|undefined;
-
-    /**
-     * OAuth2 redirect URI.
-     * This value **must** be set in order for OAuth 1/2 to work properly.
-     */
-    redirectUri: string|null|undefined;
-
-    /**
-     * Inheritet from the authorization panel state if authorization is
-     * required. Authorization may be not required if one of the
-     * authorization methods is `nil` (RAML).
-     */
-    authRequired: boolean|null|undefined;
-
-    /**
-     * Inheritet from the authorization panel state if authorization
-     * data is valid.
-     */
-    authValid: boolean|null|undefined;
-
-    /**
-     * If set it will renders the view in the narrow layout.
-     */
-    narrow: boolean|null|undefined;
-
-    /**
-     * Computed value of if authorization is required for the endpoint.
-     * If the auth is not required then the authorization tab is removed
-     * from the view.
-     */
-    readonly authNotRequired: boolean|null|undefined;
-
-    /**
-     * Flag set when the request is being made.
-     */
-    loadingRequest: boolean|null|undefined;
 
     /**
      * If set it computes `hasOptional` property and shows checkbox in the
@@ -331,40 +93,71 @@ declare namespace ApiElements {
     allowCustom: boolean|null|undefined;
 
     /**
-     * Selected by the user auth method (if any)
+     * API server definition from the AMF model.
+     *
+     * This value to be set when partial AMF mnodel for an endpoint is passed
+     * instead of web api to be passed to the `api-url-data-model` element.
+     *
+     * Do not set with full AMF web API model.
      */
-    authMethod: string|null|undefined;
+    server: object|null|undefined;
 
     /**
-     * Current authorization settings.
+     * Supported protocl versions.
+     *
+     * E.g.
+     *
+     * ```json
+     * ["http", "https"]
+     * ```
+     *
+     * This value to be set when partial AMF mnodel for an endpoint is passed
+     * instead of web api to be passed to the `api-url-data-model` element.
+     *
+     * Do not set with full AMF web API model.
      */
-    authSettings: object|null|undefined;
+    protocols: any[]|null|undefined;
 
     /**
-     * Generated request ID when the request is sent. This value is reported
-     * in send and abort events
+     * API version name.
+     *
+     * This value to be set when partial AMF mnodel for an endpoint is passed
+     * instead of web api to be passed to the `api-url-data-model` element.
+     *
+     * Do not set with full AMF web API model.
      */
-    requestId: string|null|undefined;
+    version: string|null|undefined;
 
     /**
-     * Request query parameters view model
+     * Enables Anypoint legacy styling
      */
-    queryModel: Array<object|null>|null;
+    legacy: boolean|null|undefined;
 
     /**
-     * Request path parameters view model
+     * Enables Material Design outlined style
      */
-    pathModel: Array<object|null>|null;
+    outlined: boolean|null|undefined;
 
     /**
-     * Computed when URL params editor is invalid.
+     * When set the editor is in read only mode.
      */
-    paramsInvalid: boolean|null|undefined;
+    readOnly: boolean|null|undefined;
 
     /**
-     * Computed when headers editor is invalid.
+     * When set all controls are disabled in the form
      */
-    headersInvalid: boolean|null|undefined;
+    disabled: boolean|null|undefined;
+
+    /**
+     * OAuth2 redirect URI.
+     * This value **must** be set in order for OAuth 1/2 to work properly.
+     */
+    redirectUri: string|null|undefined;
+
+    /**
+     * If set it will renders the view in the narrow layout.
+     */
+    narrow: boolean|null|undefined;
 
     /**
      * Prohibits rendering of the documentation (the icon and the
@@ -373,16 +166,107 @@ declare namespace ApiElements {
     noDocs: boolean|null|undefined;
 
     /**
-     * Computed value, true if any of the editors has invalid state.
+     * Computed from AMF model for the metod HTTP method name.
      */
-    readonly invalid: boolean|null|undefined;
+    _httpMethod: String|null;
+
+    /**
+     * Headers for the request.
+     */
+    _headers: String|null|undefined;
+
+    /**
+     * Body for the request. The type of the body depends on
+     * defined in the API media type.7
+     */
+    _payload: String|FormData|File|null;
+
+    /**
+     * Final request URL including settings like `baseUri`, AMF
+     * model settings and user provided parameters.
+     * This value is always computed by the `api-url-editor` even if it's
+     * hidden from the view.
+     */
+    _url: string|null|undefined;
+
+    /**
+     * Current content type.
+     */
+    _contentType: String|null|undefined;
+
+    /**
+     * Computed value of security scheme from selected method.
+     */
+    _securedBy: Array<object|null>|null;
+
+    /**
+     * Computed list of headers in the AMF model
+     */
+    _apiHeaders: Array<object|null>|null;
+
+    /**
+     * Defined by the API payload data.
+     */
+    _apiPayload: Array<object|null>|null|undefined;
+
+    /**
+     * Computed value if the method can carry a payload.
+     */
+    _isPayloadRequest: boolean|null|undefined;
+
+    /**
+     * Inheritet from the authorization panel state if authorization
+     * data is valid.
+     */
+    _authInvalid: boolean|null|undefined;
+
+    /**
+     * Flag set when the request is being made.
+     */
+    _loadingRequest: boolean|null|undefined;
+
+    /**
+     * Selected by the user auth method (if any)
+     */
+    _authMethod: string|null|undefined;
+
+    /**
+     * Current authorization settings.
+     */
+    _authSettings: object|null|undefined;
+
+    /**
+     * Generated request ID when the request is sent. This value is reported
+     * in send and abort events
+     */
+    _requestId: string|null|undefined;
+
+    /**
+     * Request query parameters view model
+     */
+    _queryModel: Array<object|null>|null;
+
+    /**
+     * Request path parameters view model
+     */
+    _pathModel: Array<object|null>|null;
+
+    /**
+     * Computed when URL params editor is invalid.
+     */
+    _paramsInvalid: boolean|null|undefined;
+
+    /**
+     * Computed when headers editor is invalid.
+     */
+    _headersInvalid: boolean|null|undefined;
 
     /**
      * Validity state of the URL editor
      */
-    urlInvalid: boolean|null|undefined;
-    _attachListeners(node: any): void;
-    _detachListeners(node: any): void;
+    _urlInvalid: boolean|null|undefined;
+    _endpointUri: string|null|undefined;
+    _apiBaseUri: string|null|undefined;
 
     /**
      * Computes model definition for headers.
@@ -391,6 +275,8 @@ declare namespace ApiElements {
      * @returns List of headers or undefined.
      */
     _computeHeaders(model: object|null): any[]|null|undefined;
+    _attachListeners(node: any): void;
+    _detachListeners(node: any): void;
 
     /**
      * Dispatches bubbling and composed custom event.
@@ -414,6 +300,8 @@ declare namespace ApiElements {
      * Clears the request properties.
      */
     clearRequest(): void;
+    _selectedChanged(): void;
+    _computeMethodAmfModel(model: any, selected: any): any;
 
     /**
      * Computes AMF model for authorization panel.
@@ -422,22 +310,6 @@ declare namespace ApiElements {
      * @returns List of security definitions for the endpoint.
      */
     _computeSecuredBy(model: object|null): any[]|null|undefined;
-
-    /**
-     * Computes if authorization for the endpoint is set.
-     *
-     * @param model Operation model.
-     */
-    _computeNoAuth(model: object|null): Boolean|null;
-
-    /**
-     * Computes value for `httpMethod` property from AMF model for current
-     * operation.
-     *
-     * @param model Operation model.
-     * @returns Method name.
-     */
-    _computeHttpMethod(model: object|null): String|null;
 
     /**
      * Computes value for `apiPayload` property from AMF model for current
@@ -456,35 +328,6 @@ declare namespace ApiElements {
      * @param method HTTP method value
      */
     _computeIsPayloadRequest(method: String|null): Boolean|null;
-
-    /**
-     * Updates tabs selection when `authNotRequired` property change.
-     * It changes selection to the next tab if there's no authorization
-     * and current selected editor is authorization.
-     *
-     * @param value Current value for `authNotRequired`
-     */
-    _noAuthChanged(value: Boolean|null): void;
-
-    /**
-     * Updates the state of the body editor when switching to it.
-     * Code mirror does not property calculate it's value when
-     * the editor is not visible. This forces to refresh the value of the
-     * editor.
-     *
-     * @param selected Selected tam index.
-     */
-    _selectedTabChanged(selected: Number|null): void;
-
-    /**
-     * Refreshes tabs selection when `isPayloadRequest` peroperty chnage.
-     */
-    _isPayloadChanged(state: Boolean|null): void;
-
-    /**
-     * Refreshes tabs selection. To be called when number of tabs changes.
-     */
-    _refreshTabs(): void;
 
     /**
      * Handles send button click.
@@ -573,36 +416,9 @@ declare namespace ApiElements {
     _authRedirectChangedHandler(e: CustomEvent|null): void;
 
     /**
-     * Handler for path model change
-     *
-     * @param record Polymer's change record
-     */
-    _pathModelChanged(record: object|null): void;
-
-    /**
-     * Handler for query model change
-     *
-     * @param record Polymer's change record
-     */
-    _queryModelChanged(record: object|null): void;
-
-    /**
-     * Dispatches model change event
-     *
-     * @param type Model name
-     * @param model Current model value.
-     */
-    _notifyModelChanged(type: String|null, model: any[]|null): void;
-
-    /**
      * Dispatches `url-value-changed` event when url value change.
      */
     _urlChanged(value: String|null): void;
-
-    /**
-     * Computes value if `invalid` property.
-     */
-    _computeInvalid(urlInvalid: Boolean|null, paramsInvalid: Boolean|null, headersInvalid: Boolean|null, authValid: Boolean|null, authNotRequired: Boolean|null): Boolean|null;
 
     /**
      * Sets `invalid` and `aria-invalid` attributes on the element.
@@ -610,20 +426,21 @@ declare namespace ApiElements {
      * @param invalid Current state of ivalid state
      */
     _invalidChnaged(invalid: Boolean|null): void;
-
-    /**
-     * Computes label for the send button.
-     * If authorization state is ivalid then label is different.
-     *
-     * @param authValid [description]
-     */
-    _computeSendLabel(authValid: Boolean|null): String|null;
-
-    /**
-     * Computes value to disable send button when the form is invalid.
-     * THe button is active when auth is the only invalid state
-     */
-    _computeSendDisabled(urlInvalid: Boolean|null, paramsInvalid: Boolean|null, headersInvalid: Boolean|null): Boolean|null;
+    _apiChanged(e: any): void;
+    _urlHandler(e: any): void;
+    _endpointUriHandler(e: any): any;
+    _apiBaseUriHandler(e: any): any;
+    _pathModelHandler(e: any): any;
+    _queryModelHandler(e: any): any;
+    _contentTypeHandler(e: any): any;
+    _authInvalidChanged(e: any): void;
+    _paramsInvalidChanged(e: any): void;
+    _headersInvalidChanged(e: any): void;
+    _urlInvalidChanged(e: any): void;
+    _headersHandler(e: any): void;
+    _payloadHandler(e: any): void;
+    _reValidate(): any;
+    render(): any;
   }
 }
 
