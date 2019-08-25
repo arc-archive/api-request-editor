@@ -1,3 +1,5 @@
 {
-  "demo-api/demo-api.raml": "RAML 1.0"
+  "demo-api/demo-api.raml": "RAML 1.0",
+  "google-drive-api/google-drive-api.raml": "RAML 1.0",
+  "httpbin/httpbin.json": "OAS 2.0"
 }

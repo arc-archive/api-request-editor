@@ -109,6 +109,13 @@ securitySchemes:
   x-custom: !include securitySchemes/x-custom.raml
   basic: !include securitySchemes/basic.raml
   pass_through: !include securitySchemes/passthrough.raml
+  basicWithDefaults:
+    type: Basic Authentication
+    describedBy:
+      headers:
+        Authorization:
+          type: string
+          default: test
 
 documentation:
   - title: Test doc
@@ -468,6 +475,36 @@ documentation:
 /basicauth:
   get:
     securedBy: [basic]
+/basic-auth-with-defaults:
+  get:
+    securedBy: [basicWithDefaults]
 /passthroogh:
   securedBy: [pass_through]
   get:
+
+/required-query-parameters:
+  get:
+    queryParameters:
+      requiredString:
+        type: string
+        required: true
+
+/optional-query-parameters:
+  get:
+    queryParameters:
+      requiredString:
+        type: string
+        required: false
+/required-headers:
+  get:
+    headers:
+      requiredString:
+        type: string
+        required: true
+
+/optional-headers:
+  get:
+    headers:
+      requiredString:
+        type: string
+        required: false
