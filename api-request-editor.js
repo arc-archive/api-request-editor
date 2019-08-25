@@ -336,20 +336,6 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     this._selectedChanged();
   }
 
-  get amf() {
-    return this._amf;
-  }
-
-  set amf(value) {
-    const old = this._amf;
-    /* istanbul ignore if */
-    if (old === value) {
-      return;
-    }
-    this._amf = value;
-    this._selectedChanged();
-  }
-
   get url() {
     return this._url;
   }
@@ -442,6 +428,12 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
     this.removeEventListener('authorization-settings-changed', this._authSettingsChanged);
     window.removeEventListener('api-response', this._responseHandler);
     node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
+  }
+  /**
+   * Overrides `AmfHelperMixin.__amfChanged`
+   */
+  __amfChanged() {
+    this._selectedChanged();
   }
   /**
    * Dispatches bubbling and composed custom event.
