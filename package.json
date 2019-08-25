@@ -1,7 +1,7 @@
 {
   "name": "@api-components/api-request-editor",
   "description": "A request editor that builds the UI based on AMF model",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "main": "api-request-editor.js",
   "keywords": [
