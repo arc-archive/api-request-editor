@@ -37,7 +37,7 @@
     "@advanced-rest-client/http-method-selector": "^3.0.0",
     "@advanced-rest-client/uuid-generator": "^3.0.1",
     "@anypoint-web-components/anypoint-button": "^1.0.4",
-    "@api-components/amf-helper-mixin": "^3.1.0",
+    "@api-components/amf-helper-mixin": "^3.1.4",
     "@api-components/api-body-editor": "^3.0.0",
     "@api-components/api-form-mixin": "^3.0.3",
     "@api-components/api-headers-editor": "^3.0.2",
