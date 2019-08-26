@@ -1015,10 +1015,12 @@ class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
           html`<anypoint-button
             class="send-button abort"
             emphasis="high"
+            ?legacy="${legacy}"
             @click="${this._abortRequest}">Abort</anypoint-button>` :
           html`<anypoint-button
             class="send-button"
             emphasis="high"
+            ?legacy="${legacy}"
             @click="${this._sendHandler}">${_sendLabel}</anypoint-button>`}
         ${invalid ? html`<span class="invalid-info">Fill in required parameters</span>` : ''}
         <paper-spinner alt="Loading request" .active="${_loadingRequest}"></paper-spinner>
