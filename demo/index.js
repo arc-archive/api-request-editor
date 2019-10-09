@@ -21,7 +21,7 @@ class ComponentDemo extends ApiDemoPageBase {
 
     this.initObservableProperties([
       'outlined',
-      'legacy',
+      'compatibility',
       'readOnly',
       'disabled',
       'narrow',
@@ -37,7 +37,7 @@ class ComponentDemo extends ApiDemoPageBase {
     this.allowHideOptional = true;
     this.allowDisableParams = true;
 
-    this.demoStates = ['Filled', 'Outlined', 'Legacy'];
+    this.demoStates = ['Filled', 'Outlined', 'Anypoint'];
     this._demoStateHandler = this._demoStateHandler.bind(this);
     this._toggleMainOption = this._toggleMainOption.bind(this);
     this._responseReady = this._responseReady.bind(this);
@@ -48,20 +48,8 @@ class ComponentDemo extends ApiDemoPageBase {
 
   _demoStateHandler(e) {
     const state = e.detail.value;
-    switch (state) {
-      case 0:
-        this.outlined = false;
-        this.legacy = false;
-        break;
-      case 1:
-        this.outlined = true;
-        this.legacy = false;
-        break;
-      case 2:
-        this.outlined = false;
-        this.legacy = true;
-        break;
-    }
+    this.outlined = state === 1;
+    this.compatibility = state === 2;
   }
 
   _toggleMainOption(e) {
@@ -126,7 +114,7 @@ class ComponentDemo extends ApiDemoPageBase {
       demoStates,
       darkThemeActive,
       outlined,
-      legacy,
+      compatibility,
       readOnly,
       disabled,
       amf,
@@ -167,7 +155,7 @@ class ComponentDemo extends ApiDemoPageBase {
                 ?allowDisableParams="${allowDisableParams}"
                 ?narrow="${narrow}"
                 ?outlined="${outlined}"
-                ?legacy="${legacy}"
+                ?compatibility="${compatibility}"
                 ?readOnly="${readOnly}"
                 ?disabled="${disabled}"
                 ?noDocs="${noDocs}"
@@ -266,8 +254,8 @@ class ComponentDemo extends ApiDemoPageBase {
           <li><b>Filled</b> (default)</li>
           <li><b>Outlined</b> - Material desing outlined inputs, use <code>outlined</code> property</li>
           <li>
-            <b>Legacy</b> - To provide compatibility with legacy Anypoint design, use
-            <code>legacy</code> property
+            <b>Compatibility</b> - To provide compatibility with Anypoint design, use
+            <code>compatibility</code> property
           </li>
         </ul>
 
