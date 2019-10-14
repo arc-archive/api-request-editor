@@ -513,7 +513,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     this._paramsInvalid = false;
     this._authSettings = undefined;
     this._authMethod = undefined;
-    const method = this._httpMethod = this._getValue(model, this.ns.w3.hydra.core + 'method');
+    const method = this._httpMethod = this._getValue(model, this.ns.aml.vocabularies.apiContract.method);
     this._isPayloadRequest = this._computeIsPayloadRequest(method);
     this._securedBy = this._computeSecuredBy(model);
     this._apiHeaders = this. _computeHeaders(model);
@@ -528,11 +528,11 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     if (model instanceof Array) {
       model = model[0];
     }
-    if (this._hasType(model, this.ns.raml.vocabularies.document + 'Document')) {
+    if (this._hasType(model, this.ns.aml.vocabularies.document.Document)) {
       const webApi = this._computeWebApi(model);
       return this._computeMethodModel(webApi, selected);
     }
-    const key = this._getAmfKey(this.ns.w3.hydra.supportedOperation);
+    const key = this._getAmfKey(this.ns.aml.vocabularies.apiContract.supportedOperation);
     const methods = this._ensureArray(model[key]);
     if (!methods) {
       return;
@@ -553,7 +553,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     if (!model) {
       return;
     }
-    const key = this._getAmfKey(this.ns.raml.vocabularies.security + 'security');
+    const key = this._getAmfKey(this.ns.aml.vocabularies.security.security);
     let data = model[key];
     if (data && !(data instanceof Array)) {
       data = [data];
@@ -574,7 +574,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     if (!expects) {
       return;
     }
-    const key = this._getAmfKey(this.ns.raml.vocabularies.http + 'header');
+    const key = this._getAmfKey(this.ns.aml.vocabularies.apiContract.header);
     let headers = expects[key];
     if (headers && !(headers instanceof Array)) {
       headers = [headers];
@@ -596,7 +596,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     if (!expects) {
       return;
     }
-    const key = this._getAmfKey(this.ns.raml.vocabularies.http + 'payload');
+    const key = this._getAmfKey(this.ns.aml.vocabularies.apiContract.payload);
     let payload = expects[key];
     if (payload && !(payload instanceof Array)) {
       payload = [payload];

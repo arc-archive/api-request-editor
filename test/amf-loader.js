@@ -40,7 +40,7 @@ AmfLoader.lookupOperation = function(model, endpoint, operation) {
   helper.amf = model;
   const webApi = helper._computeWebApi(model);
   const endPoint = helper._computeEndpointByPath(webApi, endpoint);
-  const opKey = helper._getAmfKey(helper.ns.w3.hydra.supportedOperation);
+  const opKey = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.supportedOperation);
   const ops = helper._ensureArray(endPoint[opKey]);
-  return ops.find((item) => helper._getValue(item, helper.ns.w3.hydra.core + 'method') === operation);
+  return ops.find((item) => helper._getValue(item, helper.ns.aml.vocabularies.apiContract.method) === operation);
 };
