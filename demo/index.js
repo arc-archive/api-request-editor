@@ -89,7 +89,8 @@ class ComponentDemo extends ApiDemoPageBase {
       ['demo-api', 'Demo API'],
       ['SE-12042', 'SE-12042: Default values issue'],
       ['SE-12224', 'SE-12224: Scope is not an array issues'],
-      ['APIC-168', 'APIC-168: Custom scheme support']
+      ['APIC-168', 'APIC-168: Custom scheme support'],
+      ['APIC-289', 'OAS param names'],
     ].map(([file, label]) => html`
       <paper-item data-src="${file}-compact.json">${label} - compact model</paper-item>
       <paper-item data-src="${file}.json">${label}</paper-item>
