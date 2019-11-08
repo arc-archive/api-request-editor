@@ -784,7 +784,7 @@ describe('Basic authentication', function() {
         it('sets auth data', async () => {
           const method = AmfLoader.lookupOperation(amf, '/people/{personId}', 'get');
           const element = await modelFixture(amf, method['@id']);
-          await aTimeout();
+          await aTimeout(100);
           const result = element.serializeRequest();
           assert.equal(result.authType, 'x-custom');
           assert.typeOf(result.auth, 'object');
@@ -832,8 +832,7 @@ describe('Basic authentication', function() {
           clearCache();
           const method = AmfLoader.lookupOperation(amf, '/basic-auth-with-defaults', 'get');
           element = await modelFixture(amf, method['@id']);
-          // it need 3 ticks to commit changes in the tree, validate, and notify
-          await aTimeout(4);
+          await aTimeout(100);
         });
 
         it('sets _authMethod', () => {
