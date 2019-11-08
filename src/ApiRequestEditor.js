@@ -77,6 +77,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
       .action-bar {
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
         margin-top: 8px;
       }
@@ -91,6 +92,10 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
         flex: 1;
       }
 
+      .send-button {
+        white-space: nowrap;
+      }
+      
       .section-title {
         margin: 0.83em 8px;
         letter-spacing: 0.1rem;
