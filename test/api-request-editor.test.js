@@ -784,7 +784,7 @@ describe('Basic authentication', function() {
         it('sets auth data', async () => {
           const method = AmfLoader.lookupOperation(amf, '/people/{personId}', 'get');
           const element = await modelFixture(amf, method['@id']);
-          await aTimeout(100);
+          await aTimeout(120);
           const result = element.serializeRequest();
           assert.equal(result.authType, 'x-custom');
           assert.typeOf(result.auth, 'object');
