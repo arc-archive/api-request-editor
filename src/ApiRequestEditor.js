@@ -426,6 +426,14 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
   get requestId() {
     return this._requestId;
   }
+
+  /**
+   * @return {ApiUrlDataModel|null} A reference to `api-url-data-model`
+   * if exists in shadow DOM.
+   */
+  get apiUrlDataModel() {
+    return this.shadowRoot.querySelector('api-url-data-model');
+  }
   /**
    * @constructor
    */
@@ -448,9 +456,14 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
     node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
   }
   /**
-   * Overrides `AmfHelperMixin.__amfChanged`
+   * Overrides `AmfHelperMixin.__amfChanged`.
+   * It updates selection and clears cache in the model generator, per APIC-229
    */
   __amfChanged() {
+    const modelGenerator = this.apiUrlDataModel;
+    if (modelGenerator && modelGenerator.clearCache) {
+      modelGenerator.clearCache();
+    }
     this._selectedChanged();
   }
   /**
