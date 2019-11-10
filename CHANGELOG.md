@@ -311,3 +311,12 @@
 
 
 
+## [4.0.3](https://github.com/advanced-rest-client/api-request-editor/compare/2.0.6...4.0.3) (2019-11-10)
+
+
+### Features
+
+* clearing cache on `api-url-data-model` when model chane (APIC-229) ([9aa2529](https://github.com/advanced-rest-client/api-request-editor/commit/9aa2529e949e26659f9505166af0c8f045f5e997))
+
+
+
