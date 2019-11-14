@@ -734,11 +734,13 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
       method: (this._httpMethod || 'get').toUpperCase(),
       url: this._url,
       headers: this._headers || '',
-      payload: this._payload,
       queryModel: this._queryModel,
       pathModel: this._pathModel,
       headersModel: this.shadowRoot.querySelector('api-headers-editor').viewModel
     };
+    if (['GET', 'HEAD'].indexOf(result.method) === -1) {
+      result.payload = this._payload;
+    }
     if (this._authMethod && this._authSettings) {
       result.auth = this._authSettings;
       result.authType = this._authMethod;

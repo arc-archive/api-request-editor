@@ -789,6 +789,28 @@ describe('Basic authentication', function() {
           assert.equal(result.authType, 'x-custom');
           assert.typeOf(result.auth, 'object');
         });
+
+        it('does not set editor payload when GET request', async () => {
+          const postMethod = AmfLoader.lookupOperation(amf, '/people', 'post');
+          const element = await modelFixture(amf, postMethod['@id']);
+          await aTimeout();
+          const getMethod = AmfLoader.lookupOperation(amf, '/people', 'get');
+          element.selected = getMethod['@id'];
+          await aTimeout();
+          const result = element.serializeRequest();
+          assert.isUndefined(result.payload);
+        });
+
+        it('does not set editor payload when HEAD request', async () => {
+          const postMethod = AmfLoader.lookupOperation(amf, '/people', 'post');
+          const element = await modelFixture(amf, postMethod['@id']);
+          await aTimeout();
+          const getMethod = AmfLoader.lookupOperation(amf, '/people', 'head');
+          element.selected = getMethod['@id'];
+          await aTimeout();
+          const result = element.serializeRequest();
+          assert.isUndefined(result.payload);
+        });
       });
 
       describe('_urlChanged()', () => {

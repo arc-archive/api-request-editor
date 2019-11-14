@@ -191,6 +191,15 @@ documentation:
       application/xml:
         type: !include schemas/person.xsd
         example: !include examples/person.xml
+  head:
+    description: Just for tests.
+    body:
+      application/json:
+        (deprecated): This response type is deprecated and soon will be replaced.
+        type: AppPerson
+      application/xml:
+        type: !include schemas/person.xsd
+        example: !include examples/person.xml
   put:
     displayName: Update a person
     description: Updates the person in the datastore.
