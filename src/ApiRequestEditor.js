@@ -1054,6 +1054,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
             class="send-button"
             emphasis="high"
             ?compatibility="${compatibility}"
+            disabled="${invalid}"
             @click="${this._sendHandler}">${_sendLabel}</anypoint-button>`}
         ${invalid ? html`<span class="invalid-info">Fill in required parameters</span>` : ''}
         <paper-spinner alt="Loading request" .active="${_loadingRequest}"></paper-spinner>
