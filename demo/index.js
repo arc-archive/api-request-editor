@@ -91,6 +91,10 @@ class ComponentDemo extends ApiDemoPageBase {
       ['SE-12224', 'SE-12224: Scope is not an array issues'],
       ['APIC-168', 'APIC-168: Custom scheme support'],
       ['APIC-289', 'OAS param names'],
+      ['oas-demo', 'OAS Demo API'],
+      ['api-keys', 'API key'],
+      ['oauth-flows', 'OAS OAuth Flow'],
+      ['oas-bearer', 'OAS Bearer'],
     ].map(([file, label]) => html`
       <paper-item data-src="${file}-compact.json">${label} - compact model</paper-item>
       <paper-item data-src="${file}.json">${label}</paper-item>
