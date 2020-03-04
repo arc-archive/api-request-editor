@@ -16,16 +16,6 @@ module.exports = (config) => {
           type: 'module'
         },
         {
-          pattern: require.resolve('chai/chai.js')
-        },
-        {
-          pattern: require.resolve('axe-core/axe.min.js')
-        },
-        {
-          pattern: config.grep ? config.grep : 'test/**/*.test.js',
-          type: 'module'
-        },
-        {
           pattern: 'node_modules/cryptojslib/components/core.js',
           type: 'js'
         },
@@ -43,10 +33,6 @@ module.exports = (config) => {
         },
         {
           pattern: 'node_modules/cryptojslib/rollups/hmac-sha1.js',
-          type: 'js'
-        },
-        {
-          pattern: 'node_modules/jsrsasign/lib/jsrsasign-rsa-min.js',
           type: 'js'
         },
         {
