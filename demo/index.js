@@ -6,8 +6,6 @@ import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
 import '@advanced-rest-client/arc-demo-helper/arc-demo-helper.js';
 import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
 import '@api-components/api-navigation/api-navigation.js';
-import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
-import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
 import '@advanced-rest-client/xhr-simple-request/xhr-simple-request.js';
 import '../api-request-editor.js';
 
@@ -355,8 +353,6 @@ class ComponentDemo extends ApiDemoPageBase {
       ${this.headerTemplate()}
 
       <demo-element id="helper" .amf="${amf}"></demo-element>
-      <oauth2-authorization></oauth2-authorization>
-      <oauth1-authorization></oauth1-authorization>
       <xhr-simple-request @api-response="${this._responseReady}"></xhr-simple-request>
 
       <div role="main">

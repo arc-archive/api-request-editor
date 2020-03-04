@@ -29,6 +29,8 @@ import '@anypoint-web-components/anypoint-button/anypoint-icon-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-toast/paper-toast.js';
 import '@advanced-rest-client/uuid-generator/uuid-generator.js';
+import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
+import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
 import styles from './Styles.js';
 
 /**
@@ -659,6 +661,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       if (settings.length) {
         const params = node.createAuthParams();
         this._applyAuthorization(result, settings, params);
+        const oa1 = this.shadowRoot.querySelector('oauth1-authorization');
+        oa1.signRequest(result, settings);
       }
     }
     return result;
@@ -888,6 +892,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     } = this;
     return html`<style>${styles}</style>
     ${this._awareTemplate()}
+    ${this._oauthHandlersTemplate()}
     ${this._urlDataModelTemplate()}
     <div class="content">
       ${this._urlEditorTemplate()}
@@ -903,6 +908,13 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
         horizontal-offset="12"></paper-toast>
       <uuid-generator id="uuid"></uuid-generator>
     </div>`;
+  }
+
+  _oauthHandlersTemplate() {
+    const { eventsTarget } = this;
+    return html`
+    <oauth2-authorization .eventsTarget="${eventsTarget}"></oauth2-authorization>
+    <oauth1-authorization .eventsTarget="${eventsTarget}" ignoreBeforeRequest></oauth1-authorization>`;
   }
 
   _awareTemplate() {
@@ -1125,6 +1137,11 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     </div>`;
   }
 
+  /**
+   * Creates a template for the "abort" button.
+   *
+   * @return {TemplateResult}
+   */
   _abortButtonTemplate() {
     const {
       compatibility,
@@ -1136,6 +1153,11 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       @click="${this._abortRequest}">Abort</anypoint-button>`;
   }
 
+  /**
+   * Creates a template for the "send" or "auth and send" button.
+   *
+   * @return {TemplateResult}
+   */
   _sendButtonTemplate() {
     const {
       compatibility,
@@ -1156,10 +1178,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * @param {String} method HTTP method name. Can be empty.
    * @param {String} headers HTTP headers string. Can be empty.
    * @param {String|File|FormData} payload Message body. Can be undefined.
-   * @param {?Object} auth Authorization settings from the auth panel.
+   * @param {?Array<Object>} auth Authorization settings from the auth panel.
    * May be `undefined`.
-   * @param {?String} authType Name of the authorization methods. One of
-   * `advanced-rest-client/auth-methods`.
    * @param {String} id Generated UUID for the request. Each call of
    * `execute()` function regenerates the `id`.
    * @param {?Array<Object>} queryModel Query parameters data view model

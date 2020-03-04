@@ -88,7 +88,7 @@ Properties set on the detail object:
 -   method `String`  HTTP method name. Can be empty.
 -   headers `String` HTTP headers string. Can be empty.
 -   payload `String|File|FormData` Message body. Can be undefined.
--   auth `Object` Optional, authorization settings from the auth panel.
+-   auth `Array<Object>` Optional, authorization settings from the auth panel.
 -   authType `String` Name of the authorization methods. One of `advanced-rest-client/auth-methods`.
 -   id `String` Generated UUID for the request. Each call of the `execute()` function regenerates the `id`.
 
