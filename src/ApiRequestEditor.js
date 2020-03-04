@@ -363,12 +363,12 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
   }
 
   _attachListeners(node) {
-    window.addEventListener('api-response', this._responseHandler);
+    node.addEventListener('api-response', this._responseHandler);
     node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
   }
 
   _detachListeners(node) {
-    window.removeEventListener('api-response', this._responseHandler);
+    node.removeEventListener('api-response', this._responseHandler);
     node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
   }
   /**
@@ -425,10 +425,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     this._url = '';
     this._headers = '';
     this._payload = '';
-    // const node = this.shadowRoot.querySelector('authorization-panel');
-    // if (node) {
-    //   node.clear();
-    // }
     this._dispatch('request-clear-state');
     this._sendGaEvent('Clear request');
   }
