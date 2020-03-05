@@ -4,7 +4,7 @@ import * as MockInteractions from '@polymer/iron-test-helpers/mock-interactions.
 import { AmfLoader } from './amf-loader.js';
 import '../api-request-editor.js';
 
-describe('Basic authentication', function() {
+describe('ApiRequestEditor', function() {
   async function basicFixture() {
     return (await fixture(`<api-request-editor></api-request-editor>`));
   }
@@ -72,7 +72,7 @@ describe('Basic authentication', function() {
 
     it('does not render authorization editor without the model', async () => {
       const element = await basicFixture();
-      const node = element.shadowRoot.querySelector('authorization-panel');
+      const node = element.shadowRoot.querySelector('api-authorization');
       assert.notOk(node);
     });
   });
@@ -486,7 +486,7 @@ describe('Basic authentication', function() {
         it('renders authorization panel when authorization is required', async () => {
           const method = AmfLoader.lookupOperation(amf, '/messages', 'get');
           const element = await modelFixture(amf, method['@id']);
-          const node = element.shadowRoot.querySelector('authorization-panel');
+          const node = element.shadowRoot.querySelector('api-authorization');
           assert.ok(node);
         });
 
@@ -784,10 +784,11 @@ describe('Basic authentication', function() {
         it('sets auth data', async () => {
           const method = AmfLoader.lookupOperation(amf, '/people/{personId}', 'get');
           const element = await modelFixture(amf, method['@id']);
-          await aTimeout(120);
+          await aTimeout();
           const result = element.serializeRequest();
-          assert.equal(result.authType, 'x-custom');
-          assert.typeOf(result.auth, 'object');
+          assert.typeOf(result.auth, 'array');
+          assert.lengthOf(result.auth, 1);
+          assert.equal(result.auth[0].type, 'custom');
         });
 
         it('does not set editor payload when GET request', async () => {
@@ -857,12 +858,47 @@ describe('Basic authentication', function() {
           await aTimeout(100);
         });
 
-        it('sets _authMethod', () => {
-          assert.equal(element._authMethod, 'Basic Authentication');
+        it('calls execute() when __requestAuthAwaiting and valid', () => {
+          const spy = sinon.spy(element, 'execute');
+          element.__requestAuthAwaiting = true;
+          element._authSettingsChanged({
+            detail: {
+              valid: true
+            }
+          });
+          assert.isTrue(spy.called);
         });
 
-        it('sets _authSettings data', () => {
-          assert.typeOf(element._authSettings, 'object');
+        it('does not call execute() when not valid', () => {
+          const spy = sinon.spy(element, 'execute');
+          element.__requestAuthAwaiting = true;
+          element._authSettingsChanged({
+            detail: {
+              valid: false
+            }
+          });
+          assert.isFalse(spy.called);
+        });
+
+        it('does not call execute() when not required', () => {
+          element.__requestAuthAwaiting = false;
+          const spy = sinon.spy(element, 'execute');
+          element._authSettingsChanged({
+            detail: {
+              valid: true
+            }
+          });
+          assert.isFalse(spy.called);
+        });
+
+        it('calls _reValidate()', () => {
+          const spy = sinon.spy(element, '_reValidate');
+          element._authSettingsChanged({
+            detail: {
+              valid: true
+            }
+          });
+          assert.isTrue(spy.called);
         });
       });
 
