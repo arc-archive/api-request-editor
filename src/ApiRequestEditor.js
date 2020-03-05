@@ -213,11 +213,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
        * Flag set when the request is being made.
        */
       _loadingRequest: { type: Boolean },
-
-      // Selected by the user auth method (if any)
-      _authMethod: { type: String },
-      // Current authorization settings.
-      _authSettings: { type: Object },
       /**
        * Generated request ID when the request is sent. This value is reported
        * in send and abort events
@@ -442,7 +437,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     this._headersInvalid = false;
     this._paramsInvalid = false;
     this._authSettings = undefined;
-    this._authMethod = undefined;
     const method = this._httpMethod = this._getValue(model, this.ns.aml.vocabularies.apiContract.method);
     this._isPayloadRequest = this._computeIsPayloadRequest(method);
     this._securedBy = this._computeSecuredBy(model);
@@ -740,8 +734,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * @param {CustomEvent} e
    */
   _authSettingsChanged(e) {
-    this._authMethod = e.detail.type;
-    this._authSettings = e.detail.settings;
     if (e.detail.valid && this.__requestAuthAwaiting) {
       this.__requestAuthAwaiting = false;
       this.execute();
