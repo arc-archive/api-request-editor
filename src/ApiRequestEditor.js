@@ -727,20 +727,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
   }
 
   /**
-   * Handler for the `authorization-settings-changed` dispatched by
-   * authorization panel. Sets auth settings and executes the request if
-   * any pending if valid.
-   *
-   * @param {CustomEvent} e
-   */
-  _authSettingsChanged(e) {
-    if (e.detail.valid && this.__requestAuthAwaiting) {
-      this.__requestAuthAwaiting = false;
-      this.execute();
-    }
-    this._reValidate();
-  }
-  /**
    * Handler for the `api-response` custom event.
    * Clears the loading state.
    *

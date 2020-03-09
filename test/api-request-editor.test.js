@@ -844,64 +844,6 @@ describe('ApiRequestEditor', function() {
         });
       });
 
-      describe('_authSettingsChanged()', () => {
-        let amf;
-        before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
-        });
-
-        let element;
-        beforeEach(async () => {
-          clearCache();
-          const method = AmfLoader.lookupOperation(amf, '/basic-auth-with-defaults', 'get');
-          element = await modelFixture(amf, method['@id']);
-          await aTimeout(100);
-        });
-
-        it('calls execute() when __requestAuthAwaiting and valid', () => {
-          const spy = sinon.spy(element, 'execute');
-          element.__requestAuthAwaiting = true;
-          element._authSettingsChanged({
-            detail: {
-              valid: true
-            }
-          });
-          assert.isTrue(spy.called);
-        });
-
-        it('does not call execute() when not valid', () => {
-          const spy = sinon.spy(element, 'execute');
-          element.__requestAuthAwaiting = true;
-          element._authSettingsChanged({
-            detail: {
-              valid: false
-            }
-          });
-          assert.isFalse(spy.called);
-        });
-
-        it('does not call execute() when not required', () => {
-          element.__requestAuthAwaiting = false;
-          const spy = sinon.spy(element, 'execute');
-          element._authSettingsChanged({
-            detail: {
-              valid: true
-            }
-          });
-          assert.isFalse(spy.called);
-        });
-
-        it('calls _reValidate()', () => {
-          const spy = sinon.spy(element, '_reValidate');
-          element._authSettingsChanged({
-            detail: {
-              valid: true
-            }
-          });
-          assert.isTrue(spy.called);
-        });
-      });
-
       describe('_sendHandler()', () => {
         let amf;
         before(async () => {
