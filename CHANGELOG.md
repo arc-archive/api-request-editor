@@ -594,3 +594,27 @@
  [d877029](https://github.com/advanced-rest-client/api-request-editor/commit/d877029413365f60b895308498f7eb9113a0f0a8) by Pawel Psztyc
 
 
+<a name="5.0.0-preview.1"></a>
+# [5.0.0-preview.1](https://github.com/advanced-rest-client/api-request-editor/compare/4.0.4...5.0.0-preview.1) (2020-03-10)
+
+## Build
+
+* bumping version [6b7634d](https://github.com/advanced-rest-client/api-request-editor/commit/6b7634daa12bdbb116aedf3052a5c3a01457331d) by Pawel Psztyc
+
+
+## Continuous integration
+
+* fixing travis configuration [4a6143f](https://github.com/advanced-rest-client/api-request-editor/commit/4a6143fa959441e89698d2e1ba2d517d135f0f87) by Pawel Psztyc
+
+
+## Update
+
+* [ci skip] automated merge master->stage. syncing main branches [16d7ab3](https://github.com/advanced-rest-client/api-request-editor/commit/16d7ab33cee1b65a74fae04d0322fd047b2b07f4) by Ci agent
+* upgrading dependency [6e74e9f](https://github.com/advanced-rest-client/api-request-editor/commit/6e74e9f3020ddd744a945ca39cd07e9fc876933f) by Pawel Psztyc
+
+
+## Testing
+
+* updating test command [626c0ca](https://github.com/advanced-rest-client/api-request-editor/commit/626c0ca9d8fd332ab5c19c72c3117c2e84b49a02) by Pawel Psztyc
+
+
