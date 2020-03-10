@@ -106,7 +106,9 @@ traits:
   Adminable: !include traits/adminable.raml
 securitySchemes:
   oauth_2_0: !include securitySchemes/oauth_2_0.raml
-  x-custom: !include securitySchemes/x-custom.raml
+  custom1: !include securitySchemes/x-custom.raml
+  custom2: !include securitySchemes/x-other.raml
+  custom3: !include securitySchemes/x-query-string.raml
   basic: !include securitySchemes/basic.raml
   pass_through: !include securitySchemes/passthrough.raml
   basicWithDefaults:
@@ -116,11 +118,14 @@ securitySchemes:
         Authorization:
           type: string
           default: test
+  oauth1: !include securitySchemes/oauth_1_0.raml
+  oauth1signature: !include securitySchemes/oauth_1_0_signature.raml
+  oauth1noSignature: !include securitySchemes/oauth_1_0_no-signature.raml
+  oauth1noSettings: !include securitySchemes/oauth_1_0_no-settings.raml
 
 documentation:
   - title: Test doc
     content: Test content
-
 
 /test-parameters/{feature}:
   (deprecated): This endpoint is deprecated and will be removed.
@@ -229,7 +234,7 @@ documentation:
             type: !include schemas/person.xsd
             example: !include examples/person.xml
   /{personId}:
-    securedBy: x-custom
+    securedBy: custom1
     type: ResourceNotFound
     displayName: A person
     description: The endpoint to access information about the person
@@ -517,3 +522,24 @@ documentation:
       requiredString:
         type: string
         required: false
+/oauth1:
+  get:
+    securedBy: [oauth1]
+/oauth1-signature:
+  get:
+    securedBy: [oauth1signature]
+/oauth1-nosignature:
+  get:
+    securedBy: [oauth1noSignature]
+/oauth1-nosettings:
+  get:
+    securedBy: [oauth1noSettings]
+/custom1:
+  get:
+    securedBy: [custom1]
+/custom2:
+  get:
+    securedBy: [custom2]
+/custom3:
+  get:
+    securedBy: [custom3]

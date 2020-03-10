@@ -1,4 +1,5 @@
 import { fixture, assert, html, aTimeout } from '@open-wc/testing';
+import * as sinon from 'sinon/pkg/sinon-esm.js';
 import { AmfLoader } from './amf-loader.js';
 import '../api-request-editor.js';
 
@@ -35,9 +36,12 @@ describe('SE-12042', function() {
           const method = AmfLoader.lookupOperation(amf, '/check/api-status', 'get');
           const element = await modelFixture(amf, method['@id']);
           await aTimeout();
-          await aTimeout();
-
-          assert.equal(element.headers,
+          const spy = sinon.spy();
+          element.addEventListener('api-request', spy);
+          element.execute();
+          const { detail } = spy.args[0][0];
+          const { headers } = detail;
+          assert.equal(headers,
             'Client-Id: 283a6722121141feb7a929793d5c\nClient-Secret: 1421b7a929793d51fe283a67221c');
         });
 
@@ -45,9 +49,13 @@ describe('SE-12042', function() {
           const method = AmfLoader.lookupOperation(amf, '/check/api-status', 'get');
           const element = await modelFixture(amf, method['@id']);
           await aTimeout();
-          await aTimeout();
+          const spy = sinon.spy();
+          element.addEventListener('api-request', spy);
+          element.execute();
+          const { detail } = spy.args[0][0];
+          const { url } = detail;
 
-          assert.include(element.url,
+          assert.include(url,
             'api-status?testParam=x-test-value');
         });
       });

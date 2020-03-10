@@ -6,8 +6,6 @@ import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
 import '@advanced-rest-client/arc-demo-helper/arc-demo-helper.js';
 import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
 import '@api-components/api-navigation/api-navigation.js';
-import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
-import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
 import '@advanced-rest-client/xhr-simple-request/xhr-simple-request.js';
 import '../api-request-editor.js';
 
@@ -91,6 +89,10 @@ class ComponentDemo extends ApiDemoPageBase {
       ['SE-12224', 'SE-12224: Scope is not an array issues'],
       ['APIC-168', 'APIC-168: Custom scheme support'],
       ['APIC-289', 'OAS param names'],
+      ['oas-demo', 'OAS Demo API'],
+      ['api-keys', 'API key'],
+      ['oauth-flows', 'OAS OAuth Flow'],
+      ['oas-bearer', 'OAS Bearer'],
     ].map(([file, label]) => html`
       <paper-item data-src="${file}-compact.json">${label} - compact model</paper-item>
       <paper-item data-src="${file}.json">${label}</paper-item>
@@ -351,8 +353,6 @@ class ComponentDemo extends ApiDemoPageBase {
       ${this.headerTemplate()}
 
       <demo-element id="helper" .amf="${amf}"></demo-element>
-      <oauth2-authorization></oauth2-authorization>
-      <oauth1-authorization></oauth1-authorization>
       <xhr-simple-request @api-response="${this._responseReady}"></xhr-simple-request>
 
       <div role="main">

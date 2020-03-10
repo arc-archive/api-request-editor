@@ -2,20 +2,27 @@
 
 description: |
   A custom security scheme for authenticating requests.
-type: x-custom
+  It allows to set `SpecialToken` header from the authorization panel.
+  The same header should be rendered in the headers editor with console using
+  RAML JS parser.
+  With `AMF` console this is separated information.
+  This scheme also sets `debugToken` and `booleanToken` query parameters.
+  Both are enums, however `booleanToken` can only have `true` and `false`
+  values.
+type: x-my-custom
 describedBy:
   headers:
-    SpecialToken:
+    SpecialTokenHeader:
       description: |
         Used to send a custom token.
       type: string
   queryParameters:
-    debugToken:
+    debugTokenParam:
       description: Select one of available values to run the request in the debug mode with selected level.
       enum: [Info, Log, Warning, Error, Critical]
       type: string
       required: false
-    booleanToken:
+    booleanTokenParam:
       description: Just to test boolean values.
       type: boolean
       default: true
