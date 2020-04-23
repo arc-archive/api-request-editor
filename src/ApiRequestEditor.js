@@ -926,7 +926,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       .amf="${amf}"
       .apiUri="${baseUri}"
       .selected="${selected}"
-      .server="${ifDefined(server)}"
+      .server="${server}"
       .protocols="${ifDefined(protocols)}"
       .version="${ifDefined(version)}"
     ></api-url-data-model>`;
