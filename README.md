@@ -1,6 +1,6 @@
 [![Published on NPM](https://img.shields.io/npm/v/@api-components/api-request-editor.svg)](https://www.npmjs.com/package/@api-components/api-request-editor)
 
-[![Build Status](https://travis-ci.org/advanced-rest-client/api-request-editor.svg?branch=stage)](https://travis-ci.org/advanced-rest-client/api-request-editor)
+[![Build Status](https://api.travis-ci.com/advanced-rest-client/api-request-editor.svg)](https://travis-ci.com/advanced-rest-client/api-request-editor)
 
 # api-request-editor
 
