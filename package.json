@@ -31,7 +31,7 @@
     "url": "git://github.com/advanced-rest-client/api-request-editor.git"
   },
   "dependencies": {
-    "@advanced-rest-client/api-authorization": "^0.1.2",
+    "@api-components/api-authorization": "^0.2.0",
     "@advanced-rest-client/arc-icons": "^3.0.5",
     "@advanced-rest-client/events-target-mixin": "^3.1.1",
     "@advanced-rest-client/headers-parser-mixin": "^3.1.0",
@@ -44,7 +44,7 @@
     "@api-components/api-body-editor": "^4.0.3",
     "@api-components/api-form-mixin": "^3.0.4",
     "@api-components/api-headers-editor": "^4.0.2",
-    "@api-components/api-url-data-model": "^4.0.5",
+    "@api-components/api-url-data-model": "^4.1.0",
     "@api-components/api-url-editor": "^4.0.1",
     "@api-components/api-url-params-editor": "^4.0.2",
     "@api-components/raml-aware": "^3.0.0",
@@ -75,7 +75,8 @@
     "husky": "^4.2.5",
     "karma": "^5.0.2",
     "lint-staged": "^10.1.7",
-    "sinon": "^9.0.2"
+    "sinon": "^9.0.2",
+    "typescript-lit-html-plugin": "^0.9.0"
   },
   "scripts": {
     "test": "karma start --coverage",

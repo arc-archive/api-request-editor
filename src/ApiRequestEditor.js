@@ -21,7 +21,7 @@ import formStyles from '@api-components/api-form-mixin/api-form-styles.js';
 import '@api-components/api-url-data-model/api-url-data-model.js';
 import '@api-components/api-url-editor/api-url-editor.js';
 import '@api-components/api-url-params-editor/api-url-params-editor.js';
-import '@advanced-rest-client/api-authorization/api-authorization.js';
+import '@api-components/api-authorization/api-authorization.js';
 import '@api-components/api-headers-editor/api-headers-editor.js';
 import '@api-components/api-body-editor/api-body-editor.js';
 import '@api-components/raml-aware/raml-aware.js';
@@ -33,15 +33,19 @@ import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
 import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
 import styles from './Styles.js';
 
+/** @typedef {import('@api-components/api-url-data-model/index.js').ApiUrlDataModel} ApiUrlDataModel */
+/** @typedef {import('@api-components/api-authorization/src/ApiAuthorization.js').ApiAuthorization} ApiAuthorization */
+/** @typedef {import('lit-html').TemplateResult} TemplateResult */
+
 /**
  * `api-request-editor`
  *
  * @customElement
  * @demo demo/index.html
- * @appliesMixin EventsTargetMixin
- * @appliesMixin AmfHelperMixin
- * @appliesMixin HeadersParserMixin
- * @memberof ApiElements
+ * @mixes AmfHelperMixin
+ * @mixes EventTargetMixin
+ * @mixes HeadersParserMixin
+ * @extends LitElement
  */
 export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTargetMixin(LitElement))) {
   static get properties() {
@@ -152,21 +156,15 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       invalid: { type: Boolean },
       /**
        * Computed from AMF model for the metod HTTP method name.
-       *
-       * @type {String}
        */
       _httpMethod: { type: String },
       /**
        * Headers for the request.
-       *
-       * @type {String|undefined}
        */
       _headers: { type: String },
       /**
        * Body for the request. The type of the body depends on
-       * defined in the API media type.7
-       *
-       * @type {String|FormData|File}
+       * defined in the API media type.
        */
       _payload: { type: String },
       /**
@@ -178,26 +176,18 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       _url: { type: String },
       /**
        * Current content type.
-       *
-       * @type {String|undefined}
        */
       _contentType: { type: String },
       /**
        * Computed value of security scheme from selected method.
-       *
-       * @type {Array<Object>}
        */
       _securedBy: { type: Array },
       /**
        * Computed list of headers in the AMF model
-       *
-       * @type {Array<Object>}
        */
       _apiHeaders: { type: Array },
       /**
        * Defined by the API payload data.
-       *
-       * @type {Array<Object>|undefined}
        */
       _apiPayload: { type: Array },
       /**
@@ -220,12 +210,10 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       _requestId: { type: String },
       /**
        * Request query parameters view model
-       * @type {Array<Object>}
        */
       _queryModel: { type: Array },
       /**
        * Request path parameters view model
-       * @type {Array<Object>}
        */
       _pathModel: { type: Array },
       /**
@@ -346,8 +334,16 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * if exists in shadow DOM.
    */
   get apiUrlDataModel() {
-    return this.shadowRoot.querySelector('api-url-data-model');
+    return /** @type {ApiUrlDataModel} */ (this.shadowRoot.querySelector('api-url-data-model'));
   }
+
+  /**
+   * @return {ApiAuthorization} A reference to the authorization panel, if exists
+   */
+  get _auth() {
+    return /** @type {ApiAuthorization} */ (this.shadowRoot.querySelector('api-authorization'));
+  }
+
   /**
    * @constructor
    */
@@ -381,8 +377,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * Dispatches bubbling and composed custom event.
    * By default the event is cancelable until `cancelable` property is set to false.
    * @param {String} type Event type
-   * @param {?any} detail A detail to set
-   * @param {?Boolean} cancelable When false the event is not cancelable.
+   * @param {any=} detail A detail to set
+   * @param {Boolean=} cancelable When false the event is not cancelable.
    * @return {CustomEvent}
    */
   _dispatch(type, detail, cancelable) {
@@ -402,7 +398,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
   /**
    * Sends usage google analytics event
    * @param {String} action Action description
-   * @param {String} label Event label
+   * @param {String=} label Event label
    * @return {CustomEvent}
    */
   _sendGaEvent(action, label) {
@@ -550,6 +546,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       this.execute();
     }
   }
+
   /**
    * To be called when the user want to execute the request but
    * authorization is invalid (missin values).
@@ -561,10 +558,10 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    */
   authAndExecute() {
     this.__requestAuthAwaiting = true;
-    const panel = this.shadowRoot.querySelector('api-authorization');
+    const panel = this._auth;
     let result;
     if (panel) {
-      result = panel.forceAuthorization();
+      result = panel.forceAuthorization(false);
     }
     if (!result) {
       const toast = this.shadowRoot.querySelector('#authFormError');
@@ -646,7 +643,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     }
 
     if (this._securedBy) {
-      const node = this.shadowRoot.querySelector('api-authorization');
+      const node = this._auth;
       const { settings=[] } = node;
       if (settings.length) {
         const params = node.createAuthParams();
