@@ -640,3 +640,41 @@
 * adding `urlLabel` option [c0ff3e8](https://github.com/advanced-rest-client/api-request-editor/commit/c0ff3e8919da662b2e46b668a585a3360bdaed0d) by Pawel
 
 
+<a name="5.0.0"></a>
+# [5.0.0](https://github.com/advanced-rest-client/api-request-editor/compare/5.0.0-preview.1...5.0.0) (2020-04-23)
+
+## Build
+
+* bumping version to stable [eb7bd89](https://github.com/advanced-rest-client/api-request-editor/commit/eb7bd8922a748e824879ac8ec6b8bfbb0ab17001) by Pawel
+* bumpiong version [1fd8270](https://github.com/advanced-rest-client/api-request-editor/commit/1fd8270769c400488a761c93d94e75163e4b615b) by Pawel
+
+
+## Continuous integration
+
+* removing installation of the model generator package [7212242](https://github.com/advanced-rest-client/api-request-editor/commit/7212242e0b4afc969857dc5ca2530a5f2358c923) by Pawel
+
+
+## Update
+
+* [ci skip] automated merge master->stage. syncing main branches [78c5e19](https://github.com/advanced-rest-client/api-request-editor/commit/78c5e195d3ec90c4709c16f6bc93640203980ac5) by Ci agent
+* upgrading demo page [70583f8](https://github.com/advanced-rest-client/api-request-editor/commit/70583f8dcf5afd88b63147cd8c033363a6e2849a) by Pawel
+* upgrading dependencies [a6ad506](https://github.com/advanced-rest-client/api-request-editor/commit/a6ad50648aeaac146ee004d7ab1acb6ed175d7ff) by Pawel
+* upgrading dependencies [8dcb219](https://github.com/advanced-rest-client/api-request-editor/commit/8dcb21912531547f17ba0a8ea20a7ba40aeb967e) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [561ec14](https://github.com/advanced-rest-client/api-request-editor/commit/561ec149f4561cbe842ee3d1d3788ca69c250186) by Ci agent
+
+
+## Documentation
+
+* updating travis badge [1f661c7](https://github.com/advanced-rest-client/api-request-editor/commit/1f661c71c8248dd4cc31cac70adc52f045ddce0c) by Pawel
+
+
+## Features
+
+* adding `urlLabel` option [c0ff3e8](https://github.com/advanced-rest-client/api-request-editor/commit/c0ff3e8919da662b2e46b668a585a3360bdaed0d) by Pawel
+
+
+## Testing
+
+* adding higher timeout for tests [cd96fd2](https://github.com/advanced-rest-client/api-request-editor/commit/cd96fd21730f578bed3f01d0b2a98382f9760545) by Pawel
+
+
