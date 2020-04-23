@@ -90,4 +90,16 @@ authorization-panel {
 :host([narrow]) api-url-editor {
   width: auto;
 }
+
+.url-label {
+  margin: 0 8px;
+  padding: 12px 8px;
+  border-radius: 3px;
+
+  background-color: var(--api-request-editor-readonly-url-background-color, rgba(0, 0, 0, 0.12));
+  color: var(--api-request-editor-readonly-url-color, currentColor);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+}
 `;

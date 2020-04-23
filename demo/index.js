@@ -18,7 +18,8 @@ class ComponentDemo extends ApiDemoPage {
       'allowDisableParams',
       'noDocs',
       'noUrlEditor',
-      'responseBody'
+      'responseBody',
+      'urlLabel',
     ]);
     this.componentName = 'api-request-editor';
     this.allowCustom = false;
@@ -28,6 +29,7 @@ class ComponentDemo extends ApiDemoPage {
     this.disabled = false;
     this.noDocs = false;
     this.noUrlEditor = false;
+    this.urlLabel = false;
 
     this.demoStates = ['Filled', 'Outlined', 'Anypoint'];
     this._demoStateHandler = this._demoStateHandler.bind(this);
@@ -112,7 +114,8 @@ class ComponentDemo extends ApiDemoPage {
       selectedAmfId,
       noDocs,
       noUrlEditor,
-      responseBody
+      responseBody,
+      urlLabel,
     } = this;
     return html `
     <section class="documentation-section">
@@ -143,6 +146,7 @@ class ComponentDemo extends ApiDemoPage {
             ?disabled="${disabled}"
             ?noDocs="${noDocs}"
             ?noUrlEditor="${noUrlEditor}"
+            ?urlLabel="${urlLabel}"
             .redirectUri="${redirectUri}"
             @api-request="${this._apiRequestHandler}"></api-request-editor>
           ${responseBody ? html`<h3>Latest response</h3>
@@ -207,6 +211,13 @@ class ComponentDemo extends ApiDemoPage {
           name="noUrlEditor"
           @change="${this._toggleMainOption}"
           >No url editor</anypoint-checkbox
+        >
+        <anypoint-checkbox
+          aria-describedby="mainOptionsLabel"
+          slot="options"
+          name="urlLabel"
+          @change="${this._toggleMainOption}"
+          >URL label</anypoint-checkbox
         >
       </arc-interactive-demo>
     </section>`;

@@ -65,6 +65,12 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
        */
       noUrlEditor: { type: Boolean },
       /**
+       * When set it renders a label with the computed URL.
+       * This intended to be used with `noUrlEditor` set to true.
+       * This way it replaces the editor with a simple label.
+       */
+      urlLabel: { type: Boolean },
+      /**
        * A base URI for the API. To be set if RAML spec is missing `baseUri`
        * declaration and this produces invalid URL input. This information
        * is passed to the URL editor that prefixes the URL with `baseUri` value
@@ -351,6 +357,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     super();
     this._responseHandler = this._responseHandler.bind(this);
     this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
+
+    this.urlLabel = false;
   }
 
   _attachListeners(node) {
@@ -867,6 +875,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     ${this._urlDataModelTemplate()}
     <div class="content">
       ${this._urlEditorTemplate()}
+      ${this._urlLabelTemplate()}
       ${this._paramsEditorTemplate()}
       ${this._headersEditorTemplate()}
       ${this._bodyEditorTemplate()}
@@ -953,6 +962,17 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
         ?compatibility="${compatibility}"
       ></api-url-editor>
     </div>`;
+  }
+
+  /**
+   * @return {TemplateResult|string} Template for the request URL label.
+   */
+  _urlLabelTemplate() {
+    const { urlLabel, _url } = this;
+    if (!urlLabel) {
+      return '';
+    }
+    return html`<div class="url-label" title="Current request URL">${_url}</div>`;
   }
 
   _paramsEditorTemplate() {

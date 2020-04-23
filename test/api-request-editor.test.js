@@ -23,6 +23,13 @@ describe('ApiRequestEditor', function() {
       .selected="${selected}"></api-request-editor>`));
   }
 
+  async function urlLabelFixture(amf, selected) {
+    return (await fixture(html`<api-request-editor
+      .amf="${amf}"
+      .selected="${selected}"
+      urlLabel></api-request-editor>`));
+  }
+
   function clearCache() {
     const transformer = document.createElement('api-view-model-transformer');
     transformer.clearCache();
@@ -73,6 +80,12 @@ describe('ApiRequestEditor', function() {
     it('does not render authorization editor without the model', async () => {
       const element = await basicFixture();
       const node = element.shadowRoot.querySelector('api-authorization');
+      assert.notOk(node);
+    });
+
+    it('does not render url label', async () => {
+      const element = await basicFixture();
+      const node = element.shadowRoot.querySelector('.url-label');
       assert.notOk(node);
     });
   });
@@ -887,6 +900,28 @@ describe('ApiRequestEditor', function() {
           const button = element.shadowRoot.querySelector('.send-button');
           MockInteractions.tap(button);
           assert.isTrue(spy.called);
+        });
+      });
+
+      describe('#urlLabel', () => {
+        let amf;
+        before(async () => {
+          amf = await AmfLoader.load(demoApi, compact);
+        });
+
+        it('renders the url label', async () => {
+          const method = AmfLoader.lookupOperation(amf, '/people', 'get');
+          const element = await urlLabelFixture(amf, method['@id']);
+          const node = element.shadowRoot.querySelector('.url-label');
+          assert.ok(node);
+        });
+
+        it('renders the url value', async () => {
+          const method = AmfLoader.lookupOperation(amf, '/people', 'get');
+          const element = await urlLabelFixture(amf, method['@id']);
+          const node = element.shadowRoot.querySelector('.url-label');
+          const text = node.textContent.trim();
+          assert.equal(text, 'http://production.domain.com/people');
         });
       });
     });
