@@ -31,11 +31,19 @@ import '@polymer/paper-toast/paper-toast.js';
 import '@advanced-rest-client/uuid-generator/uuid-generator.js';
 import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
 import '@advanced-rest-client/oauth-authorization/oauth1-authorization.js';
+import '@api-components/api-server-selector/api-server-selector.js';
 import styles from './Styles.js';
 
 /** @typedef {import('@api-components/api-url-data-model/index.js').ApiUrlDataModel} ApiUrlDataModel */
 /** @typedef {import('@api-components/api-authorization/src/ApiAuthorization.js').ApiAuthorization} ApiAuthorization */
 /** @typedef {import('lit-html').TemplateResult} TemplateResult */
+
+/**
+ * @typedef {Object} ServerParameters
+ * @property {String=} id AMF model's ID for currently selected node.
+ * @property {String=} type API Component's internal main selection value.
+ * @property {String=} endpointId If available, current endpoint ID
+ */
 
 /**
  * `api-request-editor`
@@ -236,7 +244,27 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       _urlInvalid: { type: Boolean },
 
       _endpointUri: { type: String },
-      _apiBaseUri: { type: String }
+      _apiBaseUri: { type: String },
+      /**
+       * Holds the value of the currently selected server
+       * Data type: URI
+       */
+      serverValue: { type: String },
+      /**
+       * Holds the type of the currently selected server
+       * Values: `server` | `uri` | `custom`
+       */
+      serverType: { type: String },
+      /**
+       * Optional property to set
+       * If true, the server selector is not rendered
+       */
+      noServerSelector: { type: Boolean },
+      /**
+       * Optional property to set
+       * If true, the server selector custom base URI option is rendered
+       */
+      allowCustomBaseUri: { type: Boolean },
     };
   }
 
@@ -335,6 +363,71 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     return this._requestId;
   }
 
+  get serversCount() {
+    return this._serversCount;
+  }
+
+  set serversCount(value) {
+    const old = this._serversCount;
+    if (old === value) {
+      return;
+    }
+    this._serversCount = value;
+    this._updateServer();
+    this.requestUpdate('serversCount', old);
+  }
+
+  get serverValue() {
+    return this._serverValue;
+  }
+
+  set serverValue(value) {
+    const old = this._serverValue;
+    if (old === value) {
+      return;
+    }
+    this._serverValue = value;
+    this._updateServer();
+    this.requestUpdate('serverValue', old);
+  }
+
+  get serverType() {
+    return this._serverType;
+  }
+
+  set serverType(value) {
+    const old = this._serverType;
+    if (old === value) {
+      return;
+    }
+    this._serverType = value;
+    this._updateServer();
+    this.requestUpdate('serverType', old);
+  }
+
+  /**
+   * This is the final computed value for the baseUri to propagate downwards
+   * If baseUri is defined, return baseUri
+   * Else, return the selectedServerValue if serverType is not `server`
+   */
+  get effectiveBaseUri() {
+    if (this.baseUri) {
+      return this.baseUri;
+    }
+    if (this.serverType !== 'server') {
+      return this.serverValue;
+    }
+    return '';
+  }
+
+  /**
+   * @return {Boolean} True when there are not enough servers to render the selector
+   */
+  get _serverSelectorHidden() {
+    const { serversCount = 0, noServerSelector } = this;
+    return serversCount < 2 || noServerSelector;
+  }
+
   /**
    * @return {ApiUrlDataModel|null} A reference to `api-url-data-model`
    * if exists in shadow DOM.
@@ -357,18 +450,25 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     super();
     this._responseHandler = this._responseHandler.bind(this);
     this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
+    this._handleNavigationChange = this._handleNavigationChange.bind(this);
 
     this.urlLabel = false;
+    this.outlined = false;
+    this.compatibility = false;
+    this.readOnly = false;
+    this.disabled = false;
   }
 
   _attachListeners(node) {
     node.addEventListener('api-response', this._responseHandler);
     node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
+    node.addEventListener('api-navigation-selection-changed', this._handleNavigationChange);
   }
 
   _detachListeners(node) {
     node.removeEventListener('api-response', this._responseHandler);
     node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
+    node.removeEventListener('api-navigation-selection-changed', this._handleNavigationChange);
   }
   /**
    * Overrides `AmfHelperMixin.__amfChanged`.
@@ -379,6 +479,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     if (modelGenerator && modelGenerator.clearCache) {
       modelGenerator.clearCache();
     }
+    this._updateServers();
     this._selectedChanged();
   }
   /**
@@ -865,6 +966,85 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     this._reValidate();
   }
 
+  /**
+   * Computes a current server value for selection made in the server selector.
+   */
+  _updateServer() {
+    const { serverValue, serverType } = this;
+    if (serverType !== 'server') {
+      this.server = undefined;
+    } else {
+      this.server = this._findServerByValue(serverValue);
+    }
+  }
+
+  /**
+   * @param {String} value Server's base URI
+   * @return {Object|undefined} An element associated with the base URI or
+   * undefined if not found.
+   */
+  _findServerByValue(value) {
+    const { servers = [] } = this;
+    return servers.find((server) => this._getServerUri(server) === value);
+  }
+
+  /**
+   * @param {Object} server Server definition.
+   * @return {String|undefined} Value for server's base URI
+   */
+  _getServerUri(server) {
+    const key = this._getAmfKey(this.ns.aml.vocabularies.core.urlTemplate);
+    return this._getValue(server, key);
+  }
+
+  /**
+   * Updates the list of servers for current operation so a server for current
+   * selection can be computed.
+   * @param {ServerParameters=} [params={}]
+   */
+  _updateServers({ id, type, endpointId } = {}) {
+    let methodId;
+    if (type === 'method') {
+      methodId = id;
+    }
+    if (type === 'endpoint') {
+      endpointId = id;
+    }
+    this.servers = this._getServers({ endpointId, methodId });
+  }
+
+  /**
+   * Handler for the `serverscountchanged` dispatched from the server selector.
+   * @param {CustomEvent} e
+   */
+  _serverCountHandler(e) {
+    const { value } = e.detail;
+    this.serversCount = value;
+  }
+
+  /**
+   * Handler for the `apiserverchanged` dispatched from the server selector.
+   * @param {CustomEvent} e
+   */
+  _serverHandler(e) {
+    const { value, type } = e.detail;
+    this.serverType = type;
+    this.serverValue = value;
+  }
+
+  /**
+   * Computes available servers when a method is selected in the navigation.
+   *
+   * @param {CustomEvent} e
+   */
+  _handleNavigationChange(e) {
+    const { selected: id, type, endpointId } = e.detail;
+    if (type !== 'method') {
+      return;
+    }
+    this._updateServers({ id, type, endpointId });
+  }
+
   render() {
     const {
       styles,
@@ -874,6 +1054,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     ${this._oauthHandlersTemplate()}
     ${this._urlDataModelTemplate()}
     <div class="content">
+      ${this._serverSelectorTemplate()}
       ${this._urlEditorTemplate()}
       ${this._urlLabelTemplate()}
       ${this._paramsEditorTemplate()}
@@ -912,7 +1093,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
   _urlDataModelTemplate() {
     const {
       amf,
-      baseUri,
+      effectiveBaseUri,
       selected,
       server,
       protocols,
@@ -924,7 +1105,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       @querymodel-changed="${this._queryModelHandler}"
       @endpointpath-changed="${this._endpointUriHandler}"
       .amf="${amf}"
-      .apiUri="${baseUri}"
+      .apiUri="${effectiveBaseUri}"
       .selected="${selected}"
       .server="${server}"
       .protocols="${ifDefined(protocols)}"
@@ -1025,7 +1206,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     return html`<div class="editor-section" ?hidden="${!_apiHeaders}">
       <div role="heading" aria-level="2" class="section-title">Headers</div>
       <api-headers-editor
-        @contenttype-changed="${this._contentTypeHandler}"
+        @content-type-changed="${this._contentTypeHandler}"
         @value-changed="${this._headersHandler}"
         @invalid-changed="${this._headersInvalidChanged}"
         .eventsTarget="${eventsTarget}"
@@ -1068,6 +1249,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     return html`<div class="editor-section">
       <div role="heading" aria-level="2" class="section-title">Body</div>
       <api-body-editor
+        @content-type-changed="${this._contentTypeHandler}"
         @value-changed="${this._payloadHandler}"
         .eventsTarget="${eventsTarget}"
         .amf="${amf}"
@@ -1158,6 +1340,36 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       emphasis="high"
       ?compatibility="${compatibility}"
       @click="${this._sendHandler}">${this._sendLabel}</anypoint-button>`;
+  }
+
+  /**
+   * @return {TemplateResult} A template for the server selector
+   */
+  _serverSelectorTemplate() {
+    const {
+      amf,
+      serverType,
+      serverValue,
+      allowCustomBaseUri,
+      outlined,
+      compatibility,
+      _serverSelectorHidden
+    } = this;
+    return html`
+    <api-server-selector
+      ?hidden="${_serverSelectorHidden}"
+      ?allowCustom="${allowCustomBaseUri}"
+      .amf="${amf}"
+      .value="${serverValue}"
+      .type="${serverType}"
+      autoselect
+      ?compatibility="${compatibility}"
+      ?outlined="${outlined}"
+      @serverscountchanged="${this._serverCountHandler}"
+      @apiserverchanged="${this._serverHandler}"
+    >
+      <slot name="custom-base-uri" slot="custom-base-uri"></slot>
+    </api-server-selector>`;
   }
   /**
    * Dispatched when the user requests to send current request.

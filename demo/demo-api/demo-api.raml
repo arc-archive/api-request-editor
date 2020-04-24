@@ -543,3 +543,14 @@ documentation:
 /custom3:
   get:
     securedBy: [custom3]
+/content-type:
+  post:
+    headers:
+      Content-Type:
+        default: application/json
+    body:
+      type: object
+      properties:
+        error:
+          type: boolean
+          default: false

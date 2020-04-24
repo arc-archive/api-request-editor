@@ -20,6 +20,9 @@ class ComponentDemo extends ApiDemoPage {
       'noUrlEditor',
       'responseBody',
       'urlLabel',
+      'renderCustomServer',
+      'allowCustomBaseUri',
+      'noServerSelector',
     ]);
     this.componentName = 'api-request-editor';
     this.allowCustom = false;
@@ -30,6 +33,9 @@ class ComponentDemo extends ApiDemoPage {
     this.noDocs = false;
     this.noUrlEditor = false;
     this.urlLabel = false;
+    this.renderCustomServer = false;
+    this.noServerSelector = false;
+    this.allowCustomBaseUri = false;
 
     this.demoStates = ['Filled', 'Outlined', 'Anypoint'];
     this._demoStateHandler = this._demoStateHandler.bind(this);
@@ -68,6 +74,7 @@ class ComponentDemo extends ApiDemoPage {
   _apiListTemplate() {
     return [
       ['google-drive-api', 'Google Drive'],
+      ['multi-server', 'Multiple servers'],
       ['httpbin', 'httpbin.org'],
       ['demo-api', 'Demo API'],
       ['SE-12042', 'SE-12042: Default values issue'],
@@ -116,6 +123,8 @@ class ComponentDemo extends ApiDemoPage {
       noUrlEditor,
       responseBody,
       urlLabel,
+      noServerSelector,
+      allowCustomBaseUri,
     } = this;
     return html `
     <section class="documentation-section">
@@ -148,7 +157,12 @@ class ComponentDemo extends ApiDemoPage {
             ?noUrlEditor="${noUrlEditor}"
             ?urlLabel="${urlLabel}"
             .redirectUri="${redirectUri}"
-            @api-request="${this._apiRequestHandler}"></api-request-editor>
+            ?noServerSelector="${noServerSelector}"
+            ?allowCustomBaseUri="${allowCustomBaseUri}"
+            @api-request="${this._apiRequestHandler}"
+          >
+            ${this._addCustomServers()}
+          </api-request-editor>
           ${responseBody ? html`<h3>Latest response</h3>
           <output class="response-output" tabindex="0">${responseBody}</output>` : ''}
         </div>
@@ -219,8 +233,48 @@ class ComponentDemo extends ApiDemoPage {
           @change="${this._toggleMainOption}"
           >URL label</anypoint-checkbox
         >
+        <anypoint-checkbox
+          aria-describedby="mainOptionsLabel"
+          slot="options"
+          name="renderCustomServer"
+          @change="${this._toggleMainOption}"
+          >Custom servers</anypoint-checkbox
+        >
+        <anypoint-checkbox
+          aria-describedby="mainOptionsLabel"
+          slot="options"
+          name="allowCustomBaseUri"
+          @change="${this._toggleMainOption}"
+          >Custom Base Uri</anypoint-checkbox
+        >
+        <anypoint-checkbox
+          aria-describedby="mainOptionsLabel"
+          slot="options"
+          name="noServerSelector"
+          @change="${this._toggleMainOption}"
+          >Remove Server Selector</anypoint-checkbox
+        >
       </arc-interactive-demo>
     </section>`;
+  }
+
+  _addCustomServers() {
+    if (!this.renderCustomServer) {
+      return;
+    }
+    const { compatibility } = this;
+    return html`
+    <div class="other-section" slot="custom-base-uri">Other options</div>
+    <anypoint-item
+      slot="custom-base-uri"
+      value="http://mocking.com"
+      ?compatibility="${compatibility}"
+    >Mocking service</anypoint-item>
+    <anypoint-item
+      slot="custom-base-uri"
+      value="http://customServer.com2"
+      ?compatibility="${compatibility}"
+    >Custom instance</anypoint-item>`;
   }
 
   _introductionTemplate() {

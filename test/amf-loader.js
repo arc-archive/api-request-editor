@@ -1,45 +1,51 @@
 import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
-import { LitElement } from 'lit-element';
-
 export const AmfLoader = {};
 
-class HelperElement extends AmfHelperMixin(LitElement) {}
-window.customElements.define('helper-element', HelperElement);
+/**
+ * @mixes AmfHelperMixin
+ */
+class HelperElement extends AmfHelperMixin(Object) {}
 
 const helper = new HelperElement();
 
-AmfLoader.load = async function(fileName, compact) {
-  compact = compact ? '-compact' : '';
-  fileName = fileName || 'demo-api';
-  const file = `${fileName}${compact}.json`;
+/**
+ * Loads an API from a file located in demo/ folder.
+ *
+ * @param {Object} opts
+ * @param {string} [opts.fileName='demo-api']
+ * @param {boolean|string} [opts.compact=false]
+ * @return {Promise} Resolved to an API object
+ */
+AmfLoader.load = async function({ fileName = 'demo-api', compact = false } = {}) {
+  const suffix = compact ? '-compact' : '';
+  const file = `${fileName}${suffix}.json`;
   const url = location.protocol + '//' + location.host + '/base/demo/'+ file;
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', (e) => {
-      let data;
-      try {
-        data = JSON.parse(e.target.response);
-        /* istanbul ignore next */
-      } catch (e) {
-        /* istanbul ignore next */
-        reject(e);
-        /* istanbul ignore next */
-        return;
-      }
-      resolve(data);
-    });
-    /* istanbul ignore next */
-    xhr.addEventListener('error',
-      () => reject(new Error('Unable to load model file')));
-    xhr.open('GET', url);
-    xhr.send();
-  });
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Unable to download model file ${url}`);
+  }
+  return await response.json();
 };
 
-AmfLoader.lookupOperation = function(model, endpoint, operation) {
+/**
+ * @param {Object} model
+ * @param {String} endpoint
+ * @return {Object}
+ */
+AmfLoader.lookupEndpoint = function(model, endpoint) {
   helper.amf = model;
   const webApi = helper._computeWebApi(model);
-  const endPoint = helper._computeEndpointByPath(webApi, endpoint);
+  return helper._computeEndpointByPath(webApi, endpoint);
+};
+
+/**
+ * @param {Object} model
+ * @param {String} endpoint
+ * @param {String} operation
+ * @return {Object}
+ */
+AmfLoader.lookupOperation = function(model, endpoint, operation) {
+  const endPoint = AmfLoader.lookupEndpoint(model, endpoint);
   const opKey = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.supportedOperation);
   const ops = helper._ensureArray(endPoint[opKey]);
   return ops.find((item) => helper._getValue(item, helper.ns.aml.vocabularies.apiContract.method) === operation);

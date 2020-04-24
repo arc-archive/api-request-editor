@@ -56,6 +56,28 @@ declare class ApiRequestEditor extends
   readonly authInvalid: any;
   readonly loadingRequest: any;
   readonly requestId: any;
+  serversCount: any;
+
+  /**
+   * Holds the value of the currently selected server
+   * Data type: URI
+   */
+  serverValue: string|null|undefined;
+
+  /**
+   * Holds the type of the currently selected server
+   * Values: `server` | `uri` | `custom`
+   */
+  serverType: string|null|undefined;
+
+  /**
+   * This is the final computed value for the baseUri to propagate downwards
+   * If baseUri is defined, return baseUri
+   * Else, return the selectedServerValue if serverType is not `server`
+   *    
+   */
+  readonly effectiveBaseUri: any;
+  readonly _serverSelectorHidden: Boolean|null;
   readonly apiUrlDataModel: ApiUrlDataModel|null;
   readonly _auth: ApiAuthorization|null;
   readonly _sendLabel: any;
@@ -271,6 +293,18 @@ declare class ApiRequestEditor extends
   _urlInvalid: boolean|null|undefined;
   _endpointUri: string|null|undefined;
   _apiBaseUri: string|null|undefined;
+
+  /**
+   * Optional property to set
+   * If true, the server selector is not rendered
+   */
+  noServerSelector: boolean|null|undefined;
+
+  /**
+   * Optional property to set
+   * If true, the server selector custom base URI option is rendered
+   */
+  allowCustomBaseUri: boolean|null|undefined;
   constructor();
   render(): any;
 
@@ -465,6 +499,52 @@ declare class ApiRequestEditor extends
   _payloadHandler(e: any): void;
   _reValidate(): any;
   _authChanged(e: any): void;
+
+  /**
+   * Computes a current server value for selection made in the server selector.
+   */
+  _updateServer(): void;
+
+  /**
+   * @param value Server's base URI
+   * @returns An element associated with the base URI or
+   * undefined if not found.
+   */
+  _findServerByValue(value: String|null): object|null|undefined;
+
+  /**
+   * @param server Server definition.
+   * @returns Value for server's base URI
+   */
+  _getServerUri(server: object|null): String|null|undefined;
+  _computeServerSelectorHidden(): void;
+
+  /**
+   * Updates the list of servers for current operation so a server for current
+   * selection can be computed.
+   */
+  _updateServers({
+  id,
+  type,
+  endpointId
+} = {}: any): void;
+
+  /**
+   * Handler for the `serverscountchanged` dispatched from the server selector.
+   */
+  _serverCountHandler(e: CustomEvent|null): void;
+
+  /**
+   * Handler for the `apiserverchanged` dispatched from the server selector.
+   */
+  _serverHandler(e: CustomEvent|null): void;
+
+  /**
+   * Handles navigation events and computes available servers.
+   *
+   * When `handleNavigationEvents` is set then it also manages the selection.
+   */
+  _handleNavigationChange(e: CustomEvent|null): void;
   _oauthHandlersTemplate(): any;
   _awareTemplate(): any;
   _urlDataModelTemplate(): any;
@@ -489,4 +569,9 @@ declare class ApiRequestEditor extends
    * Creates a template for the "send" or "auth and send" button.
    */
   _sendButtonTemplate(): TemplateResult|null;
+
+  /**
+   * @returns A template for the server selector
+   */
+  _serverSelectorTemplate(): TemplateResult|null;
 }

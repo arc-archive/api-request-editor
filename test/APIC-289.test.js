@@ -14,11 +14,11 @@ describe('APIC-289', function() {
     ['Compact model', true],
     ['Full model', false]
   ].forEach(([label, compact]) => {
-    describe(label, () => {
+    describe(`${label}`, () => {
       let factory;
       let amf;
       before(async () => {
-        amf = await AmfLoader.load(apiFile, compact);
+        amf = await AmfLoader.load({ fileName: apiFile, compact });
         factory = document.createElement('api-view-model-transformer');
       });
 

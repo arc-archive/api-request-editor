@@ -1,5 +1,5 @@
 import { fixture, assert, html, nextFrame, aTimeout } from '@open-wc/testing';
-import * as sinon from 'sinon/pkg/sinon-esm.js';
+import * as sinon from 'sinon';
 import * as MockInteractions from '@polymer/iron-test-helpers/mock-interactions.js';
 import { AmfLoader } from './amf-loader.js';
 import '../api-request-editor.js';
@@ -28,6 +28,20 @@ describe('ApiRequestEditor', function() {
       .amf="${amf}"
       .selected="${selected}"
       urlLabel></api-request-editor>`));
+  }
+
+  async function customBaseUriSlotFixture() {
+    return (await fixture(html`
+      <api-request-editor>
+        <anypoint-item slot="custom-base-uri" value="http://customServer.com">Custom</anypoint-item>
+      </api-request-editor>`));
+  }
+
+  async function noSelectorFixture() {
+    return (await fixture(html`
+      <api-request-editor noServerSelector>
+        <anypoint-item slot="custom-base-uri" value="http://customServer.com">http://customServer.com</anypoint-item>
+      </api-request-editor>`));
   }
 
   function clearCache() {
@@ -338,7 +352,7 @@ describe('ApiRequestEditor', function() {
     ['Compact model', true],
     ['Full model', false]
   ].forEach(([label, compact]) => {
-    describe(label, () => {
+    describe(`${label}`, () => {
       const httpbinApi = 'httpbin';
       const driveApi = 'google-drive-api';
       const demoApi = 'demo-api';
@@ -346,7 +360,7 @@ describe('ApiRequestEditor', function() {
       describe('http method computation', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(httpbinApi, compact);
+          amf = await AmfLoader.load({ fileName: httpbinApi, compact });
         });
 
         it('sets _httpMethod proeprty (get)', async () => {
@@ -377,7 +391,7 @@ describe('ApiRequestEditor', function() {
       describe('_computeApiPayload() and _apiPayload', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(driveApi, compact);
+          amf = await AmfLoader.load({ fileName: driveApi, compact });
         });
 
         it('returns undefined when no model', async () => {
@@ -408,7 +422,7 @@ describe('ApiRequestEditor', function() {
       describe('_isPayloadRequest', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(driveApi, compact);
+          amf = await AmfLoader.load({ fileName: driveApi, compact });
         });
 
         it('is false for get request', async () => {
@@ -427,7 +441,7 @@ describe('ApiRequestEditor', function() {
       describe('_computeSecuredBy() and _securedBy', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(driveApi, compact);
+          amf = await AmfLoader.load({ fileName: driveApi, compact });
         });
 
         it('returns undefined when no model', async () => {
@@ -460,7 +474,7 @@ describe('ApiRequestEditor', function() {
       describe('_computeHeaders() and _apiHeaders', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         it('returns undefined when no model', async () => {
@@ -490,10 +504,25 @@ describe('ApiRequestEditor', function() {
         });
       });
 
+      describe('#contentType', () => {
+        let amf;
+        before(async () => {
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
+        });
+
+        it('sets content type from the body', async () => {
+          const method = AmfLoader.lookupOperation(amf, '/content-type', 'post');
+          const element = await modelFixture(amf, method['@id']);
+          await aTimeout(100);
+          await nextFrame();
+          assert.equal(element.contentType, 'application/json');
+        });
+      });
+
       describe('ui state', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         it('renders authorization panel when authorization is required', async () => {
@@ -538,7 +567,7 @@ describe('ApiRequestEditor', function() {
       describe('validation', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         beforeEach(() => {
@@ -632,7 +661,7 @@ describe('ApiRequestEditor', function() {
         let amf;
         let element;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         beforeEach(async () => {
@@ -697,7 +726,7 @@ describe('ApiRequestEditor', function() {
         let amf;
         let element;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         beforeEach(async () => {
@@ -749,7 +778,7 @@ describe('ApiRequestEditor', function() {
       describe('serializeRequest()', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         beforeEach(async () => {
@@ -830,7 +859,7 @@ describe('ApiRequestEditor', function() {
       describe('_urlChanged()', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         beforeEach(async () => {
@@ -860,7 +889,7 @@ describe('ApiRequestEditor', function() {
       describe('_sendHandler()', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         it('calls authAndExecute() when authorization is required', async () => {
@@ -906,7 +935,7 @@ describe('ApiRequestEditor', function() {
       describe('#urlLabel', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(demoApi, compact);
+          amf = await AmfLoader.load({ fileName: demoApi, compact });
         });
 
         it('renders the url label', async () => {
@@ -919,6 +948,7 @@ describe('ApiRequestEditor', function() {
         it('renders the url value', async () => {
           const method = AmfLoader.lookupOperation(amf, '/people', 'get');
           const element = await urlLabelFixture(amf, method['@id']);
+          await nextFrame();
           const node = element.shadowRoot.querySelector('.url-label');
           const text = node.textContent.trim();
           assert.equal(text, 'http://production.domain.com/people');
@@ -942,8 +972,8 @@ describe('ApiRequestEditor', function() {
     let scheme;
     let version;
     before(async () => {
-      const summary = await AmfLoader.load('partial-model/summary', false);
-      const endpoint = await AmfLoader.load('partial-model/endpoint', false);
+      const summary = await AmfLoader.load({ fileName: 'partial-model/summary' });
+      const endpoint = await AmfLoader.load({ fileName: 'partial-model/endpoint' });
       server = summary['doc:encodes']['http:server'];
       scheme = [summary['doc:encodes']['http:scheme']];
       version = summary['doc:encodes']['schema-org:version'];
@@ -967,6 +997,277 @@ describe('ApiRequestEditor', function() {
 
     it('queryModel is computed', () => {
       assert.lengthOf(element._queryModel, 7);
+    });
+  });
+
+  describe('slot rendering', () => {
+    let element;
+    beforeEach(async () => {
+      element = await basicFixture();
+    });
+
+    it('has servers slot', () => {
+      const node = element.shadowRoot.querySelector('slot[name="custom-base-uri"]');
+      assert.exists(node, 'slot is rendered');
+      assert.lengthOf(node.assignedNodes(), 0, 'Has no nodes');
+    });
+  });
+
+
+  describe('#allowCustomBaseUri', () => {
+    let element;
+    beforeEach(async () => {
+      element = await customBaseUriSlotFixture();
+    });
+
+    it('has 1 server by default', () => {
+      assert.equal(element.serversCount, 1);
+    });
+
+    it('hides server selector with a single server', async () => {
+      assert.isTrue(element._serverSelectorHidden);
+    });
+
+    it('sets hidden attribute to server selector', async () => {
+      const serverSelector = element.shadowRoot.querySelector('api-server-selector');
+      assert.exists(serverSelector);
+      assert.isTrue(serverSelector.hasAttribute('hidden'));
+    });
+
+    it('should have 2 servers', async () => {
+      element.allowCustomBaseUri = true;
+      await nextFrame();
+      assert.equal(element.serversCount, 2);
+    });
+
+    it('should not hide server selector', async () => {
+      element.allowCustomBaseUri = true;
+      await nextFrame();
+      assert.isUndefined(element._serverSelectorHidden);
+    })
+
+    it('should set hidden attribute to false in server selector', async () => {
+      element.allowCustomBaseUri = true;
+      await nextFrame();
+      const serverSelector = element.shadowRoot.querySelector('api-server-selector')
+      assert.exists(serverSelector);
+      assert.isFalse(serverSelector.hasAttribute('hidden'));
+    });
+  });
+
+  describe('#noServerSelector', () => {
+    it('hides server selector', async () => {
+      const element = await noSelectorFixture();
+      assert.isTrue(element._serverSelectorHidden);
+    });
+
+    it('should set hidden attribute to server selector', async () => {
+      const element = await noSelectorFixture();
+      const serverSelector = element.shadowRoot.querySelector('api-server-selector');
+      assert.exists(serverSelector);
+      assert.isTrue(serverSelector.hasAttribute('hidden'));
+    });
+
+    it('renders server selector at first', async () => {
+      const element = await customBaseUriSlotFixture();
+      element.allowCustomBaseUri = true;
+      await nextFrame();
+      assert.isUndefined(element._serverSelectorHidden);
+    });
+
+    it('renders server selector at first', async () => {
+      const element = await customBaseUriSlotFixture();
+      element.allowCustomBaseUri = true;
+      await nextFrame();
+      element.noServerSelector = true
+      await nextFrame()
+      assert.isTrue(element._serverSelectorHidden);
+      const serverSelector = element.shadowRoot.querySelector('api-server-selector');
+      assert.exists(serverSelector);
+      assert.isTrue(serverSelector.hasAttribute('hidden'));
+    });
+  });
+
+  [
+    ['Compact model', true],
+    ['Regular model', false]
+  ].forEach(([label, compact]) => {
+    const multiServerApi = 'multi-server';
+
+    /**
+     * @param {HTMLElement} element
+     * @param {String} value
+     * @param {String} type
+     */
+    function dispatchSelectionEvent(element, value, type) {
+      const e = {
+        detail: {
+          value,
+          type,
+        },
+      };
+      const node = element.shadowRoot.querySelector('api-server-selector');
+      node.dispatchEvent(new CustomEvent('apiserverchanged', e));
+    }
+
+    /**
+     * @param {Object} detail
+     * @param {String} detail.type
+     * @param {String} detail.selected
+     * @param {String=} detail.endpointId
+     */
+    function dispatchNavigationEvent(detail) {
+      const e = new CustomEvent('api-navigation-selection-changed', {
+        bubbles: true,
+        detail,
+      });
+      document.body.dispatchEvent(e);
+    }
+
+    describe(`server selection - ${label}`, () => {
+      describe('custom URI selection', () => {
+        let element;
+        let amf;
+        beforeEach(async () => {
+          amf = await AmfLoader.load({ fileName: multiServerApi, compact });
+          element = await modelFixture(amf);
+          // This is equivilent to Custom URI being selected, and 'https://www.google.com' being input
+          dispatchSelectionEvent(element, 'https://www.google.com', 'custom');
+        });
+
+        it('has servers computed', () => {
+          assert.lengthOf(element.servers, 4);
+        });
+
+        it('updates serverValue', () => {
+          assert.equal(element.serverValue, 'https://www.google.com');
+        });
+
+        it('renders selector for custom URI', () => {
+          assert.exists(element.shadowRoot.querySelector('api-server-selector'));
+        });
+
+        it('sets effectiveBaseUri to baseUri value', () => {
+          element.baseUri = 'https://example.org';
+          assert.equal(element.effectiveBaseUri, element.baseUri);
+          assert.equal(element.effectiveBaseUri, 'https://example.org');
+        });
+
+        it('sets effectiveBaseUri serverValue value', () => {
+          assert.equal(element.effectiveBaseUri, element.serverValue);
+          assert.equal(element.effectiveBaseUri, 'https://www.google.com');
+        });
+
+        it('updates computed server', async () => {
+          dispatchSelectionEvent(element, 'https://{customerId}.saas-app.com:{port}/v2', 'server');
+          await nextFrame();
+          assert.isDefined(element.server);
+        });
+      });
+
+      describe('from navigation events', () => {
+        let amf;
+        let element;
+
+        before(async () => {
+          amf = await AmfLoader.load({ fileName: multiServerApi, compact });
+        });
+
+        beforeEach(async () => {
+          element = await modelFixture(amf);
+        });
+
+        it('has default number of servers', async () => {
+          assert.lengthOf(element.servers, 4);
+        });
+
+        it('computes servers when first navigation', async () => {
+          const endpoint = AmfLoader.lookupEndpoint(amf, '/default');
+          const method = AmfLoader.lookupOperation(amf, '/default', 'get');
+          dispatchNavigationEvent({
+            endpointId: endpoint['@id'],
+            type: 'method',
+            selected: method['@id'],
+          });
+          await nextFrame();
+          assert.lengthOf(element.servers, 4);
+        });
+
+        it('computes servers after subsequent navigation', async () => {
+          // default navigation
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          // other endpoint
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/files')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/files', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          assert.lengthOf(element.servers, 1);
+        });
+
+        it('ignores other navigation types', async () => {
+          const endpoint = AmfLoader.lookupEndpoint(amf, '/default');
+          dispatchNavigationEvent({
+            endpointId: 'test',
+            type: 'endpoint',
+            selected: endpoint['@id'],
+          });
+          await nextFrame();
+          assert.lengthOf(element.servers, 4);
+        });
+
+        it('automatically selects first available server', async () => {
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          assert.equal(element.serverValue, 'https://{customerId}.saas-app.com:{port}/v2');
+        });
+
+        it('auto change selected server', async () => {
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/files')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/files', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          assert.equal(element.serverValue, 'https://files.example.com');
+        });
+
+        it('keeps server selection when possible', async () => {
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+
+          dispatchSelectionEvent(element, 'https://{region}.api.cognitive.microsoft.com', 'server');
+
+          dispatchNavigationEvent({
+            endpointId: AmfLoader.lookupEndpoint(amf, '/copy')['@id'],
+            selected: AmfLoader.lookupOperation(amf, '/copy', 'get')['@id'],
+            type: 'method',
+          });
+          await nextFrame();
+          assert.equal(element.serverValue, 'https://{region}.api.cognitive.microsoft.com');
+        });
+
+      });
     });
   });
 });
