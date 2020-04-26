@@ -759,3 +759,42 @@
 * adding higher timeout for tests [cd96fd2](https://github.com/advanced-rest-client/api-request-editor/commit/cd96fd21730f578bed3f01d0b2a98382f9760545) by Pawel
 
 
+<a name="5.0.2"></a>
+## [5.0.2](https://github.com/advanced-rest-client/api-request-editor/compare/5.0.0-preview.2...5.0.2) (2020-04-26)
+
+### Build
+
+* bumping version [542676f](https://github.com/advanced-rest-client/api-request-editor/commit/542676fca2eefcb7715941041364c64c048a6ed0) by Pawel
+* bumping version to stable [eb7bd89](https://github.com/advanced-rest-client/api-request-editor/commit/eb7bd8922a748e824879ac8ec6b8bfbb0ab17001) by Pawel
+
+
+### Continuous integration
+
+* removing installation of the model generator package [7212242](https://github.com/advanced-rest-client/api-request-editor/commit/7212242e0b4afc969857dc5ca2530a5f2358c923) by Pawel
+
+
+### Update
+
+* upgrading dependencies to fix infinite loop issue [15624f6](https://github.com/advanced-rest-client/api-request-editor/commit/15624f610cfaa22e712b9612c4149e42f5bccc40) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [04441f6](https://github.com/advanced-rest-client/api-request-editor/commit/04441f631d0150c290f22f1a02bbd33fcdd2da15) by Ci agent
+* fixing server setting in the URL model controller [db046c6](https://github.com/advanced-rest-client/api-request-editor/commit/db046c66a7ae8b39c7ae41a98d4b144f5935bb5c) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [57ba702](https://github.com/advanced-rest-client/api-request-editor/commit/57ba70262d3230cb9362e60b699c7ee591c17b04) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [52110b1](https://github.com/advanced-rest-client/api-request-editor/commit/52110b1c7ff2cb53ef3143161cfca3a1257e6df2) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [78c5e19](https://github.com/advanced-rest-client/api-request-editor/commit/78c5e195d3ec90c4709c16f6bc93640203980ac5) by Ci agent
+
+
+### Documentation
+
+* updating travis badge [1f661c7](https://github.com/advanced-rest-client/api-request-editor/commit/1f661c71c8248dd4cc31cac70adc52f045ddce0c) by Pawel
+
+
+### Features
+
+* adding support for OAS 3 server selection [49fe409](https://github.com/advanced-rest-client/api-request-editor/commit/49fe4097253bb238657116e4b7f9668fbd266274) by Pawel
+
+
+### Testing
+
+* adding higher timeout for tests [cd96fd2](https://github.com/advanced-rest-client/api-request-editor/commit/cd96fd21730f578bed3f01d0b2a98382f9760545) by Pawel
+
+
