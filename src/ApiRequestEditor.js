@@ -17,7 +17,7 @@ import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/eve
 import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
 import { UrlParser } from '@advanced-rest-client/url-parser/url-parser.js';
 import { HeadersParserMixin } from '@advanced-rest-client/headers-parser-mixin/headers-parser-mixin.js';
-import formStyles from '@api-components/api-form-mixin/api-form-styles.js';
+import { apiFormStyles } from '@api-components/api-form-mixin/index.js';
 import '@api-components/api-url-data-model/api-url-data-model.js';
 import '@api-components/api-url-editor/api-url-editor.js';
 import '@api-components/api-url-params-editor/api-url-params-editor.js';
@@ -270,7 +270,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
 
   get styles() {
     return [
-      formStyles,
+      apiFormStyles,
       styles,
     ];
   }
