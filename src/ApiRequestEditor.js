@@ -1353,7 +1353,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       allowCustomBaseUri,
       outlined,
       compatibility,
-      _serverSelectorHidden
+      _serverSelectorHidden,
+      selected,
     } = this;
     return html`
     <api-server-selector
@@ -1362,6 +1363,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       .amf="${amf}"
       .value="${serverValue}"
       .type="${serverType}"
+      .selectedValue="${selected}"
       autoselect
       ?compatibility="${compatibility}"
       ?outlined="${outlined}"
