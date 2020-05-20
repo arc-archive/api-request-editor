@@ -1013,7 +1013,6 @@ describe('ApiRequestEditor', function() {
     });
   });
 
-
   describe('#allowCustomBaseUri', () => {
     let element;
     beforeEach(async () => {
@@ -1111,17 +1110,11 @@ describe('ApiRequestEditor', function() {
     }
 
     /**
-     * @param {Object} detail
-     * @param {String} detail.type
-     * @param {String} detail.selected
-     * @param {String=} detail.endpointId
+     * @param {Object} element
+     * @param {String} selected
      */
-    function dispatchNavigationEvent(detail) {
-      const e = new CustomEvent('api-navigation-selection-changed', {
-        bubbles: true,
-        detail,
-      });
-      document.body.dispatchEvent(e);
+    function changeSelection(element, selected) {
+      element.selected = selected;
     }
 
     describe(`server selection - ${label}`, () => {
@@ -1182,89 +1175,52 @@ describe('ApiRequestEditor', function() {
         });
 
         it('computes servers when first navigation', async () => {
-          const endpoint = AmfLoader.lookupEndpoint(amf, '/default');
           const method = AmfLoader.lookupOperation(amf, '/default', 'get');
-          dispatchNavigationEvent({
-            endpointId: endpoint['@id'],
-            type: 'method',
-            selected: method['@id'],
-          });
+          changeSelection(element, method['@id']);
           await nextFrame();
           assert.lengthOf(element.servers, 4);
         });
 
         it('computes servers after subsequent navigation', async () => {
           // default navigation
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/default', 'get')['@id']);
           await nextFrame();
           // other endpoint
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/files')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/files', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/files', 'get')['@id']);
           await nextFrame();
           assert.lengthOf(element.servers, 1);
         });
 
-        it('ignores other navigation types', async () => {
-          const endpoint = AmfLoader.lookupEndpoint(amf, '/default');
-          dispatchNavigationEvent({
-            endpointId: 'test',
-            type: 'endpoint',
-            selected: endpoint['@id'],
-          });
-          await nextFrame();
-          assert.lengthOf(element.servers, 4);
-        });
-
         it('automatically selects first available server', async () => {
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/default', 'get')['@id']);
           await nextFrame();
           assert.equal(element.serverValue, 'https://{customerId}.saas-app.com:{port}/v2');
         });
 
         it('auto change selected server', async () => {
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/default', 'get')['@id']);
           await nextFrame();
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/files')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/files', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/files', 'get')['@id']);
           await nextFrame();
           assert.equal(element.serverValue, 'https://files.example.com');
         });
 
         it('keeps server selection when possible', async () => {
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/default')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/default', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/default', 'get')['@id']);
           await nextFrame();
 
           dispatchSelectionEvent(element, 'https://{region}.api.cognitive.microsoft.com', 'server');
 
-          dispatchNavigationEvent({
-            endpointId: AmfLoader.lookupEndpoint(amf, '/copy')['@id'],
-            selected: AmfLoader.lookupOperation(amf, '/copy', 'get')['@id'],
-            type: 'method',
-          });
+          changeSelection(element, AmfLoader.lookupOperation(amf, '/copy', 'get')['@id']);
           await nextFrame();
           assert.equal(element.serverValue, 'https://{region}.api.cognitive.microsoft.com');
+        });
+
+        it('initializes with selected server', async () => {
+          const methodId = AmfLoader.lookupOperation(amf, '/ping', 'get')['@id'];
+          element = await modelFixture(amf, methodId);
+          await nextFrame();
+          assert.lengthOf(element.servers, 2);
         });
 
       });
