@@ -1363,7 +1363,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       .amf="${amf}"
       .value="${serverValue}"
       .type="${serverType}"
-      .selectedValue="${selected}"
+      .selectedShape="${selected}"
+      .selectedShapeType="method"
       autoselect
       ?compatibility="${compatibility}"
       ?outlined="${outlined}"
