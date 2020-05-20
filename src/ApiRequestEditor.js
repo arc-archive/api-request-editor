@@ -288,6 +288,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     this._selected = value;
     this.requestUpdate('selected', old);
     this._selectedChanged();
+    this._updateServers();
   }
 
   get url() {
@@ -450,7 +451,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     super();
     this._responseHandler = this._responseHandler.bind(this);
     this._authRedirectChangedHandler = this._authRedirectChangedHandler.bind(this);
-    this._handleNavigationChange = this._handleNavigationChange.bind(this);
 
     this.urlLabel = false;
     this.outlined = false;
@@ -462,13 +462,11 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
   _attachListeners(node) {
     node.addEventListener('api-response', this._responseHandler);
     node.addEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
-    node.addEventListener('api-navigation-selection-changed', this._handleNavigationChange);
   }
 
   _detachListeners(node) {
     node.removeEventListener('api-response', this._responseHandler);
     node.removeEventListener('oauth2-redirect-uri-changed', this._authRedirectChangedHandler);
-    node.removeEventListener('api-navigation-selection-changed', this._handleNavigationChange);
   }
   /**
    * Overrides `AmfHelperMixin.__amfChanged`.
@@ -479,8 +477,8 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     if (modelGenerator && modelGenerator.clearCache) {
       modelGenerator.clearCache();
     }
-    this._updateServers();
     this._selectedChanged();
+    this._updateServers();
   }
   /**
    * Dispatches bubbling and composed custom event.
@@ -1002,14 +1000,11 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * selection can be computed.
    * @param {ServerParameters=} [params={}]
    */
-  _updateServers({ id, type, endpointId } = {}) {
-    let methodId;
-    if (type === 'method') {
-      methodId = id;
-    }
-    if (type === 'endpoint') {
-      endpointId = id;
-    }
+  _updateServers() {
+    const webApi = this._computeWebApi(this.amf);
+    const methodId = this.selected;
+    const endpoint = this._computeMethodEndpoint(webApi, methodId);
+    const endpointId = endpoint ? endpoint['@id'] : '';
     this.servers = this._getServers({ endpointId, methodId });
   }
 
@@ -1030,19 +1025,6 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
     const { value, type } = e.detail;
     this.serverType = type;
     this.serverValue = value;
-  }
-
-  /**
-   * Computes available servers when a method is selected in the navigation.
-   *
-   * @param {CustomEvent} e
-   */
-  _handleNavigationChange(e) {
-    const { selected: id, type, endpointId } = e.detail;
-    if (type !== 'method') {
-      return;
-    }
-    this._updateServers({ id, type, endpointId });
   }
 
   render() {
@@ -1364,7 +1346,7 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
       .value="${serverValue}"
       .type="${serverType}"
       .selectedShape="${selected}"
-      .selectedShapeType="method"
+      .selectedShapeType="${'method'}"
       autoselect
       ?compatibility="${compatibility}"
       ?outlined="${outlined}"
