@@ -44,7 +44,7 @@
     "@api-components/api-body-editor": "^4.0.4",
     "@api-components/api-form-mixin": "^3.1.0",
     "@api-components/api-headers-editor": "^4.1.0",
-    "@api-components/api-server-selector": "^0.5.0",
+    "@api-components/api-server-selector": "^0.6.1",
     "@api-components/api-url-data-model": "^5.0.1",
     "@api-components/api-url-editor": "^4.0.3",
     "@api-components/api-url-params-editor": "^4.1.0",
