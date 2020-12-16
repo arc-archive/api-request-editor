@@ -663,12 +663,12 @@ export class ApiRequestEditor extends HeadersParserMixin(AmfHelperMixin(EventsTa
    * but provided all the data. This function should check for this
    * condition and call authorization function automatically.
    */
-  authAndExecute() {
+  async authAndExecute() {
     this.__requestAuthAwaiting = true;
     const panel = this._auth;
     let result;
     if (panel) {
-      result = panel.forceAuthorization(false);
+      result = await panel.forceAuthorization(false);
     }
     if (!result) {
       const toast = this.shadowRoot.querySelector('#authFormError');

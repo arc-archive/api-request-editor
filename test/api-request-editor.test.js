@@ -131,8 +131,8 @@ describe('ApiRequestEditor', function() {
     it('data is passed', async () => {
       const aware = document.createElement('raml-aware');
       aware.scope = 'test';
-      aware.api = [{}];
-      assert.deepEqual(element.amf, [{}]);
+      aware.api = [{ '@type': [] }];
+      assert.deepEqual(element.amf, [{ '@type': [] }]);
     });
   });
 
@@ -795,6 +795,7 @@ describe('ApiRequestEditor', function() {
         it('Sets editor url', async () => {
           const method = AmfLoader.lookupOperation(amf, '/people', 'get');
           const element = await modelFixture(amf, method['@id']);
+          await nextFrame();
           const result = element.serializeRequest();
           assert.equal(result.url, 'http://production.domain.com/people');
         });
@@ -899,6 +900,7 @@ describe('ApiRequestEditor', function() {
           const spy = sinon.spy(element, 'authAndExecute');
           const button = element.shadowRoot.querySelector('.send-button');
           MockInteractions.tap(button);
+          await aTimeout(25);
           assert.isTrue(spy.called);
         });
 
@@ -908,6 +910,7 @@ describe('ApiRequestEditor', function() {
           await aTimeout(5);
           const button = element.shadowRoot.querySelector('.send-button');
           MockInteractions.tap(button);
+          await aTimeout(10);
           const toast = element.shadowRoot.querySelector('#authFormError');
           assert.isTrue(toast.opened);
         });
