@@ -900,7 +900,7 @@ describe('ApiRequestEditor', function() {
           const spy = sinon.spy(element, 'authAndExecute');
           const button = element.shadowRoot.querySelector('.send-button');
           MockInteractions.tap(button);
-          await aTimeout(10);
+          await aTimeout(25);
           assert.isTrue(spy.called);
         });
 
