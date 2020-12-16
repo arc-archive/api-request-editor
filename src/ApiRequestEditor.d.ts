@@ -385,7 +385,7 @@ declare class ApiRequestEditor extends
    * but provided all the data. This function should check for this
    * condition and call authorization function automatically.
    */
-  authAndExecute(): void;
+  authAndExecute(): Promise<void>;
 
   /**
    * Executes the request by dispatching `api-request` custom event.
