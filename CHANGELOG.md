@@ -798,3 +798,18 @@
 * adding higher timeout for tests [cd96fd2](https://github.com/advanced-rest-client/api-request-editor/commit/cd96fd21730f578bed3f01d0b2a98382f9760545) by Pawel
 
 
+<a name="5.1.0"></a>
+## [5.1.0](https://github.com/advanced-rest-client/api-request-editor/compare/5.0.1...5.1.0) (2020-12-16)
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [a98258f](https://github.com/advanced-rest-client/api-request-editor/commit/a98258fdc53a1966d6110fd76878d45a885a403e) by Ci agent
+* upgrading dependencies to fix infinite loop issue [15624f6](https://github.com/advanced-rest-client/api-request-editor/commit/15624f610cfaa22e712b9612c4149e42f5bccc40) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [04441f6](https://github.com/advanced-rest-client/api-request-editor/commit/04441f631d0150c290f22f1a02bbd33fcdd2da15) by Ci agent
+
+
+### Features
+
+* adding support for OAS 3 server selection [49fe409](https://github.com/advanced-rest-client/api-request-editor/commit/49fe4097253bb238657116e4b7f9668fbd266274) by Pawel
+
+
