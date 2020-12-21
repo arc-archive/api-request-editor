@@ -813,3 +813,17 @@
 * adding support for OAS 3 server selection [49fe409](https://github.com/advanced-rest-client/api-request-editor/commit/49fe4097253bb238657116e4b7f9668fbd266274) by Pawel
 
 
+<a name="5.1.1"></a>
+## [5.1.1](https://github.com/advanced-rest-client/api-request-editor/compare/5.0.2...5.1.1) (2020-12-21)
+
+### Build
+
+* bump oauth-authorization [d8362b7](https://github.com/advanced-rest-client/api-request-editor/commit/d8362b7423e9ad633523ca92762769d32d58aa21) by Carolina Wright
+
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [1691ee8](https://github.com/advanced-rest-client/api-request-editor/commit/1691ee85bfb055e30bca2439929881c76899c221) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [a98258f](https://github.com/advanced-rest-client/api-request-editor/commit/a98258fdc53a1966d6110fd76878d45a885a403e) by Ci agent
+
+
