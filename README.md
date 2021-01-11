@@ -18,6 +18,10 @@ The component contains an UI for editing a HTTP request. It contains:
 
 **See breaking changes and list of required dependencies at the bottom of this document**
 
+## Deprecation notice
+
+This component has been moved to `api-request`. Use the other one instead. This component will be archived when the next version of API Console is released.
+
 ## Version compatibility
 
 This version only works with AMF model version 2 (AMF parser >= 4.0.0).
