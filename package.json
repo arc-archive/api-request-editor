@@ -55,49 +55,5 @@
     "jsrsasign": "^8.0.15",
     "lit-element": "^2.3.1",
     "lit-html": "^1.2.1"
-  },
-  "devDependencies": {
-    "@advanced-rest-client/arc-demo-helper": "^2.2.5",
-    "@advanced-rest-client/eslint-config": "^1.1.5",
-    "@advanced-rest-client/prettier-config": "^0.1.0",
-    "@advanced-rest-client/xhr-simple-request": "^3.0.1",
-    "@api-components/api-model-generator": "^0.2.8",
-    "@api-components/api-navigation": "^4.1.0",
-    "@api-components/api-property-form-item": "^3.0.12",
-    "@commitlint/cli": "^11.0.0",
-    "@commitlint/config-conventional": "^11.0.0",
-    "@open-wc/testing": "^2.5.13",
-    "@polymer/gen-typescript-declarations": "^1.6.2",
-    "@polymer/iron-test-helpers": "^3.0.1",
-    "@web/test-runner": "^0.10.2",
-    "@web/test-runner-playwright": "^0.6.6",
-    "deepmerge": "^4.2.2",
-    "es-dev-server": "^1.46.5",
-    "husky": "^4.3.7",
-    "karma": "^5.0.2",
-    "lint-staged": "^10.1.7",
-    "sinon": "^9.2.3",
-    "typescript": "^3.8.3",
-    "typescript-lit-html-plugin": "^0.9.0"
-  },
-  "scripts": {
-    "update-types": "gen-typescript-declarations --deleteExisting --outDir .",
-    "start": "es-dev-server --app-index demo/index.html --node-resolve --open --watch",
-    "lint:eslint": "eslint --ext .js,.html .",
-    "format:eslint": "eslint --ext .js,.html . --fix",
-    "lint:prettier": "prettier \"**/*.js\" --list-different || (echo '↑↑ these files are not prettier formatted ↑↑' && exit 1)",
-    "format:prettier": "prettier \"**/*.js\" --write",
-    "lint": "npm run lint:eslint && npm run lint:prettier",
-    "lint:types": "tsc",
-    "format": "npm run format:eslint && npm run format:prettier",
-    "test": "web-test-runner test/**/*.test.js --coverage --node-resolve --playwright --browsers chromium firefox webkit",
-    "test:watch": "web-test-runner test/**/*.test.js --node-resolve --watch",
-    "generate-model": "node demo/model.js",
-    "prepare": "node demo/model.js"
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix"
-    ]
   }
 }

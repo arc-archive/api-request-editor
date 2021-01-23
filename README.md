@@ -16,11 +16,9 @@ The component contains an UI for editing a HTTP request. It contains:
 -   Payload (body) editor
 -   Authorization editor
 
-**See breaking changes and list of required dependencies at the bottom of this document**
-
 ## Deprecation notice
 
-This component has been moved to `api-request`. Use the other one instead. This component will be archived when the next version of API Console is released.
+This component has been moved to `api-request`. Use the other one instead.
 
 ## Version compatibility
 
