@@ -942,7 +942,7 @@ export class ApiRequestEditor extends AmfHelperMixin(EventsTargetMixin(LitElemen
       .amf="${amf}"
       .apiUri="${baseUri}"
       .selected="${selected}"
-      .server="${ifDefined(server)}"
+      .server="${server}"
       .protocols="${ifDefined(protocols)}"
       .version="${ifDefined(version)}"
     ></api-url-data-model>
