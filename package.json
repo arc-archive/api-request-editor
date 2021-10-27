@@ -1,7 +1,7 @@
 {
   "name": "@api-components/api-request-editor",
   "description": "A request editor that builds the UI based on AMF model",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "license": "Apache-2.0",
   "main": "api-request-editor.js",
   "keywords": [
@@ -41,7 +41,7 @@
     "@api-components/api-body-editor": "^4.0.2",
     "@api-components/api-form-mixin": "^3.0.4",
     "@api-components/api-headers-editor": "^4.0.2",
-    "@api-components/api-url-data-model": "^4.0.5",
+    "@api-components/api-url-data-model": "5.0.0",
     "@api-components/api-url-editor": "^4.0.1",
     "@api-components/api-url-params-editor": "^4.0.2",
     "@api-components/raml-aware": "^3.0.0",
