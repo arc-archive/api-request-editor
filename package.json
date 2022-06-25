@@ -52,7 +52,7 @@
     "@polymer/paper-spinner": "^3.0.2",
     "@polymer/paper-toast": "^3.0.0",
     "cryptojslib": "^3.1.2",
-    "jsrsasign": "^8.0.15",
+    "jsrsasign": "^10.5.25",
     "lit-element": "^2.3.1",
     "lit-html": "^1.2.1"
   }
